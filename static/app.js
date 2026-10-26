@@ -56,97 +56,96 @@ function renderProblems(items) {
     `).join('') || '<div class="glass-card">Không tìm thấy bài phù hợp.</div>';
 }
 
+
 async function refresh() {
-    try {
-        const me = await api('/api/me');
-        const u = me.user;
-const authSection = document.querySelector('#auth-section');
-if (authSection) {
-    authSection.style.display = u ? 'none' : 'grid';
-}
-        const status = document.querySelector('#user-status');
-        if (status) {
-            status.textContent = u
-                ? `Xin chào, ${u.username}`
-                : 'Chưa đăng nhập';
-        }
+    const authSection = document.querySelector('#auth-section');
+    const status = document.querySelector('#user-status');
+    const logout = document.querySelector('#logout-button');
+    const admin = document.querySelector('#admin-link');
+    const history = document.querySelector('#history');
+    const problems = document.querySelector('#problems');
+    const count = document.querySelector('#problem-count');
+    const adminCount = document.querySelector('#admin-problem-count');
+    const rankings = document.querySelector('#rankings');
 
-        const logout = document.querySelector('#logout-button');
-        if (logout) logout.hidden = !u;
+    const needMe = !!(
+        authSection || status || logout || admin || history
+    );
 
-        const admin = document.querySelector('#admin-link');
-        if (admin) admin.hidden = !(u && u.is_admin);
+    const tasks = [];
 
-        if (u) {
-            const h = await api('/api/submissions');
-            const el = document.querySelector('#history');
+    if (needMe) {
+        tasks.push(
+            api('/api/me').then(async me => {
+                const u = me.user;
 
-            if (el) {
-                el.innerHTML = h.length
-                    ? '<table><tr><th>Bài</th><th>Kết quả</th><th>Điểm</th><th>Thời gian</th></tr>' +
-                      h.map(x => `
+                if (authSection) authSection.style.display = u ? 'none' : 'grid';
+                if (status) status.textContent = u
+                    ? `Xin chào, ${u.username}`
+                    : 'Chưa đăng nhập';
+                if (logout) logout.hidden = !u;
+                if (admin) admin.hidden = !(u && u.is_admin);
+
+                if (history && u) {
+                    const h = await api('/api/submissions');
+
+                    history.innerHTML = h.length
+                        ? '<table><tr><th>Bài</th><th>Kết quả</th><th>Điểm</th><th>Thời gian</th></tr>' +
+                          h.map(x => `
+                            <tr>
+                                <td><a class="text-link" href="/problems/${encodeURIComponent(x.problem_id)}">${escapeHtml(x.problem_id)}</a></td>
+                                <td>${escapeHtml(x.verdict)}</td>
+                                <td>${x.score}/${x.max_score}</td>
+                                <td>${escapeHtml(x.created_at)}</td>
+                            </tr>
+                          `).join('') +
+                          '</table>'
+                        : 'Chưa có bài nộp.';
+                } else if (history) {
+                    history.textContent = 'Vui lòng đăng nhập để xem lịch sử.';
+                }
+            }).catch(e => console.error('Lỗi tải tài khoản:', e))
+        );
+    }
+
+    if (problems || count || adminCount) {
+        tasks.push(
+            api('/api/problems').then(p => {
+                if (problems) {
+                    problems.dataset.items = JSON.stringify(p);
+                    renderProblems(p);
+                }
+                if (count) count.textContent = p.length;
+                if (adminCount) {
+                    adminCount.textContent =
+                        `${p.length} bài đang được nạp từ ngân hàng dữ liệu.`;
+                }
+            }).catch(e => note(e.message))
+        );
+    }
+
+    if (rankings) {
+        tasks.push(
+            api('/api/leaderboard').then(rows => {
+                rankings.innerHTML = rows.length
+                    ? '<table><thead><tr><th>Hạng</th><th>Thành viên</th><th>Điểm</th><th>Bài có điểm</th></tr></thead><tbody>' +
+                      rows.map((x, i) => `
                         <tr>
-                            <td>
-                                <a class="text-link"
-                                   href="/problems/${encodeURIComponent(x.problem_id)}">
-                                    ${escapeHtml(x.problem_id)}
-                                </a>
-                            </td>
-                            <td>${escapeHtml(x.verdict)}</td>
-                            <td>${x.score}/${x.max_score}</td>
-                            <td>${escapeHtml(x.created_at)}</td>
+                            <td>${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</td>
+                            <td>${escapeHtml(x.username)}</td>
+                            <td><b>${x.score}</b></td>
+                            <td>${x.solved}</td>
                         </tr>
                       `).join('') +
-                      '</table>'
-                    : 'Chưa có bài nộp.';
-            }
-        }
-    } catch (e) {
-        console.error('Lỗi tải thông tin tài khoản:', e);
+                      '</tbody></table>'
+                    : 'Chưa có thành tích. Hãy là người đầu tiên!';
+            }).catch(e => console.error('Lỗi tải bảng xếp hạng:', e))
+        );
     }
 
-    try {
-        const p = await api('/api/problems');
-        const el = document.querySelector('#problems');
-
-        if (el) {
-            el.dataset.items = JSON.stringify(p);
-            renderProblems(p);
-        }
-
-        const count = document.querySelector('#problem-count');
-        if (count) count.textContent = p.length;
-
-        const ac = document.querySelector('#admin-problem-count');
-        if (ac) {
-            ac.textContent = `${p.length} bài đang được nạp từ ngân hàng dữ liệu.`;
-        }
-    } catch (e) {
-        note(e.message);
-    }
-
-    try {
-        const rows = await api('/api/leaderboard');
-        const el = document.querySelector('#rankings');
-
-        if (el) {
-            el.innerHTML = rows.length
-                ? '<table><thead><tr><th>Hạng</th><th>Thành viên</th><th>Điểm</th><th>Bài có điểm</th></tr></thead><tbody>' +
-                  rows.map((x, i) => `
-                    <tr>
-                        <td>${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</td>
-                        <td>${escapeHtml(x.username)}</td>
-                        <td><b>${x.score}</b></td>
-                        <td>${x.solved}</td>
-                    </tr>
-                  `).join('') +
-                  '</tbody></table>'
-                : 'Chưa có thành tích. Hãy là người đầu tiên!';
-        }
-    } catch (e) {
-        console.error('Lỗi tải bảng xếp hạng:', e);
-    }
+    await Promise.allSettled(tasks);
 }
+
 
 document.querySelector('#search')?.addEventListener('input', e => {
     const el = document.querySelector('#problems');
