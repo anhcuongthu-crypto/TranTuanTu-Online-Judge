@@ -1367,6 +1367,7 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             'delete_problem', old, new, removed
         )
         save_problems(new, app.config['PROBLEMS_PATH'])
+        update_problems_cache(new)
         return jsonify(ok=True)
 
     # ==================== BULK PROBLEM TOOLS ====================
