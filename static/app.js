@@ -295,52 +295,61 @@ document.querySelector('#submit')?.addEventListener('click', async e => {
         result.textContent = 'Đã nhận bài. Đang chấm...';
 
         let finalResult = null;
-        let delay = 300;
-        const startTime = Date.now();
-        const maxWait = 10000;
+        let delay = 500;
+        let consecutiveErrors = 0;
 
-        while (Date.now() - startTime < maxWait) {
+        // Không giới hạn chờ 10 giây.
+        // Tiếp tục hỏi máy chủ cho đến khi bài có kết quả cuối cùng.
+        while (true) {
             await new Promise(resolve => setTimeout(resolve, delay));
 
-            if (Date.now() - startTime >= maxWait) break;
+            try {
+                finalResult = await api(
+                    `/api/submissions/${encodeURIComponent(data.submission_id)}/status`
+                );
 
-            finalResult = await api(
-                `/api/submissions/${encodeURIComponent(data.submission_id)}/status`
-            );
+                consecutiveErrors = 0;
+            } catch (err) {
+                consecutiveErrors++;
+
+                result.textContent =
+                    `Đang chờ kết quả chấm bài... (lỗi kết nối ${consecutiveErrors})`;
+
+                if (consecutiveErrors >= 5) {
+                    throw err;
+                }
+
+                delay = Math.min(delay * 2, 5000);
+                continue;
+            }
+
+            const verdict = finalResult.verdict;
 
             if (
-                finalResult.verdict !== 'Queued' &&
-                finalResult.verdict !== 'Processing'
+                verdict &&
+                verdict !== 'Queued' &&
+                verdict !== 'Processing'
             ) {
                 break;
             }
 
             result.textContent = 'Đang chấm bài...';
-            delay = Math.min(Math.round(delay * 1.3), 1000);
+            delay = Math.min(Math.round(delay * 1.3), 2000);
         }
 
-        if (
-            !finalResult ||
-            finalResult.verdict === 'Queued' ||
-            finalResult.verdict === 'Processing'
-        ) {
-            result.textContent =
-                'Đã chờ 10 giây nhưng bài chưa chấm xong. ' +
-                'Bài vẫn có thể đang được xử lý; hãy kiểm tra lịch sử bài nộp.';
-
-            // Cập nhật lịch sử mà không huỷ bài chấm.
-            await refresh();
-            return;
-        }
-
+        // Hiện kết quả ngay tại khu vực nộp bài.
         result.textContent =
             `${finalResult.verdict}\n` +
             `Điểm: ${finalResult.score}/${finalResult.max_score}\n\n` +
             JSON.stringify(finalResult.details ?? {}, null, 2);
 
+        // Cập nhật lịch sử và bảng xếp hạng.
         await refresh();
+
     } catch (err) {
-        result.textContent = 'Không chấm được: ' + err.message;
+        result.textContent =
+            'Chưa lấy được kết quả chấm: ' + err.message +
+            '\nBài nộp có thể vẫn đang được xử lý. Hãy thử tải lại sau.';
     } finally {
         button.disabled = false;
     }
