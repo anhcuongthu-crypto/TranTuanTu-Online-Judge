@@ -1326,6 +1326,7 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             validate_problem(d)
             old.append(d)
             save_problems(old, app.config['PROBLEMS_PATH'])
+            update_problems_cache(old)
             return jsonify(ok=True, id=d['id']), 201
         except Exception as e:
             return jsonify(error=str(e)), 400
