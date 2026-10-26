@@ -1,0 +1,1504 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị Online Judge</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 16px;
+            background: #f5f7fb;
+            color: #222;
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+
+        button {
+            padding: 9px 14px;
+            margin: 4px;
+            border: 0;
+            border-radius: 7px;
+            cursor: pointer;
+            background: #2563eb;
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .danger {
+            background: #dc2626;
+        }
+
+        .secondary {
+            background: #64748b;
+        }
+
+        .success {
+            background: #15803d;
+        }
+
+        .panel {
+            background: white;
+            padding: 20px;
+            margin: 18px 0;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px #0000000d;
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 14px 0;
+        }
+
+        .problem-info {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .problem-info input {
+            margin-top: 5px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .problem-info h3 {
+            margin-bottom: 6px;
+        }
+
+        .muted {
+            color: #64748b;
+            margin: 0;
+        }
+
+        .message {
+            margin: 12px 0;
+            white-space: pre-wrap;
+        }
+
+        .error-message {
+            color: #dc2626;
+        }
+
+        .success-message {
+            color: #15803d;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            box-sizing: border-box;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: Consolas, monospace;
+            font-size: 14px;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .user-status {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 6px;
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 13px;
+        }
+
+        .user-status.approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        @media (max-width: 600px) {
+            .section-heading {
+                align-items: flex-start;
+            }
+
+            .section-heading > div:last-child {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Quản trị Online Judge</h1>
+
+    <!-- QUẢN LÝ TÀI KHOẢN -->
+    <section class="panel">
+        <div class="section-heading">
+            <div>
+                <h2>Tài khoản học sinh</h2>
+                <p class="muted">
+                    Xem tài khoản và phê duyệt tài khoản đang chờ.
+                </p>
+            </div>
+
+            <button type="button" id="refresh-users" class="secondary">
+                Tải lại danh sách
+            </button>
+        </div>
+
+        <div id="user-message" class="message"></div>
+        <div id="users-list">Đang tải tài khoản...</div>
+    </section>
+
+    <!-- NGÂN HÀNG BÀI TẬP -->
+    <section class="panel">
+    <h2>Bài nộp học sinh</h2>
+
+    <button type="button" id="refresh-submissions">
+        Tải lại bài nộp
+    </button>
+
+    <div id="submissions-list">Đang tải bài nộp...</div>
+
+    <div id="source-panel" hidden>
+        <h3 id="source-title">Mã nguồn</h3>
+        <pre id="source-code" style="white-space:pre-wrap;overflow:auto;background:#111827;color:white;padding:16px;border-radius:8px;"></pre>
+        <button type="button" id="copy-source">Sao chép mã nguồn</button>
+        <button type="button" id="close-source">Đóng</button>
+    </div>
+</section>
+    <section class="panel">
+        <h2>Ngân hàng đề</h2>
+
+        <div id="admin-problem-count">Đang tải...</div>
+
+        <div class="toolbar">
+            <button type="button" id="save-bank" class="success">
+                Lưu ngân hàng đề lên GitHub
+            </button>
+
+            <button type="button" id="select-all" class="secondary">
+                Chọn tất cả
+            </button>
+
+            <button type="button" id="deselect-all" class="secondary">
+                Bỏ chọn
+            </button>
+
+            <button type="button" id="delete-selected" class="danger" disabled>
+                Xóa bài đã chọn (0)
+            </button>
+        </div>
+
+        <p class="muted">
+            Nút lưu sẽ đồng bộ toàn bộ ngân hàng đề hiện tại lên GitHub.
+        </p>
+
+        <div id="problem-list">Đang tải danh sách bài...</div>
+    </section>
+
+    <!-- THÊM / SỬA BÀI TẬP -->
+    <!-- QUẢN LÝ CONTEST -->
+<section class="panel">
+    <h2>🏆 Quản lý Contest</h2>
+
+    <label for="contestTitle">Tên Contest</label>
+    <input id="contestTitle" type="text" placeholder="Ví dụ: Tuyen Sinh Lam Son 2027">
+
+    <label for="contestDescription">Mô tả</label>
+    <textarea id="contestDescription" placeholder="Mô tả kỳ thi"></textarea>
+
+    <label for="contestStart">Thời gian bắt đầu</label>
+    <input id="contestStart" type="datetime-local">
+
+    <label for="contestEnd">Thời gian kết thúc</label>
+    <input id="contestEnd" type="datetime-local">
+
+        <h3>Chọn bài từ ngân hàng đề</h3>
+    <div id="contestProblems">Đang tải danh sách bài tập...</div>
+
+    <hr>
+
+    <h3>Thêm bài riêng cho Contest</h3>
+    <p class="muted">
+        Bài riêng chỉ thuộc Contest này, không thêm vào ngân hàng đề chung.
+    </p>
+
+    <label for="customProblemId">ID bài riêng</label>
+    <input id="customProblemId" type="text" placeholder="VD: LS2027_C1">
+
+    <label for="customProblemTitle">Tên bài</label>
+    <input id="customProblemTitle" type="text" placeholder="Tên bài tập">
+
+    <label for="customProblemStatement">Đề bài</label>
+    <textarea id="customProblemStatement" placeholder="Nhập nội dung đề bài"></textarea>
+
+    <label for="customProblemInput">Mô tả dữ liệu vào</label>
+    <textarea id="customProblemInput" placeholder="Dữ liệu vào"></textarea>
+
+    <label for="customProblemOutput">Mô tả dữ liệu ra</label>
+    <textarea id="customProblemOutput" placeholder="Dữ liệu ra"></textarea>
+
+    <label for="customProblemScore">Tổng điểm</label>
+    <input id="customProblemScore" type="number" min="1" value="10">
+
+    <label for="customProblemTime">Giới hạn thời gian (giây)</label>
+    <input id="customProblemTime" type="number" min="0.1" step="0.1" value="1">
+
+    <label for="customProblemMemory">Giới hạn bộ nhớ (KB)</label>
+    <input id="customProblemMemory" type="number" min="1" value="256000">
+
+    <label for="customProblemSubtasks">Subtasks và test (JSON)</label>
+    <label for="contestSampleInput">Input mẫu</label>
+    <textarea id="contestSampleInput"
+          placeholder="Nhập input mẫu..."
+          style="min-height:100px"></textarea>
+
+    <label for="contestSampleOutput">Output mẫu</label>
+    <textarea id="contestSampleOutput"
+          placeholder="Nhập output mẫu..."
+          style="min-height:100px"></textarea>
+    <textarea id="customProblemSubtasks" placeholder='[{"id":"1","name":"Subtask 1","score":10,"tests":[{"input":"5\n","output":"5\n"}]}]'></textarea>
+
+    <button type="button" id="addCustomProblem" class="success">
+        Thêm bài riêng vào Contest
+    </button>
+    <div id="customProblemMessage" class="message"></div>
+
+    <div id="customProblemList"></div>
+
+    <label>
+        <input id="contestVisible" type="checkbox" checked>
+        Hiển thị Contest cho thí sinh
+    </label>
+
+    <button type="button" onclick="createContest()">Tạo Contest</button>
+    <p id="contestMessage" class="message"></p>
+
+    <hr>
+    <h3>Danh sách Contest</h3>
+    <div id="contestList">Đang tải Contest...</div>
+</section>
+    <section class="panel">
+        <h2 id="editor-title">Thêm bài tập</h2>
+
+        <form id="problem-form">
+            <label for="problem-json">
+                Nội dung bài tập dạng JSON
+            </label>
+
+            <p class="muted">
+                Dán toàn bộ JSON của một bài tập vào ô dưới đây.
+            </p>
+
+            <textarea
+                id="problem-json"
+                required
+                placeholder='{"id":"BAI1","title":"Tên bài", ...}'
+            ></textarea>
+            <label for="sample-input">Input mẫu</label>
+            <textarea id="sample-input"
+          placeholder="Nhập input mẫu..."
+          style="min-height:100px"></textarea>
+
+            <label for="sample-output">Output mẫu</label>
+            <textarea id="sample-output"
+          placeholder="Nhập output mẫu..."
+          style="min-height:100px"></textarea>
+
+            <div id="problem-message" class="message"></div>
+
+            <button type="submit" id="save-problem">
+                Thêm bài tập
+            </button>
+
+            <button
+                type="button"
+                id="cancel-edit"
+                class="secondary"
+                hidden
+            >
+                Hủy sửa
+            </button>
+        </form>
+    </section>
+
+    <script>
+        const list = document.getElementById('problem-list');
+        const count = document.getElementById('admin-problem-count');
+        const form = document.getElementById('problem-form');
+        const editor = document.getElementById('problem-json');
+        const sampleInput = document.getElementById('sample-input');
+        const sampleOutput = document.getElementById('sample-output');
+        const message = document.getElementById('problem-message');
+        const title = document.getElementById('editor-title');
+        const saveButton = document.getElementById('save-problem');
+        const cancelButton = document.getElementById('cancel-edit');
+
+        const saveBankButton = document.getElementById('save-bank');
+        const selectAllButton = document.getElementById('select-all');
+        const deselectAllButton = document.getElementById('deselect-all');
+        const deleteSelectedButton =
+            document.getElementById('delete-selected');
+
+        const usersList = document.getElementById('users-list');
+        const userMessage = document.getElementById('user-message');
+        const refreshUsersButton =
+            document.getElementById('refresh-users');
+
+        let editingId = null;
+        const selectedIds = new Set();
+
+        async function api(url, options = {}) {
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    ...(options.body !== undefined
+                        ? { 'Content-Type': 'application/json' }
+                        : {}),
+                    ...(options.headers || {})
+                }
+            });
+
+            const text = await response.text();
+            let data = {};
+
+            try {
+                data = text ? JSON.parse(text) : {};
+            } catch {
+                data = { message: text };
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error ||
+                    data.message ||
+                    `Lỗi HTTP ${response.status}`
+                );
+            }
+
+            return data;
+        }
+
+        function showMessage(text, isError = false) {
+            message.textContent = text;
+            message.className = 'message ' +
+                (isError ? 'error-message' : 'success-message');
+        }
+
+        function showUserMessage(text, isError = false) {
+            userMessage.textContent = text;
+            userMessage.className = 'message ' +
+                (isError ? 'error-message' : 'success-message');
+        }
+        cancelButton.addEventListener('click', resetEditor);
+        function resetEditor() {
+    editingId = null;
+    editor.value = '';
+    sampleInput.value = '';
+    sampleOutput.value = '';
+
+    title.textContent = 'Thêm bài tập';
+    saveButton.textContent = 'Thêm bài tập';
+    cancelButton.hidden = true;
+    showMessage('');
+}
+        function updateSelectedCount() {
+            const n = selectedIds.size;
+            deleteSelectedButton.textContent = `Xóa bài đã chọn (${n})`;
+            deleteSelectedButton.disabled = n === 0;
+        }
+
+        function makeButton(text, className, onClick) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = text;
+            button.className = className;
+            button.addEventListener('click', onClick);
+            return button;
+        }
+
+        // LƯU NGÂN HÀNG ĐỀ LÊN GITHUB
+        saveBankButton.addEventListener('click', async () => {
+            if (!confirm(
+                'Lưu toàn bộ ngân hàng đề hiện tại lên GitHub?'
+            )) {
+                return;
+            }
+
+            saveBankButton.disabled = true;
+            saveBankButton.textContent = 'Đang lưu...';
+
+            try {
+                const result = await api('/api/admin/problems/save', {
+                    method: 'POST'
+                });
+
+                alert(
+                    result.message ||
+                    `Đã lưu thành công ${result.count ?? ''} bài tập lên GitHub.`
+                );
+            } catch (error) {
+                alert('Lưu thất bại: ' + error.message);
+            } finally {
+                saveBankButton.disabled = false;
+                saveBankButton.textContent =
+                    'Lưu ngân hàng đề lên GitHub';
+            }
+        });
+
+        // QUẢN LÝ TÀI KHOẢN
+        async function loadUsers() {
+            usersList.textContent = 'Đang tải tài khoản...';
+            showUserMessage('');
+
+            refreshUsersButton.disabled = true;
+
+            try {
+                const users = await api('/api/admin/users');
+
+                usersList.replaceChildren();
+
+                if (!Array.isArray(users) || users.length === 0) {
+                    usersList.textContent =
+                        'Chưa có tài khoản học sinh.';
+                    return;
+                }
+
+                for (const user of users) {
+                    const row = document.createElement('div');
+                    row.className = 'section-heading';
+
+                    const info = document.createElement('div');
+                    info.className = 'problem-info';
+
+                    const textInfo = document.createElement('div');
+
+                    const heading = document.createElement('h3');
+                    heading.textContent =
+                        `${user.username} (#${user.id})`;
+
+                    const status = document.createElement('span');
+                    status.className = 'user-status' +
+                        (user.approved ? ' approved' : '');
+
+                    status.textContent = user.approved
+                        ? 'Đã phê duyệt'
+                        : 'Đang chờ phê duyệt';
+
+                    textInfo.append(heading, status);
+
+                    if (user.created_at) {
+                        const created = document.createElement('p');
+                        created.className = 'muted';
+                        created.style.marginTop = '6px';
+                        created.textContent =
+                            `Ngày tạo: ${user.created_at}`;
+                        textInfo.appendChild(created);
+                    }
+
+                    info.appendChild(textInfo);
+                    row.appendChild(info);
+
+                    if (!user.approved) {
+                        const approveButton = makeButton(
+                            'Phê duyệt',
+                            'success',
+                            async () => {
+                                if (approveButton.disabled) {
+                                    return;
+                                }
+
+                                approveButton.disabled = true;
+                                approveButton.textContent = 'Đang duyệt...';
+
+                                try {
+                                    await api(
+                                        `/api/admin/users/${user.id}/approve`,
+                                        { method: 'POST' }
+                                    );
+
+                                    showUserMessage(
+                                        `Đã phê duyệt tài khoản ${user.username}.`
+                                    );
+
+                                    await loadUsers();
+                                } catch (error) {
+                                    showUserMessage(error.message, true);
+                                    approveButton.disabled = false;
+                                    approveButton.textContent = 'Phê duyệt';
+                                }
+                            }
+                        );
+
+                        row.appendChild(approveButton);
+                    }
+
+                    usersList.appendChild(row);
+                }
+            } catch (error) {
+                usersList.textContent =
+                    'Không tải được danh sách tài khoản.';
+                showUserMessage(error.message, true);
+            } finally {
+                refreshUsersButton.disabled = false;
+            }
+        }
+
+        refreshUsersButton.addEventListener('click', loadUsers);
+
+        // QUẢN LÝ BÀI TẬP
+        async function loadProblems() {
+            list.textContent = 'Đang tải danh sách bài...';
+
+            try {
+                const problems = await api('/api/admin/problems');
+
+                const existingIds = new Set(
+                    problems.map(problem => String(problem.id))
+                );
+
+                for (const id of selectedIds) {
+                    if (!existingIds.has(String(id))) {
+                        selectedIds.delete(id);
+                    }
+                }
+
+                count.textContent = `Tổng số bài: ${problems.length}`;
+                list.replaceChildren();
+
+                if (problems.length === 0) {
+                    list.textContent = 'Chưa có bài tập nào.';
+                    updateSelectedCount();
+                    return;
+                }
+
+                for (const problem of problems) {
+                    const row = document.createElement('div');
+                    row.className = 'section-heading';
+
+                    const info = document.createElement('div');
+                    info.className = 'problem-info';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked =
+                        selectedIds.has(String(problem.id));
+
+                    checkbox.setAttribute(
+                        'aria-label',
+                        `Chọn bài ${problem.title}`
+                    );
+
+                    checkbox.addEventListener('change', () => {
+                        const id = String(problem.id);
+
+                        if (checkbox.checked) {
+                            selectedIds.add(id);
+                        } else {
+                            selectedIds.delete(id);
+                        }
+
+                        updateSelectedCount();
+                    });
+
+                    const textInfo = document.createElement('div');
+
+                    const heading = document.createElement('h3');
+                    heading.textContent =
+                        `${problem.id} — ${problem.title}`;
+
+                    const detail = document.createElement('p');
+                    detail.className = 'muted';
+                    detail.textContent =
+                        `${problem.total_score} điểm · ` +
+                        `${(problem.subtasks || []).length} subtasks`;
+
+                    textInfo.append(heading, detail);
+                    info.append(checkbox, textInfo);
+
+                    const actions = document.createElement('div');
+
+                    actions.append(
+                        makeButton('Sửa', 'secondary', () => {
+                            editingId = String(problem.id);
+                            editor.value =
+                                JSON.stringify(problem, null, 2);
+                            const firstTest = problem.subtasks?.[0]?.tests?.[0];
+
+sampleInput.value = firstTest?.input ?? '';
+sampleOutput.value = firstTest?.output ?? '';
+
+                            title.textContent = `Sửa bài ${problem.id}`;
+                            saveButton.textContent = 'Lưu thay đổi';
+                            cancelButton.hidden = false;
+                            showMessage('');
+
+                            editor.focus();
+
+                            window.scrollTo({
+                                top: document.body.scrollHeight,
+                                behavior: 'smooth'
+                            });
+                        }),
+
+                        makeButton('Xóa', 'danger', async () => {
+                            if (!confirm(
+                                `Mày có chắc muốn xóa bài "${problem.title}"?`
+                            )) {
+                                return;
+                            }
+
+                            try {
+                                await api(
+                                    `/api/admin/problems/${encodeURIComponent(problem.id)}`,
+                                    { method: 'DELETE' }
+                                );
+
+                                selectedIds.delete(String(problem.id));
+
+                                if (editingId === String(problem.id)) {
+                                    resetEditor();
+                                }
+
+                                await loadProblems();
+                                showMessage('Đã xóa bài tập.');
+                            } catch (error) {
+                                alert(
+                                    `Không xóa được bài: ${error.message}`
+                                );
+                            }
+                        })
+                    );
+
+                    row.append(info, actions);
+                    list.appendChild(row);
+                }
+
+                updateSelectedCount();
+            } catch (error) {
+                list.textContent = error.message;
+                count.textContent = 'Không tải được ngân hàng đề.';
+            }
+        }
+
+        selectAllButton.addEventListener('click', async () => {
+            try {
+                const problems = await api('/api/admin/problems');
+
+                selectedIds.clear();
+
+                for (const problem of problems) {
+                    selectedIds.add(String(problem.id));
+                }
+
+                await loadProblems();
+            } catch (error) {
+                alert(`Không tải được danh sách: ${error.message}`);
+            }
+        });
+
+        deselectAllButton.addEventListener('click', () => {
+            selectedIds.clear();
+            loadProblems();
+        });
+
+        deleteSelectedButton.addEventListener('click', async () => {
+            const ids = [...selectedIds];
+
+            if (ids.length === 0) {
+                alert('Mày chưa chọn bài nào.');
+                return;
+            }
+
+            const confirmed = confirm(
+                `CẢNH BÁO: Mày sắp xóa ${ids.length} bài tập.\n\n` +
+                'Thao tác này không thể hoàn tác. Mày có chắc không?'
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            deleteSelectedButton.disabled = true;
+            selectAllButton.disabled = true;
+            deselectAllButton.disabled = true;
+
+            let deleted = 0;
+            const errors = [];
+
+            try {
+                for (const id of ids) {
+                    try {
+                        await api(
+                            `/api/admin/problems/${encodeURIComponent(id)}`,
+                            { method: 'DELETE' }
+                        );
+
+                        selectedIds.delete(id);
+                        deleted++;
+                    } catch (error) {
+                        errors.push(`${id}: ${error.message}`);
+                    }
+                }
+
+                await loadProblems();
+
+                if (errors.length === 0) {
+                    alert(`Đã xóa thành công ${deleted} bài tập.`);
+                } else {
+                    alert(
+                        `Đã xóa ${deleted}/${ids.length} bài.\n\n` +
+                        'Các bài chưa xóa được:\n' + errors.join('\n')
+                    );
+                }
+            } catch (error) {
+                alert(
+                    `Đã xóa ${deleted} bài trước khi xảy ra lỗi: ` +
+                    error.message
+                );
+
+                await loadProblems();
+            } finally {
+                selectAllButton.disabled = false;
+                deselectAllButton.disabled = false;
+                updateSelectedCount();
+            }
+        });
+
+
+        form.addEventListener('submit', async event => {
+            event.preventDefault();
+
+            let problem;
+
+            try {
+                problem = JSON.parse(editor.value);
+            } catch (error) {
+                showMessage('JSON không hợp lệ: ' + error.message, true);
+                return;
+            }
+
+            if (!problem || typeof problem !== 'object' ||
+                Array.isArray(problem)) {
+                showMessage('Dữ liệu phải là một object JSON.', true);
+                return;
+            }
+
+            if (sampleInput.value !== '' || sampleOutput.value !== '') {
+                if (!Array.isArray(problem.subtasks) ||
+                    problem.subtasks.length === 0) {
+                    showMessage('Bài phải có ít nhất một subtask.', true);
+                    return;
+                }
+
+                if (!Array.isArray(problem.subtasks[0].tests)) {
+                    problem.subtasks[0].tests = [];
+                }
+
+                if (problem.subtasks[0].tests.length === 0) {
+                    problem.subtasks[0].tests.push({
+                        input: sampleInput.value,
+                        output: sampleOutput.value
+                    });
+                } else {
+                    problem.subtasks[0].tests[0].input = sampleInput.value;
+                    problem.subtasks[0].tests[0].output = sampleOutput.value;
+                }
+            }
+
+            saveButton.disabled = true;
+
+            try {
+                if (editingId !== null) {
+                    problem.id = editingId;
+
+                    await api(
+                        `/api/admin/problems/${encodeURIComponent(editingId)}`,
+                        {
+                            method: 'PUT',
+                            body: JSON.stringify(problem)
+                        }
+                    );
+
+                    resetEditor();
+                    await loadProblems();
+                    showMessage('Đã cập nhật bài tập.');
+                } else {
+                    await api('/api/admin/problems', {
+                        method: 'POST',
+                        body: JSON.stringify(problem)
+                    });
+
+                    resetEditor();
+                    await loadProblems();
+                    showMessage('Đã thêm bài tập.');
+                }
+            } catch (error) {
+                showMessage('Không lưu được: ' + error.message, true);
+            } finally {
+                saveButton.disabled = false;
+            }
+        });
+
+        // QUẢN LÝ CONTEST
+        const contestProblems = document.getElementById('contestProblems');
+        const contestList = document.getElementById('contestList');
+        const contestMessage = document.getElementById('contestMessage');
+        const customProblemId = document.getElementById('customProblemId');
+        const customProblemTitle = document.getElementById('customProblemTitle');
+        const customProblemStatement = document.getElementById('customProblemStatement');
+        const customProblemInput = document.getElementById('customProblemInput');
+        const customProblemOutput = document.getElementById('customProblemOutput');
+        const customProblemScore = document.getElementById('customProblemScore');
+        const customProblemTime = document.getElementById('customProblemTime');
+        const customProblemMemory = document.getElementById('customProblemMemory');
+        const customProblemSubtasks = document.getElementById('customProblemSubtasks');
+        const contestSampleInput =document.getElementById('contestSampleInput');
+
+        const contestSampleOutput = document.getElementById('contestSampleOutput');
+        const customProblemMessage = document.getElementById('customProblemMessage');
+        const customProblemList = document.getElementById('customProblemList');
+        const addCustomProblemButton = document.getElementById('addCustomProblem');
+
+        let pendingCustomProblems = [];
+        
+        function renderCustomProblemList() {
+            customProblemList.innerHTML = '';
+
+            pendingCustomProblems.forEach((p, i) => {
+                const item = document.createElement('div');
+                item.className = 'problem-item';
+
+                const title = document.createElement('span');
+                title.textContent = p.id + ' - ' + p.title;
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.textContent = 'Xóa';
+                remove.className = 'danger';
+
+                remove.addEventListener('click', () => {
+                    pendingCustomProblems.splice(i, 1);
+                    renderCustomProblemList();
+                });
+
+                item.appendChild(title);
+                item.appendChild(remove);
+                customProblemList.appendChild(item);
+            });
+        }
+
+        addCustomProblemButton.addEventListener('click', () => {
+            const id = customProblemId.value.trim();
+            const title = customProblemTitle.value.trim();
+            const statement = customProblemStatement.value.trim();
+
+            if (!id || !title || !statement) {
+                customProblemMessage.textContent =
+                    'Hãy nhập ID, tên bài và đề bài.';
+                return;
+            }
+
+            if (pendingCustomProblems.some(p => p.id === id)) {
+                customProblemMessage.textContent = 'ID bài bị trùng!';
+                return;
+            }
+
+            let subtasks;
+
+            try {
+                subtasks = JSON.parse(customProblemSubtasks.value);
+            } catch (e) {
+                customProblemMessage.textContent = 'JSON subtasks không hợp lệ!';
+                return;
+            }
+
+            if (!Array.isArray(subtasks) || subtasks.length === 0) {
+                customProblemMessage.textContent =
+                    'Phải có ít nhất một subtask!';
+                return;
+            }
+
+            for (const s of subtasks) {
+                if (!s.id || !s.name || !(Number(s.score) > 0) ||
+                    !Array.isArray(s.tests) || s.tests.length === 0) {
+                    customProblemMessage.textContent =
+                        'Subtask thiếu ID, tên, điểm hoặc test!';
+                    return;
+                }
+
+                for (const t of s.tests) {
+                    if (typeof t.input !== 'string' ||
+                        typeof t.output !== 'string') {
+                        customProblemMessage.textContent =
+                            'Mỗi test phải có input và output dạng chuỗi!';
+                        return;
+                    }
+                }
+            }
+
+            const score = Number(customProblemScore.value);
+            const time = Number(customProblemTime.value);
+            const memory = Number(customProblemMemory.value);
+
+            if (score <= 0 || time <= 0 || memory <= 0) {
+                customProblemMessage.textContent =
+                    'Điểm, thời gian và bộ nhớ phải lớn hơn 0!';
+                return;
+            }
+
+            pendingCustomProblems.push({
+    id: id,
+    title: title,
+    statement: statement,
+    input_desc: customProblemInput.value.trim(),
+    output_desc: customProblemOutput.value.trim(),
+
+    // Một cặp input/output mẫu để hiển thị cho thí sinh
+    sample_input: contestSampleInput.value,
+    sample_output: contestSampleOutput.value,
+
+    total_score: score,
+    time_limit: time,
+    memory_limit: memory,
+    subtasks: subtasks
+});
+
+            customProblemMessage.textContent = 'Đã thêm bài vào danh sách chờ!';
+            renderCustomProblemList();
+
+            customProblemId.value = '';
+            customProblemTitle.value = '';
+            customProblemStatement.value = '';
+            customProblemInput.value = '';
+            customProblemOutput.value = '';
+            customProblemSubtasks.value = '';
+            contestSampleInput.value = '';
+            contestSampleOutput.value = '';
+        });
+
+        function showContestMessage(text, isError = false) {
+            contestMessage.textContent = text;
+            contestMessage.className = 'message ' +
+                (isError ? 'error-message' : 'success-message');
+        }
+
+        async function loadContestProblems() {
+            contestProblems.textContent = 'Đang tải bài tập...';
+
+            try {
+                const problems = await api('/api/admin/problems');
+                contestProblems.replaceChildren();
+
+                if (!Array.isArray(problems) || problems.length === 0) {
+                    contestProblems.textContent = 'Chưa có bài tập nào.';
+                    return;
+                }
+
+                for (const problem of problems) {
+                    const label = document.createElement('label');
+                    label.style.display = 'block';
+                    label.style.margin = '8px 0';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'contest-problem-checkbox';
+                    checkbox.value = String(problem.id);
+
+                    label.append(
+                        checkbox,
+                        document.createTextNode(
+                            ` ${problem.id} — ${problem.title}`
+                        )
+                    );
+
+                    contestProblems.appendChild(label);
+                }
+            } catch (error) {
+                contestProblems.textContent =
+                    'Không tải được bài tập: ' + error.message;
+            }
+        }
+        
+
+async function editContestProblem(contestId, problemId) {
+    try {
+        const data = await api(`/api/contests/${contestId}`);
+
+        const problem = (data.problems || []).find(
+            p => String(p.id) === String(problemId) && p.is_custom
+        );
+
+        if (!problem) {
+            alert('Không tìm thấy bài riêng trong Contest.');
+            return;
+        }
+
+        const newTitle = prompt('Tên bài:', problem.title || '');
+        if (newTitle === null) return;
+
+        const newStatement = prompt('Đề bài:', problem.statement || '');
+        if (newStatement === null) return;
+
+        const newInputDesc = prompt(
+            'Mô tả dữ liệu vào:', problem.input_desc || ''
+        );
+        if (newInputDesc === null) return;
+
+        const newOutputDesc = prompt(
+            'Mô tả dữ liệu ra:', problem.output_desc || ''
+        );
+        if (newOutputDesc === null) return;
+
+        const sampleInput = prompt(
+            'Input mẫu:', problem.sample_input || ''
+        );
+        if (sampleInput === null) return;
+
+        const sampleOutput = prompt(
+            'Output mẫu:', problem.sample_output || ''
+        );
+        if (sampleOutput === null) return;
+
+        const subtasksText = prompt(
+            'Nhập JSON subtasks đầy đủ:',
+            JSON.stringify(problem.subtasks || [], null, 2)
+        );
+        if (subtasksText === null) return;
+
+        let subtasks;
+        try {
+            subtasks = JSON.parse(subtasksText);
+        } catch (e) {
+            alert('JSON subtasks không hợp lệ!');
+            return;
+        }
+
+        if (!Array.isArray(subtasks) || subtasks.length === 0) {
+            alert('Bài phải có ít nhất một subtask!');
+            return;
+        }
+
+        const totalScore = Number(
+            prompt('Tổng điểm bài:', problem.total_score ?? 10)
+        );
+        if (!Number.isFinite(totalScore) || totalScore <= 0) {
+            alert('Tổng điểm phải lớn hơn 0!');
+            return;
+        }
+
+        await api(
+            `/api/admin/contests/${contestId}/problems/${encodeURIComponent(problemId)}`,
+            {
+                method: 'PUT',
+                body: JSON.stringify({
+                    title: newTitle.trim(),
+                    statement: newStatement,
+                    input_desc: newInputDesc,
+                    output_desc: newOutputDesc,
+                    sample_input: sampleInput,
+                    sample_output: sampleOutput,
+                    subtasks: subtasks,
+                    total_score: totalScore,
+                    time_limit: Number(problem.time_limit || 1),
+                    memory_limit: Number(problem.memory_limit || 256000)
+                })
+            }
+        );
+
+        alert('Đã cập nhật bài riêng trong Contest!');
+        await loadContestList();
+    } catch (error) {
+        alert('Không sửa được bài: ' + error.message);
+    }
+}
+
+
+
+        async function loadContestList() {
+            contestList.textContent = 'Đang tải Contest...';
+
+            try {
+                const result = await api('/api/admin/contests');
+                const contests = Array.isArray(result)
+                    ? result
+                    : (result.contests || result.items || []);
+
+                contestList.replaceChildren();
+
+                if (contests.length === 0) {
+                    contestList.textContent = 'Chưa có Contest nào.';
+                    return;
+                }
+
+                for (const contest of contests) {
+                    const panel = document.createElement('div');
+                    panel.className = 'section-heading';
+
+                    const info = document.createElement('div');
+                    info.style.flex = '1';
+
+                    const heading = document.createElement('h3');
+                    heading.textContent =
+                        `${contest.title || 'Contest'} (#${contest.id})`;
+
+                    const description = document.createElement('p');
+                    description.className = 'muted';
+                    description.textContent =
+                        contest.description || 'Không có mô tả';
+
+                    const times = document.createElement('p');
+                    times.className = 'muted';
+                    times.style.marginTop = '6px';
+                    times.textContent =
+                        `Bắt đầu: ${contest.start_time || 'Chưa rõ'} | ` +
+                        `Kết thúc: ${contest.end_time || 'Chưa rõ'}`;
+
+                    const visibility = document.createElement('p');
+                    visibility.className = 'muted';
+                    visibility.textContent =
+                        contest.is_visible === false
+                            ? 'Đang ẩn'
+                            : 'Đang hiển thị';
+
+                    info.append(heading, description, times, visibility);
+
+                    const actions = document.createElement('div');
+                    
+                    actions.appendChild(makeButton(
+                        'Sửa Contest',
+                        'secondary',
+                        async () => {
+                            const title = prompt(
+                                'Tên Contest:',
+                                contest.title || ''
+                            );
+                            if (title === null) return;
+
+                            const description = prompt(
+                                'Mô tả Contest:',
+                                contest.description || ''
+                            );
+                            if (description === null) return;
+
+                            const startTime = prompt(
+                                'Thời gian bắt đầu (YYYY-MM-DDTHH:MM):',
+                                String(contest.start_time || '')
+                                    .replace(' ', 'T').slice(0, 16)
+                            );
+                            if (startTime === null) return;
+
+                            const endTime = prompt(
+                                'Thời gian kết thúc (YYYY-MM-DDTHH:MM):',
+                                String(contest.end_time || '')
+                                    .replace(' ', 'T').slice(0, 16)
+                            );
+                            if (endTime === null) return;
+
+                            const visibleAnswer = prompt(
+                                'Hiển thị Contest? Nhập yes hoặc no:',
+                                contest.is_visible ? 'yes' : 'no'
+                            );
+                            if (visibleAnswer === null) return;
+
+                            const answer = visibleAnswer.trim().toLowerCase();
+
+                            if (answer !== 'yes' && answer !== 'no') {
+                                showContestMessage(
+                                    'Chỉ nhập yes hoặc no.',
+                                    true
+                                );
+                                return;
+                            }
+
+                            if (
+                                !title.trim() ||
+                                !startTime ||
+                                !endTime ||
+                                isNaN(new Date(startTime).getTime()) ||
+                                isNaN(new Date(endTime).getTime()) ||
+                                new Date(endTime) <= new Date(startTime)
+                            ) {
+                                showContestMessage(
+                                    'Tên hoặc thời gian không hợp lệ.',
+                                    true
+                                );
+                                return;
+                            }
+
+                            try {
+                                await api(
+                                    `/api/admin/contests/${contest.id}`,
+                                    {
+                                        method: 'PUT',
+                                        body: JSON.stringify({
+                                            title: title.trim(),
+                                            description: description.trim(),
+                                            start_time: startTime,
+                                            end_time: endTime,
+                                            is_visible: answer === 'yes'
+                                        })
+                                    }
+                                );
+
+                                showContestMessage(
+                                    'Đã cập nhật Contest. Danh sách bài thi được giữ nguyên.'
+                                );
+
+                                await loadContestList();
+                            } catch (error) {
+                                showContestMessage(
+                                    'Sửa Contest thất bại: ' + error.message,
+                                    true
+                                );
+                            }
+                        }
+                    ));
+
+                    actions.appendChild(makeButton(
+                        'Xóa Contest',
+                        'danger',
+                        async () => {
+                            if (!confirm(
+                                `Xóa Contest "${contest.title}" (#${contest.id})?`
+                            )) {
+                                return;
+                            }
+
+                            try {
+                                await api(
+                                    `/api/admin/contests/${contest.id}`,
+                                    { method: 'DELETE' }
+                                );
+
+                                showContestMessage('Đã xóa Contest.');
+                                await loadContestList();
+                            } catch (error) {
+                                showContestMessage(
+                                    'Không xóa được Contest: ' + error.message,
+                                    true
+                                );
+                            }
+                        }
+                    ));
+
+                    panel.append(info, actions);
+                    contestList.appendChild(panel);
+                }
+            } catch (error) {
+                contestList.textContent =
+                    'Không tải được Contest: ' + error.message;
+            }
+        }
+
+        async function createContest() {
+            const title = document.getElementById('contestTitle').value.trim();
+            const description =
+                document.getElementById('contestDescription').value.trim();
+            const startTime =
+                document.getElementById('contestStart').value;
+            const endTime =
+                document.getElementById('contestEnd').value;
+            const isVisible =
+                document.getElementById('contestVisible').checked;
+
+            const problemIds = Array.from(
+                document.querySelectorAll('.contest-problem-checkbox:checked')
+            ).map(checkbox => checkbox.value);
+
+            if (!title) {
+                showContestMessage('Hãy nhập tên Contest.', true);
+                return;
+            }
+
+            if (!startTime || !endTime) {
+                showContestMessage(
+                    'Hãy chọn thời gian bắt đầu và kết thúc.',
+                    true
+                );
+                return;
+            }
+
+            if (new Date(endTime) <= new Date(startTime)) {
+                showContestMessage(
+                    'Thời gian kết thúc phải sau thời gian bắt đầu.',
+                    true
+                );
+                return;
+            }
+
+          if (problemIds.length === 0 && pendingCustomProblems.length === 0) {
+    showContestMessage(
+        'Hãy chọn ít nhất một bài từ ngân hàng hoặc thêm bài riêng.',
+        true
+    );
+    return;
+}
+
+            const button = document.querySelector(
+                'button[onclick="createContest()"]'
+            );
+
+            button.disabled = true;
+            button.textContent = 'Đang tạo...';
+
+            try {
+                await api('/api/admin/contests', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        title: title,
+                        description: description,
+                        start_time: startTime,
+                        end_time: endTime,
+                       is_visible: isVisible,
+                        problem_ids: problemIds,
+                        custom_problems: pendingCustomProblems
+                    })
+                });
+
+                showContestMessage('Đã tạo Contest thành công!');
+                pendingCustomProblems = [];
+                renderCustomProblemList();
+                customProblemMessage.textContent = '';
+                document.getElementById('contestTitle').value = '';
+                document.getElementById('contestDescription').value = '';
+                document.getElementById('contestStart').value = '';
+                document.getElementById('contestEnd').value = '';
+
+                await loadContestList();
+            } catch (error) {
+                showContestMessage(
+                    'Tạo Contest thất bại: ' + error.message,
+                    true
+                );
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Tạo Contest';
+            }
+        }
+
+        loadContestProblems();
+        loadContestList();
+
+        // QUẢN LÝ BÀI NỘP VÀ XEM MÃ NGUỒN
+        const submissionsList = document.getElementById('submissions-list');
+        const sourcePanel = document.getElementById('source-panel');
+        const sourceTitle = document.getElementById('source-title');
+        const sourceCode = document.getElementById('source-code');
+
+        async function loadSubmissions() {
+            submissionsList.textContent = 'Đang tải bài nộp...';
+
+            try {
+                const submissions = await api('/api/admin/submissions');
+                submissionsList.replaceChildren();
+
+                if (!Array.isArray(submissions) || submissions.length === 0) {
+                    submissionsList.textContent = 'Chưa có bài nộp nào.';
+                    return;
+                }
+
+                for (const s of submissions) {
+                    const row = document.createElement('div');
+                    row.className = 'section-heading';
+
+                    const info = document.createElement('div');
+                    info.style.flex = '1';
+
+                    const heading = document.createElement('h3');
+                    heading.textContent =
+                        `#${s.id} — ${s.username} — ${s.problem_id}`;
+
+                    const detail = document.createElement('p');
+                    detail.className = 'muted';
+                    detail.textContent =
+                        `${s.language_id} · ${s.verdict} · ` +
+                        `${s.score}/${s.max_score} điểm · ` +
+                        `${s.created_at || ''}`;
+
+                    info.append(heading, detail);
+
+                    const button = makeButton(
+                        'Mã nguồn',
+                        'secondary',
+                        async () => {
+                            button.disabled = true;
+
+                            try {
+                                const data = await api(
+                                    `/api/admin/submissions/${s.id}/source`
+                                );
+
+                                sourceTitle.textContent =
+                                    `Bài #${data.id} — ${data.username} — ` +
+                                    `${data.problem_id} (${data.language_id})`;
+
+                                sourceCode.textContent = data.source_code || '';
+                                sourcePanel.hidden = false;
+                                sourcePanel.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start'
+                                });
+                            } catch (error) {
+                                alert('Lỗi tải mã nguồn: ' + error.message);
+                            } finally {
+                                button.disabled = false;
+                            }
+                        }
+                    );
+
+                    row.append(info, button);
+                    submissionsList.appendChild(row);
+                }
+            } catch (error) {
+                submissionsList.textContent =
+                    'Lỗi tải bài nộp: ' + error.message;
+            }
+        }
+
+        document.getElementById('refresh-submissions')
+            .addEventListener('click', loadSubmissions);
+
+        document.getElementById('close-source')
+            .addEventListener('click', () => {
+                sourcePanel.hidden = true;
+            });
+
+        document.getElementById('copy-source')
+            .addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(
+                        sourceCode.textContent
+                    );
+                    alert('Đã sao chép mã nguồn.');
+                } catch {
+                    alert('Không sao chép được. Hãy sao chép thủ công.');
+                }
+            });
+
+        loadSubmissions();
+
+        // Tải cả tài khoản và ngân hàng đề khi mở trang.
+        loadUsers();
+        loadProblems();
+    </script>
+
+</body>
+</html>

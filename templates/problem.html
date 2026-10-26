@@ -1,0 +1,132 @@
+```html
+{% extends 'base.html' %}
+
+{% block title %}{{ problem.id }} · {{ problem.title }} — OJ Studio{% endblock %}
+
+{% block content %}
+<div class="breadcrumbs">
+    <a href="/">← Tất cả bài tập</a>
+    <span>/</span>
+    <span>{{ problem.id }}</span>
+</div>
+
+<section class="glass-card problem-hero">
+    <div class="problem-meta">
+        <span class="pill pill-purple">{{ problem.category }}</span>
+        <span class="pill">{{ problem.difficulty }}</span>
+        <span class="pill pill-green">{{ problem.total_score }} điểm</span>
+    </div>
+
+    <span class="eyebrow">PROBLEM {{ problem.id }}</span>
+    <h1>{{ problem.title }}</h1>
+
+    <div class="statement">{{ problem.statement }}</div>
+</section>
+
+<div class="problem-layout">
+    <div class="problem-content glass-card">
+        <h2>
+            <span class="heading-symbol">▤</span>
+            Mô tả dữ liệu
+        </h2>
+
+        <h3>Input</h3>
+        <p>{{ problem.input_format }}</p>
+
+        <h3>Output</h3>
+        <p>{{ problem.output_format }}</p>
+
+        {% if problem.sample_input is defined and problem.sample_output is defined %}
+            <h3>Ví dụ</h3>
+
+            <div class="sample-grid">
+                <div>
+                    <label>Sample Input</label>
+                    <pre>{{ problem.sample_input }}</pre>
+                </div>
+
+                <div>
+                    <label>Sample Output</label>
+                    <pre>{{ problem.sample_output }}</pre>
+                </div>
+            </div>
+
+            {% if problem.explanation %}
+                <h3>Giải thích ví dụ</h3>
+                <p>{{ problem.explanation }}</p>
+            {% endif %}
+        {% else %}
+            <div class="callout">
+                Bài này chưa có ví dụ mẫu được biên soạn.
+                Cần bổ sung trước khi dùng làm đề chính thức.
+            </div>
+        {% endif %}
+
+        <h2>
+            <span class="heading-symbol">◈</span>
+            Giới hạn và thang điểm
+        </h2>
+
+        <div class="subtask-list">
+            {% for s in problem.subtasks %}
+                <div class="subtask-row">
+                    <span>
+                        <b>{{ s.name }}</b>
+
+                        {% if s.constraints %}
+                            <small>{{ s.constraints }}</small>
+                        {% endif %}
+                    </span>
+
+                    <strong>{{ s.score }} điểm</strong>
+                </div>
+            {% endfor %}
+        </div>
+
+        <p class="muted tiny">
+            Giới hạn thời gian: {{ problem.time_limit }} giây
+            · Bộ nhớ: {{ problem.memory_limit }} KB
+        </p>
+    </div>
+
+    <aside class="glass-card submit-card">
+        <div class="submit-title">
+            <span class="card-icon purple-icon">&lt;/&gt;</span>
+
+            <div>
+                <h2>Nộp lời giải</h2>
+                <p class="muted">C++ · GCC 9.2.0</p>
+            </div>
+        </div>
+
+        <label for="language">Ngôn ngữ</label>
+
+        <select id="language">
+            <option value="54">C++ (GCC 9.2.0)</option>
+        </select>
+
+        <label for="source">Mã nguồn</label>
+
+        <textarea id="source" rows="20" spellcheck="false">#include &lt;bits/stdc++.h&gt;
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    return 0;
+}</textarea>
+
+        <button
+            id="submit"
+            class="button button-primary full-width"
+            data-problem="{{ problem.id }}"
+        >
+            Nộp bài <span>↗</span>
+        </button>
+
+        <pre id="result" class="result-box" aria-live="polite">Kết quả chấm sẽ hiển thị tại đây.</pre>
+    </aside>
+</div>
+{% endblock %}
+```

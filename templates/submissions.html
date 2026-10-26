@@ -1,0 +1,471 @@
+```html
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+.submissions-page {
+    color: var(--text, #edf0ff);
+    padding: 12px 0 48px;
+}
+
+.submissions-page .eyebrow {
+    color: #a99aff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.submissions-page h1 {
+    font-size: clamp(28px, 4vw, 42px);
+    margin: 10px 0;
+    letter-spacing: -1.3px;
+}
+
+.submissions-page .gradient-text {
+    background: linear-gradient(100deg, #a78bfa, #67e8f9);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.submissions-page .muted {
+    color: #929db8;
+    line-height: 1.7;
+}
+
+.submissions-page .submissions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.submissions-page .glass-card {
+    background: rgba(20, 27, 48, .78);
+    border: 1px solid rgba(148, 163, 216, .16);
+    border-radius: 18px;
+    box-shadow: 0 16px 45px rgba(0, 0, 0, .15);
+    backdrop-filter: blur(16px);
+}
+
+.submissions-page .stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.submissions-page .stat-card {
+    padding: 18px 20px;
+}
+
+.submissions-page .stat-label {
+    color: #929db8;
+    font-size: 13px;
+}
+
+.submissions-page .stat-value {
+    font-size: 27px;
+    font-weight: 800;
+    margin-top: 8px;
+}
+
+.submissions-page .toolbar {
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.submissions-page input,
+.submissions-page select {
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 12px 14px;
+    color: #edf0ff;
+    background: rgba(9, 14, 29, .75);
+    border: 1px solid rgba(148, 163, 216, .2);
+    border-radius: 11px;
+    outline: none;
+    font: inherit;
+}
+
+.submissions-page input {
+    flex: 1;
+    min-width: 180px;
+}
+
+.submissions-page select {
+    min-width: 155px;
+}
+
+.submissions-page input:focus,
+.submissions-page select:focus {
+    border-color: #a78bfa;
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, .12);
+}
+
+.submissions-page select option {
+    background: #141b30;
+    color: #edf0ff;
+}
+
+.submissions-page .action-button {
+    border: 0;
+    border-radius: 11px;
+    padding: 12px 17px;
+    color: white;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    background: linear-gradient(110deg, #8b5cf6, #6366f1);
+    transition: transform .2s, filter .2s;
+}
+
+.submissions-page .action-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.12);
+}
+
+.submissions-page .table-card {
+    overflow: hidden;
+}
+
+.submissions-page .table-scroll {
+    overflow-x: auto;
+}
+
+.submissions-page table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+}
+
+.submissions-page th {
+    color: #a8b1ca;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 800;
+    background: rgba(7, 12, 27, .45);
+}
+
+.submissions-page th,
+.submissions-page td {
+    padding: 16px 18px;
+    text-align: left;
+    border-bottom: 1px solid rgba(148, 163, 216, .1);
+}
+
+.submissions-page tbody tr {
+    transition: background .18s;
+}
+
+.submissions-page tbody tr:hover {
+    background: rgba(139, 92, 246, .07);
+}
+
+.submissions-page tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.submissions-page .verdict {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.submissions-page .accepted {
+    color: #6ee7b7;
+    background: rgba(16, 185, 129, .12);
+}
+
+.submissions-page .wrong {
+    color: #fda4af;
+    background: rgba(244, 63, 94, .12);
+}
+
+.submissions-page .pending {
+    color: #fcd34d;
+    background: rgba(245, 158, 11, .12);
+}
+
+.submissions-page .other {
+    color: #a5b4fc;
+    background: rgba(129, 140, 248, .12);
+}
+
+.submissions-page .empty-state {
+    text-align: center;
+    color: #929db8;
+    padding: 38px 16px;
+}
+
+.submissions-page .result-count {
+    color: #929db8;
+    font-size: 13px;
+    padding: 14px 18px;
+    border-top: 1px solid rgba(148, 163, 216, .1);
+}
+
+@media (max-width: 640px) {
+    .submissions-page .stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .submissions-page .stat-card {
+        padding: 14px 16px;
+    }
+
+    .submissions-page .toolbar {
+        padding: 12px;
+    }
+
+    .submissions-page .toolbar input,
+    .submissions-page .toolbar select,
+    .submissions-page .toolbar button {
+        width: 100%;
+    }
+
+    .submissions-page th,
+    .submissions-page td {
+        padding: 13px 14px;
+    }
+}
+</style>
+
+<div class="submissions-page">
+    <div class="submissions-header">
+        <div>
+            <span class="eyebrow">YOUR ACTIVITY</span>
+            <h1>Lịch sử <span class="gradient-text">bài nộp.</span></h1>
+            <p class="muted">Theo dõi kết quả và hành trình chinh phục thuật toán của bạn.</p>
+        </div>
+        <button class="action-button" id="refresh-btn" type="button">
+            ↻ Làm mới
+        </button>
+    </div>
+
+    <div class="stats">
+        <div class="glass-card stat-card">
+            <div class="stat-label">Tổng bài nộp</div>
+            <div class="stat-value" id="total-count">—</div>
+        </div>
+        <div class="glass-card stat-card">
+            <div class="stat-label">Accepted</div>
+            <div class="stat-value" id="accepted-count" style="color:#6ee7b7">—</div>
+        </div>
+        <div class="glass-card stat-card">
+            <div class="stat-label">Tỉ lệ Accepted</div>
+            <div class="stat-value" id="accepted-rate">—</div>
+        </div>
+    </div>
+
+    <div class="glass-card toolbar">
+        <input id="submission-search"
+               type="search"
+               placeholder="Tìm theo mã bài, ngôn ngữ, kết quả..."
+               aria-label="Tìm bài nộp">
+
+        <select id="verdict-filter" aria-label="Lọc trạng thái">
+            <option value="">Tất cả trạng thái</option>
+            <option value="accepted">Accepted</option>
+            <option value="wrong">Wrong Answer</option>
+            <option value="pending">Đang xử lý</option>
+            <option value="other">Khác</option>
+        </select>
+    </div>
+
+    <div class="glass-card table-card">
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã bài nộp</th>
+                        <th>Bài tập</th>
+                        <th>Ngôn ngữ</th>
+                        <th>Kết quả</th>
+                        <th>Điểm</th>
+                        <th>Thời gian</th>
+                    </tr>
+                </thead>
+                <tbody id="submissions-body">
+                    <tr><td colspan="6" class="empty-state">Đang tải bài nộp...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="result-count" id="result-count">Đang tải dữ liệu...</div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const body = document.getElementById('submissions-body');
+    const searchInput = document.getElementById('submission-search');
+    const verdictFilter = document.getElementById('verdict-filter');
+    const refreshButton = document.getElementById('refresh-btn');
+
+    let submissions = [];
+
+    function escapeHTML(value) {
+        return String(value ?? '').replace(/[&<>"']/g, function (char) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char];
+        });
+    }
+
+    function getVerdictClass(verdict) {
+        const value = String(verdict || '').toLowerCase();
+
+        if (value.includes('accepted') || value === 'ac') return 'accepted';
+        if (value.includes('wrong answer') || value === 'wa') return 'wrong';
+
+        if (
+            value.includes('pending') ||
+            value.includes('running') ||
+            value.includes('queue') ||
+            value.includes('processing')
+        ) return 'pending';
+
+        return 'other';
+    }
+
+    function getVerdictLabel(verdict) {
+        const value = String(verdict || '').toLowerCase();
+
+        if (value === 'ac') return 'Accepted';
+        if (value === 'wa') return 'Wrong Answer';
+        if (value === 'tle') return 'Time Limit';
+        if (value === 'mle') return 'Memory Limit';
+        if (value === 're') return 'Runtime Error';
+        if (value === 'ce') return 'Compile Error';
+
+        return verdict || 'Unknown';
+    }
+
+    function getDate(value) {
+        if (!value) return '—';
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+
+        return date.toLocaleString('vi-VN');
+    }
+
+    function render() {
+        const keyword = searchInput.value.trim().toLowerCase();
+        const filter = verdictFilter.value;
+
+        const filtered = submissions.filter(function (item) {
+            const verdict = String(item.verdict || '').toLowerCase();
+            const category = getVerdictClass(verdict);
+
+            const searchable = [
+                item.id,
+                item.problem_id,
+                item.language_id,
+                verdict,
+                item.score,
+                item.max_score,
+                item.created_at
+            ].join(' ').toLowerCase();
+
+            return searchable.includes(keyword) && (!filter || category === filter);
+        });
+
+        document.getElementById('total-count').textContent = submissions.length;
+
+        const accepted = submissions.filter(function (item) {
+            return getVerdictClass(item.verdict) === 'accepted';
+        }).length;
+
+        document.getElementById('accepted-count').textContent = accepted;
+        document.getElementById('accepted-rate').textContent =
+            submissions.length
+                ? (accepted * 100 / submissions.length).toFixed(1) + '%'
+                : '0%';
+
+        if (!filtered.length) {
+            body.innerHTML = '<tr><td colspan="6" class="empty-state">' +
+                (submissions.length ? 'Không tìm thấy bài nộp phù hợp.' : 'Chưa có bài nộp nào.') +
+                '</td></tr>';
+        } else {
+            body.innerHTML = filtered.map(function (item) {
+                const verdict = getVerdictLabel(item.verdict);
+                const category = getVerdictClass(item.verdict);
+                const score = item.score == null
+                    ? '—'
+                    : item.score + (item.max_score == null ? '' : ' / ' + item.max_score);
+
+                return '<tr>' +
+                    '<td>#' + escapeHTML(item.id) + '</td>' +
+                    '<td>' + escapeHTML(item.problem_id ?? '—') + '</td>' +
+                    '<td>' + escapeHTML(item.language_id ?? '—') + '</td>' +
+                    '<td><span class="verdict ' + category + '">' +
+                        escapeHTML(verdict) + '</span></td>' +
+                    '<td>' + escapeHTML(score) + '</td>' +
+                    '<td>' + escapeHTML(getDate(item.created_at)) + '</td>' +
+                '</tr>';
+            }).join('');
+        }
+
+        document.getElementById('result-count').textContent =
+            'Hiển thị ' + filtered.length + ' / ' + submissions.length + ' bài nộp';
+    }
+
+    async function loadSubmissions() {
+        refreshButton.disabled = true;
+        refreshButton.textContent = 'Đang tải...';
+
+        try {
+            const response = await fetch('/api/submissions', {
+                headers: { 'Accept': 'application/json' },
+                credentials: 'same-origin'
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || data.message || 'Không thể tải bài nộp.');
+            }
+
+            submissions = Array.isArray(data)
+                ? data
+                : (data.submissions || data.items || []);
+
+            render();
+        } catch (error) {
+            body.innerHTML = '<tr><td colspan="6" class="empty-state">' +
+                escapeHTML(error.message || 'Lỗi khi tải dữ liệu.') +
+                '</td></tr>';
+
+            document.getElementById('result-count').textContent =
+                'Không thể tải dữ liệu bài nộp.';
+        } finally {
+            refreshButton.disabled = false;
+            refreshButton.textContent = '↻ Làm mới';
+        }
+    }
+
+    searchInput.addEventListener('input', render);
+    verdictFilter.addEventListener('change', render);
+    refreshButton.addEventListener('click', loadSubmissions);
+
+    loadSubmissions();
+})();
+</script>
+
+{% endblock %}
+```

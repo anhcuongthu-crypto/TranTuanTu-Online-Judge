@@ -1,0 +1,268 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đổi tên bài hàng loạt</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+            color: #111827;
+        }
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+        h1 { margin-bottom: 8px; }
+        .muted { color: #6b7280; }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        input, button {
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        input {
+            border: 1px solid #d1d5db;
+            min-width: 0;
+        }
+        #search { flex: 1; min-width: 200px; }
+        button {
+            border: 0;
+            cursor: pointer;
+            background: #4f46e5;
+            color: white;
+        }
+        button:disabled { opacity: .5; cursor: not-allowed; }
+        .secondary { background: #4b5563; }
+        .green { background: #059669; }
+        .message {
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 8px;
+            display: none;
+            overflow-wrap: anywhere;
+        }
+        .table-wrap {
+            overflow-x: auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px #0000000d;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+        th { background: #f9fafb; }
+        td input { width: 100%; }
+        .id { white-space: nowrap; }
+        .count { margin: 12px 0; }
+        a { color: #4f46e5; }
+        @media(max-width: 600px) {
+            body { padding: 12px; }
+            th, td { padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Đổi tên bài hàng loạt</h1>
+    <p class="muted">
+        Sửa tên các bài rồi nhấn lưu. ID và dữ liệu bài tập được giữ nguyên.
+    </p>
+
+    <p>
+        <a href="/admin">← Trang quản trị</a>
+        ·
+        <a href="/admin/problem-history">Lịch sử thao tác</a>
+    </p>
+
+    <div class="toolbar">
+        <input id="search" placeholder="Tìm theo ID hoặc tên bài...">
+        <button class="secondary" id="reload">Tải lại</button>
+        <button class="green" id="save">Lưu thay đổi</button>
+    </div>
+
+    <div id="message" class="message"></div>
+    <div class="count" id="count">Đang tải...</div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên hiện tại</th>
+                    <th>Tên mới</th>
+                </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+const rowsElement = document.getElementById('rows');
+const searchElement = document.getElementById('search');
+const countElement = document.getElementById('count');
+const messageElement = document.getElementById('message');
+const saveButton = document.getElementById('save');
+
+let problems = [];
+let titles = new Map();
+let originals = new Map();
+
+function showMessage(text, success = false) {
+    messageElement.style.display = 'block';
+    messageElement.textContent = text;
+    messageElement.style.background = success ? '#d1fae5' : '#fee2e2';
+    messageElement.style.color = success ? '#065f46' : '#991b1b';
+}
+
+function render() {
+    const keyword = searchElement.value.trim().toLowerCase();
+    rowsElement.replaceChildren();
+
+    const filtered = problems.filter(p => {
+        const id = String(p.id);
+        const title = String(titles.get(id) ?? '');
+        return id.toLowerCase().includes(keyword)
+            || title.toLowerCase().includes(keyword);
+    });
+
+    for (const p of filtered) {
+        const id = String(p.id);
+        const tr = document.createElement('tr');
+
+        const idCell = document.createElement('td');
+        idCell.className = 'id';
+        idCell.textContent = id;
+
+        const oldCell = document.createElement('td');
+        oldCell.textContent = String(p.title ?? '');
+
+        const newCell = document.createElement('td');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.maxLength = 200;
+        input.value = titles.get(id) ?? '';
+        input.setAttribute('aria-label', 'Tên mới của bài ' + id);
+
+        input.addEventListener('input', () => {
+            titles.set(id, input.value);
+        });
+
+        newCell.appendChild(input);
+        tr.append(idCell, oldCell, newCell);
+        rowsElement.appendChild(tr);
+    }
+
+    const changed = problems.filter(p => {
+        const id = String(p.id);
+        return (titles.get(id) ?? '') !== (originals.get(id) ?? '');
+    }).length;
+
+    countElement.textContent =
+        `Hiển thị ${filtered.length}/${problems.length} bài · ${changed} bài có thay đổi`;
+}
+
+async function loadProblems() {
+    try {
+        const response = await fetch('/api/admin/problems');
+
+        if (!response.ok) {
+            throw new Error(
+                response.status === 403
+                    ? 'Không có quyền admin.'
+                    : 'Không tải được danh sách bài.'
+            );
+        }
+
+        problems = await response.json();
+        titles = new Map();
+        originals = new Map();
+
+        for (const p of problems) {
+            const id = String(p.id);
+            const title = String(p.title ?? '');
+            titles.set(id, title);
+            originals.set(id, title);
+        }
+
+        render();
+        showMessage('Đã tải danh sách bài.', true);
+    } catch (error) {
+        showMessage(error.message);
+        countElement.textContent = 'Không tải được dữ liệu.';
+    }
+}
+
+searchElement.addEventListener('input', render);
+document.getElementById('reload').addEventListener('click', loadProblems);
+
+saveButton.addEventListener('click', async () => {
+    const changes = problems
+        .filter(p => {
+            const id = String(p.id);
+            return (titles.get(id) ?? '') !== (originals.get(id) ?? '');
+        })
+        .map(p => ({
+            id: String(p.id),
+            title: String(titles.get(String(p.id)) ?? '').trim()
+        }));
+
+    if (changes.length === 0) {
+        showMessage('Không có tên nào thay đổi.', true);
+        return;
+    }
+
+    if (changes.some(x => !x.title || x.title.length > 200)) {
+        showMessage('Tên mới phải từ 1 đến 200 ký tự.');
+        return;
+    }
+
+    if (!confirm(`Lưu thay đổi tên của ${changes.length} bài?`)) {
+        return;
+    }
+
+    saveButton.disabled = true;
+
+    try {
+        const response = await fetch('/api/admin/problems/bulk-rename', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ changes })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Không thể lưu thay đổi.');
+        }
+
+        showMessage(result.message || 'Đã lưu thành công.', true);
+        await loadProblems();
+    } catch (error) {
+        showMessage(error.message);
+    } finally {
+        saveButton.disabled = false;
+    }
+});
+
+loadProblems();
+</script>
+</body>
+</html>

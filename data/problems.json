@@ -1,0 +1,1098 @@
+[
+  {
+    "category": "Số học",
+    "difficulty": "Trung bình",
+    "explanation": "Một số được tính nếu số lượng ước dương của nó là số nguyên tố. Ví dụ, các số 2, 3, 4, 5, 7 trong đoạn [2, 7] có số lượng ước lần lượt là 2, 2, 3, 2, 2 nên kết quả là 5.",
+    "id": "tuyen-sinh-lam-son-2024",
+    "input_format": "Dòng đầu chứa số nguyên t là số lượng test. t dòng tiếp theo, mỗi dòng chứa hai số nguyên dương a, b.",
+    "memory_limit": 256000,
+    "output_format": "Ghi t dòng, mỗi dòng là kết quả của một test.",
+    "sample_input": "2\n2 7\n1 100",
+    "sample_output": "5\n32",
+    "statement": "Cho hai số nguyên dương a, b. Hãy đếm trong đoạn [a, b] có bao nhiêu số có số lượng ước dương là một số nguyên tố.",
+    "subtasks": [
+      {
+        "constraints": "1 <= a <= b < 200, t <= 1000000",
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 50,
+        "tests": [
+          {
+            "input": "2\n2 7\n1 100",
+            "output": "5\n32"
+          },
+          {
+            "input": "4\n1 1\n2 2\n3 3\n4 4",
+            "output": "0\n1\n1\n1"
+          },
+          {
+            "input": "3\n5 5\n6 6\n7 7",
+            "output": "1\n0\n1"
+          },
+          {
+            "input": "3\n1 10\n10 20\n20 30",
+            "output": "6\n5\n3"
+          },
+          {
+            "input": "2\n50 100\n100 199",
+            "output": "12\n23"
+          }
+        ]
+      },
+      {
+        "constraints": "1 <= a <= b <= 1000000, t <= 100000",
+        "id": "sub2",
+        "name": "Subtask 2",
+        "score": 50,
+        "tests": [
+          {
+            "input": "2\n2 7\n1 100",
+            "output": "5\n32"
+          },
+          {
+            "input": "3\n1 1000\n1000 10000\n1 1000000",
+            "output": "184\n1078\n78687"
+          },
+          {
+            "input": "3\n999990 999995\n999900 1000000\n500000 500100",
+            "output": "0\n8\n6"
+          },
+          {
+            "input": "3\n2 2\n4 4\n8 8",
+            "output": "1\n1\n0"
+          },
+          {
+            "input": "3\n100 200\n200 300\n300 400",
+            "output": "23\n17\n17"
+          }
+        ]
+      }
+    ],
+    "time_limit": 1,
+    "title": "Tuyển Sinh Lam Sơn 2024",
+    "total_score": 100
+  },
+  {
+    "category": "C++ Cơ Bản",
+    "difficulty": "Rất Dễ",
+    "explanation": "Chu vi = (4 + 5) * 2 = 18\nDiện tích = 4 * 5 = 20",
+    "id": "chu-vi-dien-tich-hcn",
+    "input_format": "Một dòng chứa hai số nguyên dương d và r cách nhau bởi khoảng trắng.",
+    "memory_limit": 256000,
+    "output_format": "Dòng 1 ghi chu vi hình chữ nhật.\nDòng 2 ghi diện tích hình chữ nhật.",
+    "sample_input": "4 5",
+    "sample_output": "18\n20",
+    "statement": "Cho chiều dài d và chiều rộng r của hình chữ nhật. Hãy tính và in ra chu vi và diện tích của hình chữ nhật đó.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 32-bit (kiểu `int` trong C++).",
+    "subtasks": [
+      {
+        "constraints": "1 <= d, r <= 1000",
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 100,
+        "tests": [
+          {
+            "input": "4 5",
+            "output": "18\n20"
+          },
+          {
+            "input": "10 20\n",
+            "output": "60\n200\n"
+          },
+          {
+            "input": "1 1\n",
+            "output": "4\n1\n"
+          }
+        ]
+      }
+    ],
+    "time_limit": 1,
+    "title": "Chu vi và Diện tích Hình chữ nhật",
+    "total_score": 100
+  },
+  {
+    "title": "Chia bánh - Phép chia lấy nguyên và dư",
+    "id": "chia-banh-32bit",
+    "category": "C++ Cơ Bản",
+    "difficulty": "Rất Dễ",
+    "statement": "Có n cái bánh chia đều cho k bạn. Hãy tính xem mỗi bạn nhận được bao nhiêu cái bánh và còn thừa lại bao nhiêu cái.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 32-bit (kiểu `int` trong C++).",
+    "input_format": "Một dòng chứa hai số nguyên dương n và k cách nhau bởi khoảng trắng.",
+    "output_format": "Dòng 1 ghi số bánh mỗi bạn nhận được.\nDòng 2 ghi số bánh còn thừa.",
+    "sample_input": "14 3",
+    "sample_output": "4\n2",
+    "explanation": "- Số bánh mỗi bạn nhận được: 14 / 3 = 4\n- Số bánh còn thừa: 14 % 3 = 2",
+    "time_limit": 1,
+    "memory_limit": 256000,
+    "total_score": 100,
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 100,
+        "constraints": "1 <= n <= 1000, 1 <= k <= 100",
+        "tests": [
+          {
+            "input": "14 3",
+            "output": "4\n2"
+          },
+          {
+            "input": "20 5\n",
+            "output": "4\n0\n"
+          },
+          {
+            "input": "7 10\n",
+            "output": "0\n7\n"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Mua vở học tập",
+    "id": "mua-vo-32bit",
+    "category": "C++ Cơ Bản",
+    "difficulty": "Rất Dễ",
+    "statement": "Nhập vào số lượng quyển vở và đơn giá của một quyển. In ra tổng số tiền phải trả.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 32-bit (kiểu `int` trong C++).",
+    "input_format": "Một dòng chứa hai số nguyên dương n và gia cách nhau bởi khoảng trắng.",
+    "output_format": "In ra tổng số tiền.",
+    "sample_input": "5 7000",
+    "sample_output": "35000",
+    "explanation": "",
+    "time_limit": 1,
+    "memory_limit": 256000,
+    "total_score": 100,
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 100,
+        "constraints": "1 <= n, gia <= 1000",
+        "tests": [
+          {
+            "input": "5 7000",
+            "output": "35000"
+          },
+          {
+            "input": "10 5000\n",
+            "output": "50000\n"
+          },
+          {
+            "input": "2 12000\n",
+            "output": "24000\n"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Kiểm tra số chẵn lẻ số lớn",
+    "id": "kiem-tra-chan-le-32bit",
+    "category": "C++ Cơ Bản",
+    "difficulty": "Trung bình",
+    "statement": "Nhập vào một số nguyên n. Hãy kiểm tra xem n là số chẵn hay số lẻ. In ra CHAN nếu là số chẵn và LE nếu là số lẻ.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 64-bit (kiểu `long long` trong C++).",
+    "input_format": "Một dòng chứa số nguyên n (-10^18 <= n <= 10^18).",
+    "output_format": "In ra CHAN hoặc LE.",
+    "sample_input": "1000000000000000000",
+    "sample_output": "CHAN",
+    "explanation": "",
+    "time_limit": 1,
+    "memory_limit": 256000,
+    "total_score": 100,
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 100,
+        "constraints": "-10^18 <= n <= 10^18",
+        "tests": [
+          {
+            "input": "4",
+            "output": "CHAN"
+          },
+          {
+            "input": "-999999999999999999\n",
+            "output": "LE\n"
+          },
+          {
+            "input": "0\n",
+            "output": "CHAN\n"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Tổng số thí sinh thi Tmath",
+    "id": "tong-thi-sinh-18-10-32bit",
+    "category": "C++ Cơ Bản",
+    "difficulty": "Rất Dễ",
+    "statement": "Trung tâm Toán - Tin Tmath tổ chức kì thi vào 18/10[cite: 2]. Cho số lượng học sinh các cấp A, B và C[cite: 2]. Hãy tính tổng số lượng thí sinh tham gia.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 32-bit (kiểu `int` trong C++).",
+    "input_format": "Dòng 1 ghi số nguyên A[cite: 2].\nDòng 2 ghi số nguyên B[cite: 2].\nDòng 3 ghi số nguyên C[cite: 2].",
+    "output_format": "In ra tổng số lượng thí sinh.",
+    "sample_input": "10\n20\n30",
+    "sample_output": "60",
+    "explanation": "",
+    "time_limit": 1,
+    "memory_limit": 256000,
+    "total_score": 100,
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 100,
+        "constraints": "1 <= A, B, C <= 100[cite: 2]",
+        "tests": [
+          {
+            "input": "3\n5\n10",
+            "output": "18"
+          },
+          {
+            "input": "5\n5\n5\n",
+            "output": "15\n"
+          },
+          {
+            "input": "100\n100\n100\n",
+            "output": "300\n"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "So sánh hai số lớn",
+    "id": "so-sanh-hai-so-64bit",
+    "category": "C++ Cơ Bản",
+    "difficulty": "Trung bình",
+    "statement": "Cho hai số nguyên a và b. Hãy tìm và in ra số lớn hơn. Nếu hai số bằng nhau, in ra số đó.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 64-bit (kiểu `long long` trong C++).",
+    "input_format": "Một dòng chứa hai số nguyên a và b (-10^18 <= a, b <= 10^18).",
+    "output_format": "In ra số lớn nhất.",
+    "sample_input": "1000000000000000000 500000000000000000",
+    "sample_output": "1000000000000000000",
+    "explanation": "",
+    "time_limit": 1,
+    "memory_limit": 256000,
+    "total_score": 100,
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 100,
+        "constraints": "-10^18 <= a, b <= 10^18",
+        "tests": [
+          {
+            "input": "3 6",
+            "output": "6"
+          },
+          {
+            "input": "-999999999999999999 0\n",
+            "output": "0\n"
+          },
+          {
+            "input": "123456789123456789 123456789123456789\n",
+            "output": "123456789123456789\n"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "category": "C++ Cơ Bản",
+    "difficulty": "Rất Dễ",
+    "explanation": "Tổng: 3 + 5 = 8\nTích: 3 * 5 = 15",
+    "id": "tổng-tích",
+    "input_format": "Một dòng chứa hai số nguyên a và b (-1000 <= a, b <= 1000).",
+    "memory_limit": 256000,
+    "output_format": "Dòng 1 ghi tổng a + b.\nDòng 2 ghi tích a * b.",
+    "sample_input": "3 5",
+    "sample_output": "8\n15",
+    "statement": "Cho hai số nguyên a và b. Hãy nhập hai số từ bàn phím, sau đó in ra tổng a + b ở dòng đầu tiên và tích a * b ở dòng thứ hai.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 32-bit (kiểu `int` trong C++).",
+    "subtasks": [
+      {
+        "constraints": "-1000 <= a, b <= 1000",
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 100,
+        "tests": [
+          {
+            "input": "3 5",
+            "output": "8\n15"
+          },
+          {
+            "input": "100 200\n",
+            "output": "300\n20000\n"
+          },
+          {
+            "input": "-5 10\n",
+            "output": "5\n-50\n"
+          }
+        ]
+      }
+    ],
+    "time_limit": 1,
+    "title": "Tổng và Tích hai số",
+    "total_score": 100
+  },
+  {
+    "title": "Vé xem phim",
+    "id": "ve-phim-64",
+    "category": "C++ Cơ Bản",
+    "difficulty": "Rất Dễ",
+    "statement": "Một rạp chiếu phim có chương trình khuyến mãi: Nếu tuổi của khách hàng dưới 12 tuổi thì giá vé là 50000 VNĐ, ngược lại giá vé là 80000 VNĐ. Cho biết tuổi của khách hàng, hãy tính số tiền vé phải trả.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 64-bit (kiểu `long long` trong C++).",
+    "input_format": "Một dòng chứa số nguyên t là tuổi của khách hàng.",
+    "output_format": "In ra số tiền vé phải trả.",
+    "sample_input": "10",
+    "sample_output": "50000",
+    "explanation": "",
+    "time_limit": 1,
+    "memory_limit": 256000,
+    "total_score": 100,
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 100,
+        "constraints": "1 <= t <= 100",
+        "tests": [
+          {
+            "input": "10\n",
+            "output": "50000\n"
+          },
+          {
+            "input": "12\n",
+            "output": "80000\n"
+          },
+          {
+            "input": "25\n",
+            "output": "80000\n"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Gửi xe",
+    "id": "xe-32",
+    "category": "C++ Cơ Bản",
+    "difficulty": "Rất Dễ",
+    "statement": "Nhập vào số giờ gửi xe. Nếu số giờ gửi từ 2 giờ trở xuống thì phí là 5000 đồng, ngược lại phí là 10000 đồng. In ra số tiền phải trả.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 32-bit (kiểu `int` trong C++).",
+    "input_format": "Một dòng chứa số nguyên n là số giờ gửi xe.",
+    "output_format": "In ra số tiền phí gửi xe.",
+    "sample_input": "2",
+    "sample_output": "5000",
+    "explanation": "",
+    "time_limit": 1,
+    "memory_limit": 256000,
+    "total_score": 100,
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 100,
+        "constraints": "1 <= n <= 24",
+        "tests": [
+          {
+            "input": "2\n",
+            "output": "5000\n"
+          },
+          {
+            "input": "5\n",
+            "output": "10000\n"
+          },
+          {
+            "input": "1\n",
+            "output": "5000\n"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Tính tổng 1 đến n",
+    "id": "for cơ bản",
+    "category": "C++ Cơ Bản",
+    "difficulty": "Rất Dễ",
+    "statement": "Nhập vào một số nguyên dương n. Hãy tính và in ra tổng S = 1 + 2 + ... + n.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 64-bit (kiểu `long long` trong C++).",
+    "input_format": "Một dòng chứa số nguyên dương n.",
+    "output_format": "In ra tổng các số từ 1 đến n.",
+    "sample_input": "5",
+    "sample_output": "15",
+    "explanation": "",
+    "time_limit": 1,
+    "memory_limit": 256000,
+    "total_score": 100,
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 100,
+        "constraints": "1 <= n <= 10^6",
+        "tests": [
+          {
+            "input": "5\n",
+            "output": "15\n"
+          },
+          {
+            "input": "1\n",
+            "output": "1\n"
+          },
+          {
+            "input": "100\n",
+            "output": "5050\n"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Số học",
+    "difficulty": "Dễ",
+    "explanation": "Diện tích hình chữ nhật thứ nhất là a × b. Diện tích hình chữ nhật thứ hai là c × d. Kết quả là giá trị lớn nhất trong hai diện tích. Ví dụ: 2 × 4 = 8 và 3 × 6 = 18 nên kết quả là 18.",
+    "id": "hsg9-ninh-binh-2026-hinh-chu-nhat",
+    "input_format": "Gồm bốn số nguyên dương a, b, c, d (1 ≤ a, b, c, d ≤ 10^9).",
+    "memory_limit": 256000,
+    "output_format": "In ra diện tích lớn nhất tìm được.",
+    "sample_input": "2 4 3 6",
+    "sample_output": "18",
+    "statement": "Cho bốn số nguyên dương a, b, c, d. Biết rằng a, b là độ dài hai cạnh của hình chữ nhật thứ nhất; c, d là độ dài hai cạnh của hình chữ nhật thứ hai.\n\nYêu cầu: Hãy tìm diện tích của hai hình chữ nhật và đưa ra diện tích lớn nhất.",
+    "subtasks": [
+      {
+        "constraints": "1 ≤ a, b, c, d ≤ 10^3",
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 50,
+        "tests": [
+          {
+            "input": "2 4 3 6",
+            "output": "18"
+          },
+          {
+            "input": "1 1 1 1",
+            "output": "1"
+          },
+          {
+            "input": "5 6 2 3",
+            "output": "30"
+          },
+          {
+            "input": "2 3 4 5",
+            "output": "20"
+          },
+          {
+            "input": "10 10 10 10",
+            "output": "100"
+          },
+          {
+            "input": "100 200 300 400",
+            "output": "120000"
+          },
+          {
+            "input": "1000 1000 1 1",
+            "output": "1000000"
+          },
+          {
+            "input": "1 1 1000 1000",
+            "output": "1000000"
+          }
+        ]
+      },
+      {
+        "constraints": "1 ≤ a, b, c, d ≤ 10^9",
+        "id": "sub2",
+        "name": "Subtask 2",
+        "score": 50,
+        "tests": [
+          {
+            "input": "1000000000 1000000000 1 1",
+            "output": "1000000000000000000"
+          },
+          {
+            "input": "1 1 1000000000 1000000000",
+            "output": "1000000000000000000"
+          },
+          {
+            "input": "999999999 999999999 1000000000 1000000000",
+            "output": "1000000000000000000"
+          },
+          {
+            "input": "123456789 987654321 500000000 500000000",
+            "output": "250000000000000000"
+          },
+          {
+            "input": "1000000000 999999999 1 1",
+            "output": "999999999000000000"
+          },
+          {
+            "input": "1 1 999999999 999999999",
+            "output": "999999998000000001"
+          },
+          {
+            "input": "500000000 500000000 600000000 600000000",
+            "output": "360000000000000000"
+          },
+          {
+            "input": "1000000000 1 1 1000000000",
+            "output": "1000000000"
+          }
+        ]
+      }
+    ],
+    "time_limit": 1,
+    "title": "HSG9 Ninh Bình 2026 - Hình chữ nhật",
+    "total_score": 100
+  },
+  {
+    "id": "Ninh Binh-Câu 2",
+    "title": "HSG9 Ninh Bình 2026 - Số đặc biệt",
+    "category": "Số học",
+    "difficulty": "Trung bình",
+    "time_limit": 1,
+    "memory_limit": 256000,
+    "total_score": 100,
+    "statement": "Số đặc biệt là số chia hết cho tích các chữ số của nó. Ví dụ, số 5 là số đặc biệt vì 5 chia hết cho 5; số 12 là số đặc biệt vì 12 chia hết cho 2 (1 × 2 = 2); số 102 không phải là số đặc biệt vì tích các chữ số của nó bằng 0 (1 × 0 × 2 = 0).\n\nCho dãy số A gồm n số nguyên dương a1, a2, ..., an và 2 số nguyên dương l, r.\n\nYêu cầu: Hãy liệt kê các số đặc biệt theo đúng thứ tự xuất hiện trong đoạn al, al+1, ..., ar.",
+    "input_format": "Dòng đầu theo thứ tự gồm ba số nguyên dương n, l, r (1 ≤ n ≤ 10^5; 1 ≤ l ≤ r ≤ n).\nDòng thứ hai gồm n số nguyên dương a1, a2, ..., an (ai ≤ 10^9).",
+    "output_format": "Gồm duy nhất một dòng ghi các số đặc biệt tìm được, các số cách nhau một dấu cách. Nếu không tìm được số đặc biệt nào thì in ra -1.",
+    "sample_input": "8 2 5\n2 12 15 20 5 28 36 39",
+    "sample_output": "12 15 5",
+    "explanation": "Xét các số ở vị trí từ 2 đến 5: 12, 15, 20, 5.\n12 chia hết cho 1 × 2 = 2.\n15 chia hết cho 1 × 5 = 5.\n20 có tích chữ số bằng 0 nên không phải số đặc biệt.\n5 chia hết cho 5.\nVậy kết quả là 12 15 5.",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 50,
+        "constraints": "1 ≤ n ≤ 1000; 1 ≤ l ≤ r ≤ n; 1 ≤ ai ≤ 10^5",
+        "tests": [
+          {
+            "input": "5 1 5\n1 2 3 4 5",
+            "output": "1 2 3 4 5 "
+          },
+          {
+            "input": "5 1 5\n10 20 30 40 50",
+            "output": "-1"
+          },
+          {
+            "input": "5 1 5\n1 2 3 4 5",
+            "output": "1 2 3 4 5"
+          },
+          {
+            "input": "6 2 6\n11 12 13 14 15 16",
+            "output": "12 15"
+          },
+          {
+            "input": "4 3 3\n2 10 36 39",
+            "output": "36"
+          },
+          {
+            "input": "6 1 6\n100 101 111 112 120 128",
+            "output": "111 112 128"
+          }
+        ]
+      },
+      {
+        "id": "sub2",
+        "name": "Subtask 2",
+        "score": 50,
+        "constraints": "1 ≤ n ≤ 10^5; 1 ≤ l ≤ r ≤ n; 1 ≤ ai ≤ 10^9",
+        "tests": [
+          {
+            "input": "5 2 4\n999999999 999999998 999999997 999999996 999999995",
+            "output": "-1"
+          },
+          {
+            "input": "8 1 8\n1 2 3 4 5 6 7 8",
+            "output": "1 2 3 4 5 6 7 8"
+          },
+          {
+            "input": "5 1 5\n22 24 26 28 29",
+            "output": "24"
+          },
+          {
+            "input": "6 3 6\n15 25 35 45 55 65",
+            "output": "-1"
+          },
+          {
+            "input": "3 1 3\n1000000000 999999999 111111111",
+            "output": "111111111"
+          },
+          {
+            "input": "7 4 7\n1 2 3 4 5 6 7",
+            "output": "4 5 6 7"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "Ninh Binh-Câu 3",
+    "title": "HSG9 Ninh Bình 2026 - Đếm số nguyên tố",
+    "category": "Xâu ký tự",
+    "difficulty": "Trung bình",
+    "time_limit": 1,
+    "memory_limit": 256000,
+    "total_score": 100,
+    "statement": "Trong một cuộc thi lập trình Robot, đội của An nhận được xâu tín hiệu S có độ dài không quá 3 × 10^6 kí tự, chỉ gồm các chữ cái thường và chữ số gửi về thông qua đường truyền internet.\n\nAn cần tách các số từ đoạn tín hiệu này và đếm số lượng số nguyên tố trong các số đã được tách. Biết rằng, mỗi số trong xâu S là một dãy các kí tự chữ số liên tiếp mà có các kí tự liền kề trước hoặc sau (nếu có) là kí tự chữ cái. Các số trong xâu S không vượt quá 10^6.\n\nYêu cầu: Hãy viết chương trình đếm số lượng số nguyên tố được tách ra từ xâu S.",
+    "input_format": "Gồm một xâu S chỉ chứa các kí tự chữ cái thường và chữ số, có độ dài không quá 3 × 10^6. Các số được tách ra không vượt quá 10^6.",
+    "output_format": "Ghi ra số lượng số nguyên tố trong các số được tách ra.",
+    "sample_input": "abc2de17f18",
+    "sample_output": "2",
+    "explanation": "Các số được tách ra là 2, 17 và 18. Trong đó 2 và 17 là số nguyên tố, còn 18 không phải số nguyên tố. Vậy kết quả là 2.",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 50,
+        "constraints": "1 ≤ |S| ≤ 1000; các số trong S không vượt quá 10^3.",
+        "tests": [
+          {
+            "input": "abc2de17f18",
+            "output": "2"
+          },
+          {
+            "input": "abc",
+            "output": "0"
+          },
+          {
+            "input": "2",
+            "output": "1"
+          },
+          {
+            "input": "1",
+            "output": "0"
+          },
+          {
+            "input": "a2b3c5d7",
+            "output": "4"
+          },
+          {
+            "input": "a4b6c8d9",
+            "output": "0"
+          },
+          {
+            "input": "abc11def13ghi17",
+            "output": "3"
+          },
+          {
+            "input": "a0b1c2d3",
+            "output": "2"
+          },
+          {
+            "input": "a23b24c25d29",
+            "output": "2"
+          },
+          {
+            "input": "a97b99c100d101",
+            "output": "2"
+          },
+          {
+            "input": "abc0013def0004ghi0002",
+            "output": "2"
+          },
+          {
+            "input": "a121b127c128d131",
+            "output": "2"
+          }
+        ]
+      },
+      {
+        "id": "sub2",
+        "name": "Subtask 2",
+        "score": 50,
+        "constraints": "1 ≤ |S| ≤ 3 × 10^6; các số trong S không vượt quá 10^6.",
+        "tests": [
+          {
+            "input": "a999983b999984c999979",
+            "output": "2"
+          },
+          {
+            "input": "a1000000b999999c999983",
+            "output": "1"
+          },
+          {
+            "input": "a2b3c5d7e11f13g17h19",
+            "output": "8"
+          },
+          {
+            "input": "a0b1c4d6e8f9",
+            "output": "0"
+          },
+          {
+            "input": "a99991b99989c99971",
+            "output": "3"
+          },
+          {
+            "input": "a100000b100001c100003",
+            "output": "1"
+          },
+          {
+            "input": "a999983b999983c999983",
+            "output": "3"
+          },
+          {
+            "input": "a123456b234567c345678",
+            "output": "0"
+          },
+          {
+            "input": "a2b4c3d6e5f8g7h9",
+            "output": "4"
+          },
+          {
+            "input": "a000002b000003c000004d000005",
+            "output": "3"
+          },
+          {
+            "input": "a999983b1000000c2d1e999979",
+            "output": "3"
+          },
+          {
+            "input": "a17b17c17d17e18f19",
+            "output": "5"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "Ninh Binh-Câu 5",
+    "title": "HSG9 Ninh Bình 2026 - Số gần chính phương",
+    "category": "Số học",
+    "difficulty": "Trung bình",
+    "time_limit": 1,
+    "memory_limit": 256000,
+    "total_score": 100,
+    "statement": "Một số tự nhiên được gọi là Số gần chính phương nếu số đó thỏa mãn đồng thời ba điều kiện sau:\n\n- Có từ 3 chữ số trở lên.\n- Chữ số ở hàng cao nhất (hàng đầu tiên bên trái) là một số chính phương.\n- Tổng của hai chữ số cuối cùng (hàng chục và hàng đơn vị) là một số chính phương.\n\nYêu cầu: Cho số nguyên dương M, hãy đếm xem có bao nhiêu Số gần chính phương trong đoạn từ 1 đến M.",
+    "input_format": "Gồm một số nguyên dương M.",
+    "output_format": "Gồm một số nguyên duy nhất là số lượng Số gần chính phương tìm được.",
+    "sample_input": "105",
+    "sample_output": "3",
+    "explanation": "Với M = 105, có 3 số thỏa mãn là 100, 101, 104. Chữ số đầu tiên đều là 1. Tổng hai chữ số cuối lần lượt là 0, 1, 4, đều là số chính phương.",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 50,
+        "constraints": "100 <= M <= 999",
+        "tests": [
+          {
+            "input": "100",
+            "output": "1"
+          },
+          {
+            "input": "101",
+            "output": "2"
+          },
+          {
+            "input": "104",
+            "output": "3"
+          },
+          {
+            "input": "105",
+            "output": "3"
+          },
+          {
+            "input": "115",
+            "output": "6"
+          },
+          {
+            "input": "199",
+            "output": "21"
+          },
+          {
+            "input": "200",
+            "output": "21"
+          },
+          {
+            "input": "399",
+            "output": "21"
+          },
+          {
+            "input": "400",
+            "output": "22"
+          },
+          {
+            "input": "404",
+            "output": "24"
+          },
+          {
+            "input": "499",
+            "output": "42"
+          },
+          {
+            "input": "900",
+            "output": "43"
+          },
+          {
+            "input": "999",
+            "output": "63"
+          }
+        ]
+      },
+      {
+        "id": "sub2",
+        "name": "Subtask 2",
+        "score": 25,
+        "constraints": "1000 <= M <= 1000000",
+        "tests": [
+          {
+            "input": "1000",
+            "output": "64"
+          },
+          {
+            "input": "1001",
+            "output": "65"
+          },
+          {
+            "input": "1010",
+            "output": "68"
+          },
+          {
+            "input": "1099",
+            "output": "84"
+          },
+          {
+            "input": "9999",
+            "output": "693"
+          },
+          {
+            "input": "10000",
+            "output": "694"
+          },
+          {
+            "input": "99999",
+            "output": "6993"
+          },
+          {
+            "input": "100000",
+            "output": "6994"
+          },
+          {
+            "input": "999999",
+            "output": "69993"
+          },
+          {
+            "input": "1000000",
+            "output": "69994"
+          }
+        ]
+      },
+      {
+        "id": "sub3",
+        "name": "Subtask 3",
+        "score": 25,
+        "constraints": "M = 10^K, 6 < K < 18",
+        "tests": [
+          {
+            "input": "10000000",
+            "output": "699994"
+          },
+          {
+            "input": "100000000",
+            "output": "6999994"
+          },
+          {
+            "input": "1000000000",
+            "output": "69999994"
+          },
+          {
+            "input": "10000000000",
+            "output": "699999994"
+          },
+          {
+            "input": "100000000000",
+            "output": "6999999994"
+          },
+          {
+            "input": "1000000000000",
+            "output": "69999999994"
+          },
+          {
+            "input": "10000000000000",
+            "output": "699999999994"
+          },
+          {
+            "input": "100000000000000",
+            "output": "6999999999994"
+          },
+          {
+            "input": "1000000000000000",
+            "output": "69999999999994"
+          },
+          {
+            "input": "10000000000000000",
+            "output": "699999999999994"
+          },
+          {
+            "input": "100000000000000000",
+            "output": "6999999999999994"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "Ninh Binh-Câu 4",
+    "title": "HSG9 Ninh Bình 2026 - Chia dãy",
+    "category": "Dãy số",
+    "difficulty": "Khó",
+    "time_limit": 1,
+    "memory_limit": 256000,
+    "total_score": 100,
+    "statement": "Cho dãy A gồm n số nguyên không âm. Hãy chia toàn bộ dãy thành các đoạn liên tiếp không rỗng sao cho tổng mỗi đoạn là một lũy thừa của 2 (1, 2, 4, 8, ...).\n\nYêu cầu: Tìm số đoạn ít nhất có thể chia. Nếu không tồn tại cách chia hợp lệ, in ra -1.",
+    "input_format": "Dòng 1 chứa số nguyên dương n (1 <= n <= 2000).\nDòng 2 chứa n số nguyên ai (0 <= ai <= 20000).",
+    "output_format": "In ra số đoạn ít nhất hoặc -1 nếu không thể chia.",
+    "sample_input": "6\n5 3 1 1 1 3",
+    "sample_output": "3",
+    "explanation": "Chia thành {5,3}, {1,1}, {1,3}, có tổng lần lượt là 8, 2, 4. Không thể chia thành ít hơn 3 đoạn.",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "score": 20,
+        "constraints": "1 <= n <= 100; 0 <= ai <= 20000",
+        "tests": [
+          {
+            "input": "6\n5 3 1 1 1 3",
+            "output": "3"
+          },
+          {
+            "input": "1\n1",
+            "output": "1"
+          },
+          {
+            "input": "1\n0",
+            "output": "-1"
+          },
+          {
+            "input": "1\n2",
+            "output": "1"
+          },
+          {
+            "input": "1\n3",
+            "output": "-1"
+          },
+          {
+            "input": "4\n1 1 1 1",
+            "output": "1"
+          },
+          {
+            "input": "3\n0 0 0",
+            "output": "-1"
+          },
+          {
+            "input": "4\n0 1 0 1",
+            "output": "1"
+          },
+          {
+            "input": "2\n3 1",
+            "output": "1"
+          },
+          {
+            "input": "2\n3 2",
+            "output": "-1"
+          },
+          {
+            "input": "2\n5 3",
+            "output": "1"
+          },
+          {
+            "input": "3\n2 2 2",
+            "output": "2"
+          },
+          {
+            "input": "4\n7 1 1 1",
+            "output": "2"
+          }
+        ]
+      },
+      {
+        "id": "sub2",
+        "name": "Subtask 2",
+        "score": 25,
+        "constraints": "1 <= n <= 500; 0 <= ai <= 20000",
+        "tests": [
+          {
+            "input": "4\n0 2 0 2",
+            "output": "1"
+          },
+          {
+            "input": "3\n4 0 4",
+            "output": "1"
+          },
+          {
+            "input": "4\n1 2 4 8",
+            "output": "4"
+          },
+          {
+            "input": "4\n6 2 3 1",
+            "output": "2"
+          },
+          {
+            "input": "7\n5 3 1 1 1 3 0",
+            "output": "3"
+          },
+          {
+            "input": "8\n20000 20000 20000 20000 20000 20000 20000 20000",
+            "output": "-1"
+          },
+          {
+            "input": "10\n0 0 0 0 0 0 0 0 0 1",
+            "output": "1"
+          },
+          {
+            "input": "6\n3 3 3 3 3 3",
+            "output": "-1"
+          },
+          {
+            "input": "10\n1 1 1 1 1 1 1 1 1 1",
+            "output": "2"
+          },
+          {
+            "input": "4\n20000 20000 20000 5536",
+            "output": "1"
+          }
+        ]
+      },
+      {
+        "id": "sub3",
+        "name": "Subtask 3",
+        "score": 25,
+        "constraints": "1 <= n <= 1000; 0 <= ai <= 20000",
+        "tests": [
+          {
+            "input": "3\n16384 16384 16384",
+            "output": "2"
+          },
+          {
+            "input": "10\n0 0 0 0 0 0 0 0 0 0",
+            "output": "-1"
+          },
+          {
+            "input": "16\n1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1",
+            "output": "1"
+          },
+          {
+            "input": "16\n2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2",
+            "output": "1"
+          }
+        ]
+      },
+      {
+        "id": "sub4",
+        "name": "Subtask 4",
+        "score": 30,
+        "constraints": "1 <= n <= 2000; 0 <= ai <= 20000",
+        "tests": [
+          {
+            "input": "32\n1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1",
+            "output": "1"
+          },
+          {
+            "input": "32\n0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1",
+            "output": "1"
+          },
+          {
+            "input": "16\n20000 20000 20000 20000 20000 20000 20000 20000 20000 20000 20000 20000 20000 20000 20000 20000",
+            "output": "-1"
+          }
+        ]
+      }
+    ]
+  }
+]

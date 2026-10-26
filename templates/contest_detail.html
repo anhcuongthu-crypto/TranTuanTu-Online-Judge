@@ -1,0 +1,476 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contest - TranTu OJ</title>
+<style>
+:root{--bg:#0b1020;--panel:#141d31;--line:#293650;--text:#edf2ff;--muted:#9eacc5;--primary:#8172ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px Arial,sans-serif}
+a{color:#b9b0ff;text-decoration:none}
+header{padding:18px max(5%,calc((100% - 1100px)/2));border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-size:20px;font-weight:bold}
+main{max-width:1100px;margin:30px auto;padding:0 18px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:20px;min-width:0}
+h1{font-size:28px;margin:14px 0}
+h2{font-size:20px;margin-top:0}
+h3{overflow-wrap:anywhere}
+.muted{color:var(--muted);line-height:1.7}
+.grid{display:grid;grid-template-columns:1.5fr 1fr;gap:20px}
+.badge{display:inline-block;padding:6px 10px;background:#263650;border-radius:30px;font-size:12px}
+.problem{padding:15px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px}
+.problem h3{margin:0 0 7px;overflow-wrap:anywhere}
+.score{color:#b9b0ff;white-space:nowrap}
+input,select,textarea{width:100%;padding:12px;margin:7px 0 15px;background:#0b1222;color:var(--text);border:1px solid var(--line);border-radius:8px}
+textarea{min-height:160px;resize:vertical;font-family:Consolas,monospace}
+button{background:var(--primary);color:white;border:0;border-radius:8px;padding:11px 15px;font-weight:bold;cursor:pointer;margin:3px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.secondary{background:#374151}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:12px 8px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+th{color:var(--muted)}
+.status{white-space:pre-wrap;line-height:1.6;margin-top:12px}
+.error{color:#fca5a5;white-space:pre-wrap}
+.success{color:#6ee7b7}
+.editbox{margin-top:18px;padding:16px;background:#0b1222;border:1px solid var(--line);border-radius:10px}
+@media(max-width:720px){.grid{grid-template-columns:1fr}.panel{padding:16px}h1{font-size:24px}}
+</style>
+</head>
+
+<body data-contest-id="{{ contest_id|default('', true) }}">
+<header>
+  <a class="brand" href="/">TranTu OJ</a>
+  <a href="/contests">← Danh sách contest</a>
+</header>
+
+<main>
+  <section class="panel" id="contestHeader">
+    <p class="muted">Đang tải cuộc thi...</p>
+  </section>
+
+  <div class="grid">
+    <div>
+      <section class="panel">
+        <h2>Danh sách bài thi</h2>
+        <div id="problems">Đang tải...</div>
+      </section>
+
+      <section class="panel">
+        <h2>Nộp bài</h2>
+        <form id="submitForm">
+          <label for="problemId">Chọn bài</label>
+          <select id="problemId" required></select>
+
+          <label for="language">Ngôn ngữ</label>
+          <select id="language">
+            <option value="54">C++</option>
+            <option value="50">C</option>
+            <option value="71">Python 3</option>
+          </select>
+
+          <label for="sourceCode">Mã nguồn</label>
+          <textarea id="sourceCode" maxlength="100000" required placeholder="Nhập code tại đây..."></textarea>
+
+          <button id="submitButton" type="submit">Nộp bài</button>
+          <div id="submitMessage" class="status"></div>
+        </form>
+      </section>
+    </div>
+
+    <aside>
+      <section class="panel">
+        <h2>Thông tin cuộc thi</h2>
+        <div id="contestInfo" class="muted">Đang tải...</div>
+      </section>
+
+      <section class="panel">
+        <h2>Bảng xếp hạng</h2>
+        <div id="leaderboard">Đang tải...</div>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function resolveContestId() {
+  const raw = document.body.dataset.contestId || '';
+  if (/^\d+$/.test(raw) && Number(raw) > 0) return Number(raw);
+
+  const match = location.pathname.match(/\/contests\/(\d+)\/?$/);
+  if (match && Number(match[1]) > 0) return Number(match[1]);
+
+  const query = new URLSearchParams(location.search).get('id');
+  if (query && /^\d+$/.test(query) && Number(query) > 0) {
+    return Number(query);
+  }
+
+  return null;
+}
+
+const CONTEST_ID = resolveContestId();
+let contestData = null;
+let problemList = [];
+let isAdmin = false;
+
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;',
+    '"':'&quot;', "'":'&#39;'
+  })[c]);
+}
+
+async function api(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      ...(options.body !== undefined
+        ? {'Content-Type':'application/json'} : {})
+    }
+  });
+
+  const raw = await response.text();
+  let data;
+
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    console.error('API response:', response.status, url, raw);
+    throw new Error(`HTTP ${response.status}: API không trả JSON. URL: ${url}`);
+  }
+
+  if (!response.ok) {
+    throw new Error(data.error || data.message || `HTTP ${response.status}`);
+  }
+
+  return data;
+}
+
+function dateText(value) {
+  if (!value) return 'Chưa xác định';
+  const d = new Date(value);
+  return Number.isNaN(d.getTime())
+    ? String(value)
+    : d.toLocaleString('vi-VN');
+}
+
+const stateText = {
+  upcoming:'Sắp diễn ra',
+  running:'Đang diễn ra',
+  ended:'Đã kết thúc'
+};
+
+async function loadAdmin() {
+  try {
+    const data = await api('/api/me');
+    isAdmin = !!(data.user && data.user.is_admin);
+  } catch {
+    isAdmin = false;
+  }
+}
+
+async function loadContest() {
+  const data = await api(`/api/contests/${CONTEST_ID}`);
+  contestData = data;
+  problemList = data.problems || [];
+
+  $('contestHeader').innerHTML = `
+    <span class="badge">${esc(stateText[data.state] || data.state || 'Chưa rõ')}</span>
+    <h1>${esc(data.title || 'Contest')}</h1>
+    <div class="muted">${esc(data.description || 'Không có mô tả.')}</div>
+  `;
+
+  $('contestInfo').innerHTML = `
+    <p><b>Bắt đầu</b><br>${esc(dateText(data.start_time))}</p>
+    <p><b>Kết thúc</b><br>${esc(dateText(data.end_time))}</p>
+    <p><b>Số bài</b><br>${problemList.length}</p>
+    <p><b>Trạng thái</b><br>${esc(stateText[data.state] || data.state || 'Chưa rõ')}</p>
+  `;
+
+  if (!problemList.length) {
+    $('problems').innerHTML = '<p class="muted">Contest chưa có bài thi.</p>';
+    $('problemId').innerHTML = '';
+    $('submitButton').disabled = true;
+    return;
+  }
+
+  $('problems').innerHTML = problemList.map((p, i) => `
+    <div class="problem">
+      <div>
+        <h3><a href="#" data-pid="${esc(p.id)}">${i + 1}. ${esc(p.title)}</a></h3>
+        <div class="muted">ID: ${esc(p.id)}${p.is_custom ? ' · Bài riêng' : ''}</div>
+      </div>
+      <span class="score">${Number(p.total_score) || 0} điểm</span>
+    </div>
+  `).join('');
+
+  $('problems').querySelectorAll('[data-pid]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      showProblem(a.dataset.pid);
+    });
+  });
+
+  $('problemId').innerHTML = problemList.map(p => `
+    <option value="${esc(p.id)}">${esc(p.id)} — ${esc(p.title)}</option>
+  `).join('');
+
+  $('submitButton').disabled = data.state !== 'running';
+  $('submitMessage').textContent =
+    data.state === 'upcoming' ? 'Cuộc thi chưa bắt đầu.' :
+    data.state === 'ended' ? 'Cuộc thi đã kết thúc.' : '';
+}
+
+function showProblem(pid) {
+  const p = problemList.find(x => String(x.id) === String(pid));
+  if (!p) return;
+
+  let box = $('problemDetail');
+  if (!box) {
+    box = document.createElement('section');
+    box.id = 'problemDetail';
+    box.className = 'panel';
+    $('problems').insertAdjacentElement('afterend', box);
+  }
+
+  box.innerHTML = `
+    <h2>${esc(p.title)}</h2>
+    <p class="muted">ID: ${esc(p.id)} · ${Number(p.total_score) || 0} điểm</p>
+
+    <h3>Đề bài</h3>
+    <div style="white-space:pre-wrap;line-height:1.8">${esc(p.statement || 'API chưa cung cấp nội dung đề.')}</div>
+
+    <h3>Dữ liệu vào</h3>
+    <div style="white-space:pre-wrap;line-height:1.8">${esc(p.input_desc || 'Chưa có mô tả.')}</div>
+
+    <h3>Dữ liệu ra</h3>
+    <div style="white-space:pre-wrap;line-height:1.8">${esc(p.output_desc || 'Chưa có mô tả.')}</div>
+
+    <p>
+      <button id="chooseProblem">Nộp bài này</button>
+      ${isAdmin && p.is_custom ? ' <button id="editProblem" class="secondary">Sửa bài</button>' : ''}
+    </p>
+    <div id="editArea"></div>
+  `;
+
+  $('chooseProblem').onclick = () => {
+    $('problemId').value = String(p.id);
+    $('submitForm').scrollIntoView({behavior:'smooth'});
+  };
+
+  if (isAdmin && p.is_custom) {
+    $('editProblem').onclick = () => editProblem(p);
+  }
+
+  box.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+async function editProblem(p) {
+  const area = $('editArea');
+  if (!area) return;
+
+  area.innerHTML = `
+    <div class="editbox">
+      <h3>Sửa bài thi</h3>
+
+      <label for="editTitle">Tên bài</label>
+      <input id="editTitle" value="${esc(p.title)}" required>
+
+      <label for="editScore">Điểm tối đa</label>
+      <input id="editScore" type="number" min="0" value="${Number(p.total_score) || 0}" readonly>
+
+      <label for="editStatement">Đề bài</label>
+      <textarea id="editStatement">${esc(p.statement || '')}</textarea>
+
+      <label for="editInput">Mô tả dữ liệu vào</label>
+      <textarea id="editInput">${esc(p.input_desc || '')}</textarea>
+
+      <label for="editOutput">Mô tả dữ liệu ra</label>
+      <textarea id="editOutput">${esc(p.output_desc || '')}</textarea>
+
+      <button id="saveProblem">Lưu thay đổi</button>
+      <button id="cancelEdit" class="secondary">Hủy</button>
+      <div id="editMessage" class="status"></div>
+    </div>
+  `;
+
+  $('cancelEdit').onclick = () => {
+    area.innerHTML = '';
+  };
+
+  $('saveProblem').onclick = async () => {
+    const title = $('editTitle').value.trim();
+    const score = Number($('editScore').value);
+    const statement = $('editStatement').value;
+    const input_desc = $('editInput').value;
+    const output_desc = $('editOutput').value;
+    const message = $('editMessage');
+    const button = $('saveProblem');
+
+    if (!title) {
+      message.textContent = 'Tên bài không được để trống.';
+      message.className = 'status error';
+      return;
+    }
+
+    if (!Number.isFinite(score) || score < 0) {
+      message.textContent = 'Điểm tối đa không hợp lệ.';
+      message.className = 'status error';
+      return;
+    }
+
+    button.disabled = true;
+    message.textContent = 'Đang lưu...';
+    message.className = 'status';
+
+    try {
+      /*
+        Endpoint sửa bài phải khớp với backend Flask của m.
+        Nếu backend dùng URL hoặc cấu trúc khác, cần sửa đoạn fetch này.
+      */
+      const result = await api(`/api/admin/contests/${CONTEST_ID}/problems/${encodeURIComponent(p.id)}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          title,
+          total_score: score,
+          statement,
+          input_desc,
+          output_desc
+        })
+      });
+
+      message.textContent = result.message || 'Đã gửi yêu cầu lưu.';
+      message.className = 'status success';
+
+      // Cập nhật giao diện ngay; tải lại dữ liệu để xác nhận từ server.
+      await loadContest();
+      showProblem(p.id);
+    } catch (error) {
+      message.textContent = 'Không lưu được: ' + error.message;
+      message.className = 'status error';
+    } finally {
+      button.disabled = false;
+    }
+  };
+}
+
+async function loadLeaderboard() {
+  const box = $('leaderboard');
+
+  try {
+    const data = await api(`/api/contests/${CONTEST_ID}/leaderboard`);
+    const rows = Array.isArray(data)
+      ? data
+      : (data.leaderboard || data.results || data.users || []);
+
+    if (!rows.length) {
+      box.innerHTML = '<p class="muted">Chưa có dữ liệu xếp hạng.</p>';
+      return;
+    }
+
+    box.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Hạng</th>
+            <th>Thí sinh</th>
+            <th>Điểm</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${esc(r.username || r.name || r.user || 'Ẩn danh')}</td>
+              <td>${esc(r.score ?? r.total_score ?? 0)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (error) {
+    box.innerHTML = `<p class="muted">Không tải được bảng xếp hạng: ${esc(error.message)}</p>`;
+  }
+}
+
+$('submitForm').addEventListener('submit', async event => {
+  event.preventDefault();
+
+  const problemId = $('problemId').value;
+  const sourceCode = $('sourceCode').value;
+  const languageId = Number($('language').value);
+  const button = $('submitButton');
+  const message = $('submitMessage');
+
+  if (!problemId || !sourceCode.trim()) {
+    message.textContent = 'Hãy chọn bài và nhập mã nguồn.';
+    message.className = 'status error';
+    return;
+  }
+
+  button.disabled = true;
+  message.textContent = 'Đang gửi bài...';
+  message.className = 'status';
+
+  try {
+      const result = await api(`/api/contests/${CONTEST_ID}/submit`, {
+      method: 'POST',
+      body: JSON.stringify({
+        problem_id: problemId,
+        contest_id: CONTEST_ID,
+        language_id: languageId,
+        source_code: sourceCode
+      })
+    });
+
+    message.textContent =
+      result.message ||
+      result.status ||
+      (result.submission_id
+        ? `Đã gửi bài. Mã bài nộp: ${result.submission_id}`
+        : 'Máy chủ đã nhận yêu cầu nộp bài.');
+
+    message.className = 'status success';
+    await loadLeaderboard();
+  } catch (error) {
+    message.textContent = 'Nộp bài thất bại: ' + error.message;
+    message.className = 'status error';
+  } finally {
+    button.disabled = !contestData || contestData.state !== 'running';
+  }
+});
+
+async function init() {
+  if (!CONTEST_ID) {
+    $('contestHeader').innerHTML = `
+      <h2>Không xác định được cuộc thi</h2>
+      <p class="muted">Kiểm tra URL hoặc đường dẫn trang contest.</p>
+    `;
+    $('problems').textContent = 'Không có mã cuộc thi.';
+    $('leaderboard').textContent = 'Không có dữ liệu.';
+    return;
+  }
+
+  try {
+    await loadAdmin();
+    await loadContest();
+    await loadLeaderboard();
+  } catch (error) {
+    $('contestHeader').innerHTML = `
+      <h2 class="error">Không tải được cuộc thi</h2>
+      <p class="error">${esc(error.message)}</p>
+      <p class="muted">Kiểm tra API và log trên Render.</p>
+    `;
+    $('problems').textContent = 'Không tải được danh sách bài.';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
+

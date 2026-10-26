@@ -1,0 +1,338 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lịch sử ngân hàng đề</title>
+
+<style>
+:root{
+    font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;
+    color:#172033;
+    background:#f3f5f9
+}
+*{box-sizing:border-box}
+body{margin:0;padding:24px}
+.wrap{max-width:1200px;margin:auto}
+h1{margin:0 0 8px}
+.muted{color:#64748b}
+.top{
+    display:flex;gap:12px;flex-wrap:wrap;
+    align-items:center;justify-content:space-between;margin:18px 0
+}
+.links{display:flex;gap:14px;flex-wrap:wrap}
+a{color:#4f46e5}
+button{
+    border:0;border-radius:8px;padding:10px 14px;
+    cursor:pointer;background:#4f46e5;color:white;font-weight:600
+}
+button.secondary{background:#475569}
+button.danger{background:#b91c1c}
+button:disabled{opacity:.55;cursor:not-allowed}
+.notice{
+    display:none;padding:12px 14px;border-radius:9px;
+    margin:12px 0;overflow-wrap:anywhere
+}
+.layout{
+    display:grid;grid-template-columns:minmax(280px,.85fr) minmax(0,1.5fr);
+    gap:18px;align-items:start
+}
+.panel{
+    background:white;border:1px solid #e2e8f0;border-radius:12px;
+    overflow:hidden;box-shadow:0 3px 12px #0f172a0a
+}
+.panel h2{
+    font-size:17px;margin:0;padding:15px;
+    border-bottom:1px solid #e2e8f0
+}
+.list{max-height:70vh;overflow:auto}
+.item{
+    display:block;width:100%;text-align:left;color:#172033;
+    background:white;border-radius:0;border-bottom:1px solid #e2e8f0;
+    padding:14px;line-height:1.5
+}
+.item:hover,.item.active{background:#eef2ff}
+.item .action{font-size:12px;color:#64748b}
+.detail{padding:16px}
+.detail-head{
+    display:flex;justify-content:space-between;gap:10px;
+    align-items:flex-start;flex-wrap:wrap
+}
+.detail h3{margin:0 0 8px}
+.counts{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.pill{padding:5px 9px;background:#eef2ff;border-radius:999px;font-size:13px}
+.json{
+    white-space:pre-wrap;overflow-wrap:anywhere;max-height:360px;
+    overflow:auto;background:#0f172a;color:#e2e8f0;
+    padding:14px;border-radius:8px;font-size:12px
+}
+.section{margin-top:18px}
+.empty{padding:20px;color:#64748b}
+.pager{
+    display:flex;gap:8px;align-items:center;padding:12px;
+    justify-content:space-between
+}
+@media(max-width:800px){
+    body{padding:12px}
+    .layout{grid-template-columns:1fr}
+    .list{max-height:40vh}
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+<h1>Lịch sử ngân hàng đề</h1>
+<p class="muted">
+Xem các thao tác đã lưu, so sánh dữ liệu trước/sau và khôi phục trạng thái trước một thao tác.
+</p>
+
+<div class="top">
+    <div class="links">
+        <a href="/admin">← Trang quản trị</a>
+        <a href="/admin/bulk-rename">Đổi tên hàng loạt</a>
+    </div>
+    <button id="reload" class="secondary">Tải lại lịch sử</button>
+</div>
+
+<div id="notice" class="notice"></div>
+
+<div class="layout">
+    <section class="panel">
+        <h2>Các thao tác</h2>
+        <div id="historyList" class="list">
+            <div class="empty">Đang tải...</div>
+        </div>
+        <div class="pager">
+            <button id="prev" class="secondary">Mới hơn</button>
+            <span id="pageInfo" class="muted"></span>
+            <button id="next" class="secondary">Cũ hơn</button>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Chi tiết thao tác</h2>
+        <div id="detail" class="detail">
+            <p class="muted">Chọn một thao tác ở danh sách bên trái.</p>
+        </div>
+    </section>
+</div>
+</div>
+
+<script>
+const listEl=document.getElementById('historyList');
+const detailEl=document.getElementById('detail');
+const noticeEl=document.getElementById('notice');
+
+const limit=50;
+let offset=0,total=0,selectedId=null,items=[];
+
+function notice(message,ok=false){
+    noticeEl.style.display='block';
+    noticeEl.textContent=message;
+    noticeEl.style.background=ok?'#d1fae5':'#fee2e2';
+    noticeEl.style.color=ok?'#065f46':'#991b1b';
+}
+
+function hideNotice(){
+    noticeEl.style.display='none';
+}
+
+function actionName(action){
+    return ({
+        bulk_rename:'Đổi tên hàng loạt',
+        remove_duplicates:'Xóa bài trùng',
+        delete_problem:'Xóa bài',
+        restore_history:'Khôi phục lịch sử'
+    })[action]||action||'Thao tác';
+}
+
+function dateText(value){
+    try{return new Date(value).toLocaleString('vi-VN')}
+    catch{return value||''}
+}
+
+async function api(url,options={}){
+    const response=await fetch(url,options);
+    const data=await response.json().catch(()=>({
+        error:'Phản hồi máy chủ không hợp lệ.'
+    }));
+
+    if(!response.ok)
+        throw new Error(data.error||'Yêu cầu thất bại ('+response.status+').');
+
+    return data;
+}
+
+async function loadHistory(){
+    hideNotice();
+    listEl.innerHTML='<div class="empty">Đang tải...</div>';
+
+    try{
+        const data=await api(
+            `/api/admin/problem-history?limit=${limit}&offset=${offset}`
+        );
+
+        items=data.items||[];
+        total=data.total||0;
+        listEl.replaceChildren();
+
+        if(!items.length){
+            listEl.innerHTML='<div class="empty">Chưa có lịch sử thao tác.</div>';
+        }
+
+        for(const item of items){
+            const button=document.createElement('button');
+            button.className='item'+(
+                Number(item.id)===Number(selectedId)?' active':''
+            );
+
+            const title=document.createElement('strong');
+            title.textContent=`#${item.id} · ${actionName(item.action)}`;
+
+            const time=document.createElement('div');
+            time.className='action';
+            time.textContent=dateText(item.created_at);
+
+            const counts=document.createElement('div');
+            counts.className='action';
+            counts.textContent=
+                `${item.before_count} → ${item.after_count} bài · loại ${item.removed_count}`;
+
+            button.append(title,time,counts);
+            button.addEventListener('click',()=>loadDetail(item.id));
+            listEl.appendChild(button);
+        }
+
+        document.getElementById('pageInfo').textContent=total
+            ?`${offset+1}–${Math.min(offset+items.length,total)} / ${total}`
+            :'0 bản ghi';
+
+        document.getElementById('prev').disabled=offset===0;
+        document.getElementById('next').disabled=offset+limit>=total;
+
+    }catch(error){
+        listEl.innerHTML='<div class="empty">Không tải được lịch sử.</div>';
+        notice(error.message);
+    }
+}
+
+function addSection(parent,title,value){
+    const section=document.createElement('div');
+    section.className='section';
+
+    const heading=document.createElement('h3');
+    heading.textContent=title;
+
+    const pre=document.createElement('pre');
+    pre.className='json';
+    pre.textContent=JSON.stringify(value,null,2);
+
+    section.append(heading,pre);
+    parent.appendChild(section);
+}
+
+async function loadDetail(id){
+    hideNotice();
+    selectedId=id;
+    detailEl.innerHTML='<p class="muted">Đang tải chi tiết...</p>';
+
+    try{
+        const data=await api(`/api/admin/problem-history/${id}`);
+        detailEl.replaceChildren();
+
+        const head=document.createElement('div');
+        head.className='detail-head';
+
+        const info=document.createElement('div');
+        const title=document.createElement('h3');
+        title.textContent=`#${data.id} · ${actionName(data.action)}`;
+
+        const time=document.createElement('p');
+        time.className='muted';
+        time.textContent=dateText(data.created_at);
+
+        info.append(title,time);
+
+        const restore=document.createElement('button');
+        restore.className='danger';
+        restore.textContent='Khôi phục trạng thái trước thao tác';
+        restore.addEventListener('click',()=>restoreHistory(data.id));
+
+        head.append(info,restore);
+        detailEl.appendChild(head);
+
+        const counts=document.createElement('div');
+        counts.className='counts';
+
+        for(const text of [
+            `Trước: ${data.before_count}`,
+            `Sau: ${data.after_count}`,
+            `Bị loại: ${data.removed_count}`
+        ]){
+            const pill=document.createElement('span');
+            pill.className='pill';
+            pill.textContent=text;
+            counts.appendChild(pill);
+        }
+
+        detailEl.appendChild(counts);
+
+        addSection(detailEl,'Dữ liệu trước thao tác',data.before);
+        addSection(detailEl,'Dữ liệu sau thao tác',data.after);
+
+        if(data.removed&&data.removed.length)
+            addSection(detailEl,'Các bài đã bị loại',data.removed);
+
+        await loadHistory();
+
+    }catch(error){
+        detailEl.replaceChildren();
+        notice(error.message);
+    }
+}
+
+async function restoreHistory(id){
+    if(!confirm(
+        `Khôi phục ngân hàng đề về trạng thái TRƯỚC thao tác #${id}? `+
+        'Trạng thái hiện tại sẽ được lưu thành một bản ghi lịch sử mới.'
+    ))return;
+
+    try{
+        const data=await api(
+            `/api/admin/problem-history/${id}/restore`,
+            {method:'POST'}
+        );
+
+        notice(data.message||'Khôi phục thành công.',true);
+        selectedId=null;
+        detailEl.innerHTML=
+            '<p class="muted">Đã khôi phục. Chọn một thao tác để xem chi tiết.</p>';
+
+        offset=0;
+        await loadHistory();
+
+    }catch(error){
+        notice(error.message);
+    }
+}
+
+document.getElementById('reload').addEventListener('click',loadHistory);
+
+document.getElementById('prev').addEventListener('click',()=>{
+    offset=Math.max(0,offset-limit);
+    loadHistory();
+});
+
+document.getElementById('next').addEventListener('click',()=>{
+    if(offset+limit<total){
+        offset+=limit;
+        loadHistory();
+    }
+});
+
+loadHistory();
+</script>
+</body>
+</html>
