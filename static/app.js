@@ -1,18 +1,16 @@
-// ==================== API ====================
+
+ // ==================== API ====================
 
 const pendingGetRequests = new Map();
 
 async function api(url, opts = {}) {
     const method = (opts.method || 'GET').toUpperCase();
-    const headers = {
-        ...(opts.headers || {})
-    };
+    const headers = { ...(opts.headers || {}) };
 
     if (opts.body && !headers['Content-Type']) {
         headers['Content-Type'] = 'application/json';
     }
 
-    // Gộp GET trùng nhau đang chạy.
     if (method === 'GET' && pendingGetRequests.has(url)) {
         return pendingGetRequests.get(url);
     }
@@ -24,17 +22,17 @@ async function api(url, opts = {}) {
             headers
         });
 
-        let d = {};
+        let data = {};
 
         try {
-            d = await r.json();
+            data = await r.json();
         } catch {}
 
         if (!r.ok) {
-            throw Error(d.error || `HTTP ${r.status}`);
+            throw Error(data.error || `HTTP ${r.status}`);
         }
 
-        return d;
+        return data;
     })();
 
     if (method !== 'GET') return request;
@@ -109,35 +107,35 @@ async function refresh() {
     if (authSection || status || logout || admin || history) {
         tasks.push((async () => {
             const me = await api('/api/me');
-            const u = me.user;
+            const user = me.user;
 
             if (authSection) {
-                authSection.style.display = u ? 'none' : 'grid';
+                authSection.style.display = user ? 'none' : 'grid';
             }
 
             if (status) {
-                status.textContent = u
-                    ? `Xin chào, ${u.username}`
+                status.textContent = user
+                    ? `Xin chào, ${user.username}`
                     : 'Chưa đăng nhập';
             }
 
-            if (logout) logout.hidden = !u;
-            if (admin) admin.hidden = !(u && u.is_admin);
+            if (logout) logout.hidden = !user;
+            if (admin) admin.hidden = !(user && user.is_admin);
 
             if (!history) return;
 
-            if (!u) {
+            if (!user) {
                 history.textContent = 'Vui lòng đăng nhập để xem lịch sử.';
                 return;
             }
 
-            const h = await api('/api/submissions');
+            const items = await api('/api/submissions');
 
-            history.innerHTML = h.length
+            history.innerHTML = items.length
                 ? '<table><thead><tr>' +
                   '<th>Bài</th><th>Kết quả</th><th>Điểm</th><th>Thời gian</th>' +
                   '</tr></thead><tbody>' +
-                  h.map(x => `
+                  items.map(x => `
                     <tr>
                         <td>
                             <a class="text-link"
@@ -195,7 +193,6 @@ async function refresh() {
         }).catch(e => console.error('Lỗi tải bảng xếp hạng:', e)));
     }
 
-    // Các phần độc lập tải cùng lúc.
     await Promise.allSettled(tasks);
 }
 
@@ -211,11 +208,13 @@ document.querySelector('#search')?.addEventListener('input', e => {
         items = JSON.parse(el.dataset.items || '[]');
     } catch {}
 
-    const q = e.target.value.toLocaleLowerCase('vi');
+    const query = e.target.value.toLocaleLowerCase('vi');
 
-    renderProblems(items.filter(p => (
+    renderProblems(items.filter(p =>
         `${p.id} ${p.title} ${p.category} ${p.difficulty}`
-    ).toLocaleLowerCase('vi').includes(q)));
+            .toLocaleLowerCase('vi')
+            .includes(query)
+    ));
 });
 
 // ==================== ĐĂNG NHẬP / ĐĂNG KÝ ====================
@@ -235,15 +234,12 @@ for (const [id, path] of [
         try {
             const data = await api(path, {
                 method: 'POST',
-                body: JSON.stringify(
-                    Object.fromEntries(new FormData(form))
-                )
+                body: JSON.stringify(Object.fromEntries(new FormData(form)))
             });
 
             note(data.message || 'Thao tác thành công.');
             form.reset();
 
-            // Chỉ các trang có phần tương ứng mới gọi API cần thiết.
             await Promise.allSettled([refresh(), loadProfile()]);
         } catch (err) {
             note(err.message);
@@ -292,15 +288,21 @@ document.querySelector('#submit')?.addEventListener('click', async e => {
             })
         });
 
+        if (!data.submission_id) {
+            throw Error('Máy chủ chưa trả về mã bài nộp.');
+        }
+
         result.textContent = 'Đã nhận bài. Đang chấm...';
 
         let finalResult = null;
-        let delay = 800;
+        let delay = 300;
         const startTime = Date.now();
-        const maxWait = 120000;
+        const maxWait = 10000;
 
         while (Date.now() - startTime < maxWait) {
             await new Promise(resolve => setTimeout(resolve, delay));
+
+            if (Date.now() - startTime >= maxWait) break;
 
             finalResult = await api(
                 `/api/submissions/${encodeURIComponent(data.submission_id)}/status`
@@ -314,9 +316,7 @@ document.querySelector('#submit')?.addEventListener('click', async e => {
             }
 
             result.textContent = 'Đang chấm bài...';
-
-            // Kiểm tra sớm lúc đầu, giảm tần suất khi chờ lâu.
-            delay = Math.min(Math.round(delay * 1.35), 1800);
+            delay = Math.min(Math.round(delay * 1.3), 1000);
         }
 
         if (
@@ -325,16 +325,19 @@ document.querySelector('#submit')?.addEventListener('click', async e => {
             finalResult.verdict === 'Processing'
         ) {
             result.textContent =
-                'Bài vẫn đang được chấm. Hãy kiểm tra lịch sử bài nộp sau.';
+                'Đã chờ 10 giây nhưng bài chưa chấm xong. ' +
+                'Bài vẫn có thể đang được xử lý; hãy kiểm tra lịch sử bài nộp.';
+
+            // Cập nhật lịch sử mà không huỷ bài chấm.
+            await refresh();
             return;
         }
 
         result.textContent =
             `${finalResult.verdict}\n` +
             `Điểm: ${finalResult.score}/${finalResult.max_score}\n\n` +
-            JSON.stringify(finalResult.details, null, 2);
+            JSON.stringify(finalResult.details ?? {}, null, 2);
 
-        // Cập nhật lịch sử/BXH nếu những phần đó có trên trang.
         await refresh();
     } catch (err) {
         result.textContent = 'Không chấm được: ' + err.message;
@@ -364,21 +367,17 @@ async function loadProfile() {
             return;
         }
 
-        if (form.elements.namedItem('bio')) {
-            form.elements.namedItem('bio').value = user.bio || '';
-        }
+        const bio = form.elements.namedItem('bio');
+        const color = form.elements.namedItem('avatar_color');
 
-        if (form.elements.namedItem('avatar_color')) {
-            form.elements.namedItem('avatar_color').value =
-                user.avatar_color || '#7c3aed';
-        }
+        if (bio) bio.value = user.bio || '';
+        if (color) color.value = user.avatar_color || '#7c3aed';
 
         const avatar = document.querySelector('#profile-avatar');
 
         if (avatar) {
             avatar.textContent = user.username.slice(0, 2).toUpperCase();
-            avatar.style.background =
-                user.avatar_color || '#7c3aed';
+            avatar.style.background = user.avatar_color || '#7c3aed';
         }
 
         if (details) {
@@ -389,6 +388,9 @@ async function loadProfile() {
                 <p><b>Ngày tạo:</b> ${escapeHtml(user.created_at || '')}</p>
             `;
         }
+
+        const button = form.querySelector('button');
+        if (button) button.disabled = false;
     } catch (err) {
         const details = document.querySelector('#profile-details');
         if (details) details.textContent = err.message;
@@ -400,22 +402,22 @@ document.querySelector('#profile-form')?.addEventListener('submit', async e => {
 
     const form = e.currentTarget;
     const output = document.querySelector('#profile-notice');
+    const bio = form.elements.namedItem('bio');
+    const color = form.elements.namedItem('avatar_color');
 
     try {
         await api('/api/profile', {
             method: 'PUT',
             body: JSON.stringify({
-                bio: form.bio.value,
-                avatar_color: form.avatar_color.value
+                bio: bio ? bio.value : '',
+                avatar_color: color ? color.value : '#7c3aed'
             })
         });
 
         if (output) output.textContent = 'Đã lưu hồ sơ.';
 
         const avatar = document.querySelector('#profile-avatar');
-        if (avatar) {
-            avatar.style.background = form.avatar_color.value;
-        }
+        if (avatar && color) avatar.style.background = color.value;
 
         await loadProfile();
     } catch (err) {
@@ -485,7 +487,6 @@ document.querySelector('#reload-users')?.addEventListener('click', loadAdmin);
 
 // ==================== KHỞI ĐỘNG ====================
 
-// Các hàm tự kiểm tra phần tử tương ứng nên có thể chạy song song.
 Promise.allSettled([
     refresh(),
     loadProfile(),
