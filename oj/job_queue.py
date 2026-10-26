@@ -80,16 +80,43 @@ def enqueue(app, user_id, problem, code, language, contest_id=None):
             'submission_id': submission_id
         }
 
-    _pool.submit(
-        _run_job,
-        app,
-        job_id,
-        submission_id,
-        user_id,
-        problem,
-        code,
-        language
-    )
+    try:
+        _pool.submit(
+            _run_job,
+            app,
+            job_id,
+            submission_id,
+            user_id,
+            problem,
+            code,
+            language
+        )
+    except Exception as exc:
+        message = 'Không thể khởi chạy worker: ' + str(exc)
+
+        with connect(app.config['DATABASE_PATH']) as db:
+            db.execute(
+                '''UPDATE submissions
+                   SET verdict=?, details_json=?
+                   WHERE id=? AND user_id=?''',
+                (
+                    'Judge Unavailable',
+                    json.dumps([{
+                        'status': 'Judge Unavailable',
+                        'message': message[:1000]
+                    }], ensure_ascii=False),
+                    submission_id,
+                    user_id
+                )
+            )
+
+        with _lock:
+            _jobs[job_id]['status'] = 'Finished'
+
+        print(
+            f'[OJ ERROR] Cannot start submission={submission_id}: {exc}',
+            flush=True
+        )
 
     return job_id, submission_id
 
@@ -117,9 +144,50 @@ def get_job(app, job_id, user_id):
     result['details'] = json.loads(
         result.pop('details_json') or '[]'
     )
-    result['status'] = job['status']
+    result['status'] = result.get('verdict', job['status'])
 
     return result
+
+
+def _save_result(app, submission_id, user_id, problem,
+                 verdict, score, details):
+    with connect(app.config['DATABASE_PATH']) as db:
+        db.execute(
+            '''UPDATE submissions
+               SET verdict=?, score=?, details_json=?
+               WHERE id=? AND user_id=?''',
+            (
+                verdict,
+                score,
+                json.dumps(details, ensure_ascii=False),
+                submission_id,
+                user_id
+            )
+        )
+
+        row = db.execute(
+            '''SELECT contest_id
+               FROM submissions
+               WHERE id=? AND user_id=?''',
+            (submission_id, user_id)
+        ).fetchone()
+
+        contest_id = row['contest_id'] if row else None
+
+        if contest_id is None:
+            db.execute(
+                '''INSERT INTO solves
+                   (user_id, problem_id, best_score)
+                   VALUES (?, ?, ?)
+                   ON CONFLICT(user_id, problem_id)
+                   DO UPDATE SET best_score =
+                       CASE
+                           WHEN solves.best_score > excluded.best_score
+                           THEN solves.best_score
+                           ELSE excluded.best_score
+                       END''',
+                (user_id, problem['id'], score)
+            )
 
 
 def _run_job(app, job_id, submission_id,
@@ -130,27 +198,27 @@ def _run_job(app, job_id, submission_id,
         if job_id in _jobs:
             _jobs[job_id]['status'] = 'Processing'
 
-    with connect(app.config['DATABASE_PATH']) as db:
-        db.execute(
-            '''UPDATE submissions
-               SET verdict=?
-               WHERE id=? AND user_id=?''',
-            ('Processing', submission_id, user_id)
-        )
-
-    score = 0
-    details = []
-    statuses = []
-    compile_error = False
-    judge_error = False
-
     try:
+        with connect(app.config['DATABASE_PATH']) as db:
+            db.execute(
+                '''UPDATE submissions
+                   SET verdict=?
+                   WHERE id=? AND user_id=?''',
+                ('Processing', submission_id, user_id)
+            )
+
+        score = 0
+        details = []
+        statuses = []
+        compile_error = False
+        judge_error = False
+
         judge = Judge0(
             app.config['JUDGE0_URL'],
             app.config.get('JUDGE0_API_KEY', '')
         )
 
-        for st in problem['subtasks']:
+        for st in problem.get('subtasks', []):
             subtask_started = time.perf_counter()
             tests = st.get('tests', [])
             test_scores = _get_test_scores(st)
@@ -228,9 +296,9 @@ def _run_job(app, job_id, submission_id,
             })
 
             print(
-                f"[OJ SPEED] problem={problem['id']} "
-                f"subtask={st.get('id')} tests={len(tests)} "
-                f"elapsed={time.perf_counter() - subtask_started:.2f}s",
+                f'[OJ SPEED] problem={problem["id"]} '
+                f'subtask={st.get("id")} tests={len(tests)} '
+                f'elapsed={time.perf_counter() - subtask_started:.2f}s',
                 flush=True
             )
 
@@ -249,11 +317,11 @@ def _run_job(app, job_id, submission_id,
             score = total_score
         elif score > 0:
             verdict = 'Partially Accepted'
-        elif any(s == 'Wrong Answer' for s in statuses):
+        elif 'Wrong Answer' in statuses:
             verdict = 'Wrong Answer'
-        elif any(s == 'Time Limit Exceeded' for s in statuses):
+        elif 'Time Limit Exceeded' in statuses:
             verdict = 'Time Limit Exceeded'
-        elif any(s == 'Memory Limit Exceeded' for s in statuses):
+        elif 'Memory Limit Exceeded' in statuses:
             verdict = 'Memory Limit Exceeded'
         elif any(
             isinstance(s, str) and s.startswith('Runtime Error')
@@ -263,68 +331,48 @@ def _run_job(app, job_id, submission_id,
         else:
             verdict = 'Wrong Answer'
 
-    except (JudgeError, Exception) as exc:
-        verdict = 'Judge Unavailable'
-        score = 0
-        details = [{
-            'status': verdict,
+        total_elapsed = time.perf_counter() - started
+
+        print(
+            f'[OJ SPEED] submission={submission_id} '
+            f'verdict={verdict} score={score}/'
+            f'{problem["total_score"]} total={total_elapsed:.2f}s',
+            flush=True
+        )
+
+        _save_result(
+            app, submission_id, user_id, problem,
+            verdict, score, details
+        )
+
+    except Exception as exc:
+        print(
+            f'[OJ ERROR] submission={submission_id}: {exc}',
+            flush=True
+        )
+
+        error_details = [{
+            'status': 'Judge Unavailable',
             'score': 0,
             'message': str(exc)[:1000]
         }]
 
-        print(
-            f"[OJ ERROR] submission={submission_id}: {exc}",
-            flush=True
-        )
-
-    total_elapsed = time.perf_counter() - started
-
-    print(
-        f"[OJ SPEED] submission={submission_id} "
-        f"verdict={verdict} score={score}/"
-        f"{problem['total_score']} total={total_elapsed:.2f}s",
-        flush=True
-    )
-
-    try:
-        with connect(app.config['DATABASE_PATH']) as db:
-            db.execute(
-                '''UPDATE submissions
-                   SET verdict=?, score=?, details_json=?
-                   WHERE id=? AND user_id=?''',
-                (
-                    verdict,
-                    score,
-                    json.dumps(details, ensure_ascii=False),
-                    submission_id,
-                    user_id
-                )
+        try:
+            _save_result(
+                app, submission_id, user_id, problem,
+                'Judge Unavailable', 0, error_details
+            )
+        except Exception as save_exc:
+            print(
+                f'[OJ ERROR] Cannot save failure '
+                f'submission={submission_id}: {save_exc}',
+                flush=True
             )
 
-            # Chỉ cập nhật thành tích luyện tập cho bài nộp
-            # không thuộc cuộc thi.
-            if _get_contest_id(
-                app, submission_id, user_id
-            ) is None:
-                db.execute(
-                    '''INSERT INTO solves(user_id, problem_id, best_score)
-                       VALUES (?, ?, ?)
-                       ON CONFLICT(user_id, problem_id)
-                       DO UPDATE SET best_score =
-                           CASE WHEN best_score > excluded.best_score
-                                THEN best_score ELSE excluded.best_score END''',
-                    (user_id, problem['id'], score)
-                )
-
-    except Exception as exc:
-        print(
-            f"[OJ ERROR] Cannot save submission={submission_id}: {exc}",
-            flush=True
-        )
-
-    with _lock:
-        if job_id in _jobs:
-            _jobs[job_id]['status'] = 'Finished'
+    finally:
+        with _lock:
+            if job_id in _jobs:
+                _jobs[job_id]['status'] = 'Finished'
 
 
 def _get_contest_id(app, submission_id, user_id):
