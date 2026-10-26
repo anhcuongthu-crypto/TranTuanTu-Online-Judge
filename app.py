@@ -256,11 +256,22 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
                     )
                 )
 
-    def problems():
+   
+    problems_cache = None
+
+    def problems(refresh=False):
+        nonlocal problems_cache
+
+        if problems_cache is not None and not refresh:
+            return problems_cache
+
         if os.getenv('GITHUB_TOKEN'):
             data, _ = github_read_problems()
-            return data
-        return load_problems(app.config['PROBLEMS_PATH'])
+        else:
+            data = load_problems(app.config['PROBLEMS_PATH'])
+
+        problems_cache = data
+        return problems_cache
 
     admin2_username = os.getenv('ADMIN2_USERNAME', '').strip()
     admin2_password = os.getenv('ADMIN2_PASSWORD', '')
