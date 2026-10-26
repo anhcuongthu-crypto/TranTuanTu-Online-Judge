@@ -272,6 +272,9 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
 
         problems_cache = data
         return problems_cache
+    def update_problems_cache(data):
+        nonlocal problems_cache
+        problems_cache = data
 
     admin2_username = os.getenv('ADMIN2_USERNAME', '').strip()
     admin2_password = os.getenv('ADMIN2_PASSWORD', '')
