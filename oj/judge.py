@@ -26,7 +26,8 @@ class Judge0:
                  time_limit, memory_limit):
         time_limit = max(0.1, float(time_limit))
 
-        return {
+        
+        payload = {
             'source_code': source,
             'language_id': int(language_id),
             'stdin': stdin,
@@ -37,6 +38,15 @@ class Judge0:
             ),
             'memory_limit': int(memory_limit)
         }
+
+        if int(language_id) == 54:
+            payload['compiler_options'] = (
+                '-fsanitize=address,undefined '
+                '-fno-omit-frame-pointer -g'
+            )
+
+        return payload
+
 
     def _get_error_text(self, response):
         try:
