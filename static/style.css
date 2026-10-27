@@ -1154,3 +1154,113 @@ option {
         margin-top: 38px;
     }
 }
+/* ===== TRAN TU - BLUE OCEAN DARK THEME ===== */
+
+/* Đồng bộ màu chữ và nền */
+:root {
+    --ink: #eaf4ff;
+    --muted: #9bb8d8;
+    --line: #174b7e;
+    --purple: #168bff;
+    --violet: #38bdf8;
+    --cyan: #00c8ff;
+    --pink: #60a5fa;
+    --paper: #06172e;
+    --white: rgba(12, 43, 78, .92);
+    --shadow: 0 18px 60px rgba(0, 100, 220, .16);
+}
+
+/* Các bảng trong Admin và Contest */
+table,
+.table-card table {
+    color: #eaf4ff;
+    border-color: #174b7e;
+}
+
+th,
+.table-card th {
+    background: #0a2b4d !important;
+    color: #7dd3fc !important;
+    border-color: #174b7e !important;
+}
+
+td,
+.table-card td {
+    color: #eaf4ff;
+    border-color: #174b7e !important;
+}
+
+/* Các thẻ, khu vực nội dung */
+.glass-card,
+.admin-hero,
+.problem,
+.contest-card,
+.contest-item {
+    background-color: #0b2b4d;
+    border-color: #174b7e;
+    color: #eaf4ff;
+}
+
+/* Tiêu đề và liên kết */
+.admin-hero h1,
+.admin-hero h2,
+.glass-card h1,
+.glass-card h2,
+.contest-card h1,
+.contest-card h2,
+.contest-item h1,
+.contest-item h2 {
+    color: #eaf4ff;
+}
+
+.admin-hero a,
+.glass-card a,
+.contest-card a,
+.contest-item a {
+    color: #38bdf8;
+}
+
+/* Nút */
+button,
+.button {
+    accent-color: #168bff;
+}
+
+button:not(.button-primary) {
+    border-color: #205783;
+}
+
+.button-primary {
+    color: #fff !important;
+    background: linear-gradient(105deg, #0877e8, #168bff 65%, #00bdf2);
+}
+
+/* Ô nhập liệu */
+input,
+select,
+textarea {
+    background-color: #071d37;
+    color: #eaf4ff;
+    border-color: #205783;
+}
+
+option {
+    background: #071d37;
+    color: #eaf4ff;
+}
+
+/* Huy hiệu trạng thái */
+.pill-purple,
+.pill-green {
+    background: #0c4d80;
+    color: #7dd3fc;
+}
+
+/* Giữ nền xanh đậm của toàn trang */
+body {
+    background:
+        radial-gradient(ellipse at 12% 0%, #103f73 0, transparent 38%),
+        radial-gradient(ellipse at 95% 25%, #075985 0, transparent 32%),
+        #06172e;
+    color: #eaf4ff;
+}
