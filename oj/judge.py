@@ -44,6 +44,8 @@ class Judge0:
                 '-fsanitize=address,undefined '
                 '-fno-omit-frame-pointer -g'
             )
+            print("JUDGE COMPILER OPTIONS:",
+      payload.get('compiler_options'), flush=True)
 
         return payload
 
