@@ -579,24 +579,92 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             )
         return jsonify(ok=True, bio=bio, avatar_color=color)
 
-    @app.get('/api/submissions')
+        @app.get('/api/submissions')
     def submission_history():
         user = current_user()
         if not user:
             return jsonify(error='Cần đăng nhập.'), 401
+
         with connect(app.config['DATABASE_PATH']) as db:
             rows = db.execute(
-                '''SELECT id, problem_id, language_id, verdict,
-                          score, max_score, details_json, created_at, contest_id
-                   FROM submissions WHERE user_id=? ORDER BY id DESC LIMIT 200''',
-                (user['id'],)
+                '''SELECT s.id, s.user_id, u.username,
+                          s.problem_id, s.language_id, s.verdict,
+                          s.score, s.max_score, s.details_json,
+                          s.created_at, s.contest_id
+                   FROM submissions s
+                   JOIN users u ON u.id = s.user_id
+                   WHERE u.approved=1
+                   ORDER BY s.id DESC
+                   LIMIT 500'''
             ).fetchall()
+
         result = []
         for row in rows:
             item = dict(row)
-            item['details'] = json.loads(item.pop('details_json') or '[]')
+            item['details'] = json.loads(
+                item.pop('details_json') or '[]'
+            )
+            item['is_mine'] = item['user_id'] == user['id']
             result.append(item)
+
         return jsonify(result)
+
+    @app.get('/api/submissions/<int:submission_id>/code')
+    def submission_code(submission_id):
+        user = current_user()
+        if not user:
+            return jsonify(error='Cần đăng nhập.'), 401
+
+        with connect(app.config['DATABASE_PATH']) as db:
+            row = db.execute(
+                '''SELECT id, user_id, problem_id, source_code,
+                          verdict, score, max_score, contest_id
+                   FROM submissions
+                   WHERE id=?''',
+                (submission_id,)
+            ).fetchone()
+
+            if not row:
+                return jsonify(error='Không tìm thấy bài nộp.'), 404
+
+            # Code của chính mình luôn xem được.
+            is_mine = row['user_id'] == user['id']
+
+            # Admin được xem tất cả mã nguồn.
+            is_admin = bool(user['is_admin'])
+
+            if not is_mine and not is_admin:
+                # Chỉ mở code người khác khi bản thân đã FULL
+                # đúng bài và đúng contest (nếu là bài contest).
+                full = db.execute(
+                    '''SELECT 1
+                       FROM submissions
+                       WHERE user_id=?
+                         AND problem_id=?
+                         AND score >= max_score
+                         AND (
+                             contest_id = ?
+                             OR (contest_id IS NULL AND ? IS NULL)
+                         )
+                       LIMIT 1''',
+                    (
+                        user['id'],
+                        row['problem_id'],
+                        row['contest_id'],
+                        row['contest_id']
+                    )
+                ).fetchone()
+
+                if not full:
+                    return jsonify(
+                        error='Bạn cần FULL bài này để xem code của người khác.'
+                    ), 403
+
+        return jsonify({
+            'id': row['id'],
+            'problem_id': row['problem_id'],
+            'source_code': row['source_code']
+        })
 
     @app.get('/api/submissions/<int:submission_id>/status')
     def submission_status(submission_id):
