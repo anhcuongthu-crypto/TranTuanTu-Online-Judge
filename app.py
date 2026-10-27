@@ -579,7 +579,7 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             )
         return jsonify(ok=True, bio=bio, avatar_color=color)
 
-        @app.get('/api/submissions')
+    @app.get('/api/submissions')
     def submission_history():
         user = current_user()
         if not user:
