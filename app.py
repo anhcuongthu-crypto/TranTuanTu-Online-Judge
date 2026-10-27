@@ -634,35 +634,38 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             is_admin = bool(user['is_admin'])
 
             
-            if not is_mine and not is_admin:
-            if row['contest_id'] is None:
-                full = db.execute(
-                    '''SELECT 1
-                       FROM submissions
-                       WHERE user_id=?
-                         AND problem_id=?
-                         AND score >= max_score
-                         AND contest_id IS NULL
-                       LIMIT 1''',
-                    (user['id'], row['problem_id'])
-                ).fetchone()
-            else:
-                full = db.execute(
-                    '''SELECT 1
-                       FROM submissions
-                       WHERE user_id=?
-                         AND problem_id=?
-                         AND score >= max_score
-                         AND contest_id=?
-                       LIMIT 1''',
-                    (
-                        user['id'],
-                        row['problem_id'],
-                        row['contest_id']
-                    )
-                ).fetchone()
+                        if not is_mine and not is_admin:
+                if row['contest_id'] is None:
+                    full = db.execute(
+                        '''SELECT 1
+                           FROM submissions
+                           WHERE user_id=?
+                             AND problem_id=?
+                             AND score >= max_score
+                             AND contest_id IS NULL
+                           LIMIT 1''',
+                        (user['id'], row['problem_id'])
+                    ).fetchone()
+                else:
+                    full = db.execute(
+                        '''SELECT 1
+                           FROM submissions
+                           WHERE user_id=?
+                             AND problem_id=?
+                             AND score >= max_score
+                             AND contest_id=?
+                           LIMIT 1''',
+                        (
+                            user['id'],
+                            row['problem_id'],
+                            row['contest_id']
+                        )
+                    ).fetchone()
 
-            if not full:
+                if not full:
+                    return jsonify(
+                        error='Bạn cần FULL bài này để xem code của người khác.'
+                    ), 403
                 return jsonify(
                     error='Bạn cần FULL bài này để xem code của người khác.'
                 ), 403
