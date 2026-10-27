@@ -90,6 +90,50 @@ function renderProblems(items) {
 
 // ==================== TẢI DỮ LIỆU ====================
 
+function renderSubmissionTable(items) {
+    const el = document.querySelector('#submission-table');
+    if (!el) return;
+
+    if (!items.length) {
+        el.innerHTML = '<p>Chưa có bài nộp.</p>';
+        return;
+    }
+
+    el.innerHTML = `
+        <div style="overflow-x:auto">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã bài nộp</th>
+                        <th>Bài tập</th>
+                        <th>Kết quả</th>
+                        <th>Điểm</th>
+                        <th>Thời gian</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${items.map(x => `
+                        <tr>
+                            <td>${escapeHtml(x.id ?? x.submission_id ?? '—')}</td>
+                            <td>
+                                <a class="text-link"
+                                   href="/problems/${encodeURIComponent(x.problem_id ?? '')}">
+                                    ${escapeHtml(x.problem_id ?? '—')}
+                                </a>
+                            </td>
+                            <td>${escapeHtml(x.verdict ?? 'Đang chấm')}</td>
+                            <td>
+                                ${formatScore(x.score)}/${formatScore(x.max_score)}
+                            </td>
+                            <td>${escapeHtml(x.created_at ?? '—')}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
 async function refresh() {
     const authSection = document.querySelector('#auth-section');
     const status = document.querySelector('#user-status');
