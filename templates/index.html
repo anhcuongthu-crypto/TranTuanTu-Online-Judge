@@ -1,5 +1,60 @@
-{% extends 'base.html' %}{% block content %}
-<section class="hero"><div class="hero-copy"><span class="eyebrow"><i></i> YOUR NEXT LEVEL STARTS HERE</span><h1>Code hôm nay.<br><span class="gradient-text">Bứt phá ngày mai.</span></h1><p>Nền tảng luyện thuật toán dành cho những người muốn đi xa hơn — từ tư duy cơ bản đến các bài toán HSG Tin học.</p><div class="hero-actions"><a class="button button-primary" href="#problem-section">Khám phá bài tập <span>↗</span></a><a class="button button-glass" href="#leaderboard">Xem bảng xếp hạng</a></div><div class="hero-stats"><div><b id="problem-count">500</b><span>bài trong kho</span></div><div><b>1s</b><span>giới hạn CPU mục tiêu</span></div><div><b>C++</b><span>ngôn ngữ chính</span></div></div></div><div class="hero-art"><div class="orb orb-purple"></div><div class="orb orb-cyan"></div><div class="code-window"><div class="window-bar"><span></span><span></span><span></span><label>main.cpp</label></div><pre><code><em>#include</em> &lt;bits/stdc++.h&gt;
+{% extends 'base.html' %}
+{% block content %}
+
+<section class="hero">
+    <div class="hero-copy">
+        <span class="eyebrow">
+            <i></i> YOUR NEXT LEVEL STARTS HERE
+        </span>
+
+        <h1>
+            Code hôm nay.<br>
+            <span class="gradient-text">Bứt phá ngày mai.</span>
+        </h1>
+
+        <p>
+            Nền tảng luyện thuật toán dành cho những người muốn đi xa hơn —
+            từ tư duy cơ bản đến các bài toán HSG Tin học.
+        </p>
+
+        <div class="hero-actions">
+            <a class="button button-primary" href="#problem-section">
+                Khám phá bài tập <span>↗</span>
+            </a>
+            <a class="button button-glass" href="#leaderboard">
+                Xem bảng xếp hạng
+            </a>
+        </div>
+
+        <div class="hero-stats">
+            <div>
+                <b id="problem-count">500</b>
+                <span>bài trong kho</span>
+            </div>
+            <div>
+                <b>1s</b>
+                <span>giới hạn CPU mục tiêu</span>
+            </div>
+            <div>
+                <b>C++</b>
+                <span>ngôn ngữ chính</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-art">
+        <div class="orb orb-purple"></div>
+        <div class="orb orb-cyan"></div>
+
+        <div class="code-window">
+            <div class="window-bar">
+                <span></span>
+                <span></span>
+                <span></span>
+                <label>main.cpp</label>
+            </div>
+
+            <pre><code><em>#include</em> &lt;bits/stdc++.h&gt;
 <em>using namespace</em> std;
 
 <span class="code-purple">int</span> main() {
@@ -8,8 +63,145 @@
   cin &gt;&gt; n;
   cout &lt;&lt; <span class="code-green">"Keep going!"</span>;
   <span class="code-purple">return</span> <span class="code-orange">0</span>;
-}</code></pre><div class="code-status"><span>●</span> Ready to submit <b>✓</b></div></div><div class="float-chip chip-one">✦ Tư duy logic</div><div class="float-chip chip-two">&lt;/&gt; C++ Practice</div></div></section>
-<section class="auth grid" id="auth-section"><form id="login-form" class="glass-card auth-card"><div class="card-icon purple-icon">↗</div><h2>Chào mừng trở lại</h2><p class="muted">Tiếp tục hành trình chinh phục thuật toán.</p><label>Tên đăng nhập</label><input name="username" autocomplete="username" placeholder="vd: tuantu" required><label>Mật khẩu</label><input name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu" required><button class="button button-primary full-width">Đăng nhập <span>→</span></button></form><form id="register-form" class="glass-card auth-card"><div class="card-icon cyan-icon">✦</div><h2>Bắt đầu hành trình</h2><p class="muted">Tạo tài khoản để lưu bài nộp và theo dõi tiến bộ.</p><label>Tên đăng nhập</label><input name="username" autocomplete="username" placeholder="3–24 ký tự, chữ/số/_" required><label>Mật khẩu</label><input name="password" type="password" autocomplete="new-password" placeholder="Ít nhất 8 ký tự" required><button class="button button-dark full-width">Đăng ký tài khoản <span>→</span></button><small class="helper">Tài khoản mới cần liên hệ Trần Tuấn Tú để được duyệt.</small></form></section><p id="notice" class="notice" role="status"></p>
-<section class="section-block" id="problem-section"><div class="section-heading"><div><span class="eyebrow">PRACTICE LIBRARY</span><h2>Chọn bài, bắt đầu luyện.</h2><p class="muted">Tìm theo mã bài, tên bài hoặc chủ đề.</p></div><div class="search-wrap"><span>⌕</span><input id="search" placeholder="Tìm bài tập..." aria-label="Tìm bài tập"></div></div><div id="problems" class="problem-grid">Đang tải danh sách...</div></section>
-<section class="section-block" id="leaderboard"><div class="section-heading"><div><span class="eyebrow">THE LEADERBOARD</span><h2>Bảng xếp hạng</h2><p class="muted">Điểm tốt nhất được cập nhật sau mỗi lần nộp bài.</p></div><div class="trophy">🏆</div></div><div class="glass-card table-card" id="rankings">Đang tải bảng xếp hạng...</div></section>
-<section class="section-block"><div class="section-heading"><div><span class="eyebrow">YOUR ACTIVITY</span><h2>Bài nộp gần đây</h2><p class="muted">Theo dõi kết quả của bạn sau mỗi lần submit.</p></div><a class="text-link" href="/profile">Hồ sơ của tôi ↗</a></div><div class="glass-card table-card" id="history">Đăng nhập để xem lịch sử.</div></section>{% endblock %}
+}</code></pre>
+
+            <div class="code-status">
+                <span>●</span> Ready to submit <b>✓</b>
+            </div>
+        </div>
+
+        <div class="float-chip chip-one">✦ Tư duy logic</div>
+        <div class="float-chip chip-two">&lt;/&gt; C++ Practice</div>
+    </div>
+</section>
+
+<section class="auth grid" id="auth-section">
+
+    <form id="login-form" class="glass-card auth-card">
+        <div class="card-icon purple-icon">↗</div>
+
+        <h2>Chào mừng trở lại</h2>
+        <p class="muted">
+            Tiếp tục hành trình chinh phục thuật toán.
+        </p>
+
+        <label>Tên đăng nhập</label>
+        <input
+            name="username"
+            autocomplete="username"
+            placeholder="vd: tuantu"
+            required
+        >
+
+        <label>Mật khẩu</label>
+        <input
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="Nhập mật khẩu"
+            required
+        >
+
+        <button class="button button-primary full-width">
+            Đăng nhập <span>→</span>
+        </button>
+    </form>
+
+    <form id="register-form" class="glass-card auth-card">
+        <div class="card-icon cyan-icon">✦</div>
+
+        <h2>Bắt đầu hành trình</h2>
+        <p class="muted">
+            Tạo tài khoản để lưu bài nộp và theo dõi tiến bộ.
+        </p>
+
+        <label>Tên đăng nhập</label>
+        <input
+            name="username"
+            autocomplete="username"
+            placeholder="3–24 ký tự, chữ/số/_"
+            required
+        >
+
+        <label>Mật khẩu</label>
+        <input
+            name="password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Ít nhất 8 ký tự"
+            required
+        >
+
+        <button class="button button-dark full-width">
+            Đăng ký tài khoản <span>→</span>
+        </button>
+    </form>
+
+</section>
+
+<p id="notice" class="notice" role="status"></p>
+
+<section class="section-block" id="problem-section">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">PRACTICE LIBRARY</span>
+            <h2>Chọn bài, bắt đầu luyện.</h2>
+            <p class="muted">
+                Tìm theo mã bài, tên bài hoặc chủ đề.
+            </p>
+        </div>
+
+        <div class="search-wrap">
+            <span>⌕</span>
+            <input
+                id="search"
+                placeholder="Tìm bài tập..."
+                aria-label="Tìm bài tập"
+            >
+        </div>
+    </div>
+
+    <div id="problems" class="problem-grid">
+        Đang tải danh sách...
+    </div>
+</section>
+
+<section class="section-block" id="leaderboard">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">THE LEADERBOARD</span>
+            <h2>Bảng xếp hạng</h2>
+            <p class="muted">
+                Điểm tốt nhất được cập nhật sau mỗi lần nộp bài.
+            </p>
+        </div>
+
+        <div class="trophy">🏆</div>
+    </div>
+
+    <div class="glass-card table-card" id="rankings">
+        Đang tải bảng xếp hạng...
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">YOUR ACTIVITY</span>
+            <h2>Bài nộp gần đây</h2>
+            <p class="muted">
+                Theo dõi kết quả của bạn sau mỗi lần submit.
+            </p>
+        </div>
+
+        <a class="text-link" href="/profile">
+            Hồ sơ của tôi ↗
+        </a>
+    </div>
+
+    <div class="glass-card table-card" id="history">
+        Đăng nhập để xem lịch sử.
+    </div>
+</section>
+
+{% endblock %}
