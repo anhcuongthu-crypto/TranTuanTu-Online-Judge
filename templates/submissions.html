@@ -1,4 +1,4 @@
-```html
+
 {% extends 'base.html' %}
 {% block content %}
 
@@ -7,7 +7,6 @@
     color: var(--text, #edf0ff);
     padding: 12px 0 48px;
 }
-
 .submissions-page .eyebrow {
     color: #a99aff;
     font-size: 11px;
@@ -15,25 +14,21 @@
     letter-spacing: 2px;
     text-transform: uppercase;
 }
-
 .submissions-page h1 {
     font-size: clamp(28px, 4vw, 42px);
     margin: 10px 0;
     letter-spacing: -1.3px;
 }
-
 .submissions-page .gradient-text {
     background: linear-gradient(100deg, #a78bfa, #67e8f9);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
 }
-
 .submissions-page .muted {
     color: #929db8;
     line-height: 1.7;
 }
-
 .submissions-page .submissions-header {
     display: flex;
     justify-content: space-between;
@@ -42,7 +37,6 @@
     flex-wrap: wrap;
     margin-bottom: 24px;
 }
-
 .submissions-page .glass-card {
     background: rgba(20, 27, 48, .78);
     border: 1px solid rgba(148, 163, 216, .16);
@@ -50,29 +44,24 @@
     box-shadow: 0 16px 45px rgba(0, 0, 0, .15);
     backdrop-filter: blur(16px);
 }
-
 .submissions-page .stats {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
     margin-bottom: 20px;
 }
-
 .submissions-page .stat-card {
     padding: 18px 20px;
 }
-
 .submissions-page .stat-label {
     color: #929db8;
     font-size: 13px;
 }
-
 .submissions-page .stat-value {
     font-size: 27px;
     font-weight: 800;
     margin-top: 8px;
 }
-
 .submissions-page .toolbar {
     padding: 16px;
     display: flex;
@@ -80,7 +69,6 @@
     flex-wrap: wrap;
     margin-bottom: 18px;
 }
-
 .submissions-page input,
 .submissions-page select {
     box-sizing: border-box;
@@ -93,31 +81,27 @@
     outline: none;
     font: inherit;
 }
-
 .submissions-page input {
     flex: 1;
     min-width: 180px;
 }
-
 .submissions-page select {
     min-width: 155px;
 }
-
 .submissions-page input:focus,
 .submissions-page select:focus {
     border-color: #a78bfa;
     box-shadow: 0 0 0 3px rgba(167, 139, 250, .12);
 }
-
 .submissions-page select option {
     background: #141b30;
     color: #edf0ff;
 }
-
-.submissions-page .action-button {
+.submissions-page .action-button,
+.submissions-page .code-button {
     border: 0;
     border-radius: 11px;
-    padding: 12px 17px;
+    padding: 10px 14px;
     color: white;
     font: inherit;
     font-weight: 700;
@@ -125,26 +109,27 @@
     background: linear-gradient(110deg, #8b5cf6, #6366f1);
     transition: transform .2s, filter .2s;
 }
-
-.submissions-page .action-button:hover {
+.submissions-page .action-button:hover,
+.submissions-page .code-button:hover {
     transform: translateY(-1px);
     filter: brightness(1.12);
 }
-
+.submissions-page button:disabled {
+    opacity: .6;
+    cursor: wait;
+    transform: none;
+}
 .submissions-page .table-card {
     overflow: hidden;
 }
-
 .submissions-page .table-scroll {
     overflow-x: auto;
 }
-
 .submissions-page table {
     width: 100%;
     border-collapse: collapse;
     white-space: nowrap;
 }
-
 .submissions-page th {
     color: #a8b1ca;
     font-size: 11px;
@@ -153,26 +138,21 @@
     font-weight: 800;
     background: rgba(7, 12, 27, .45);
 }
-
 .submissions-page th,
 .submissions-page td {
     padding: 16px 18px;
     text-align: left;
     border-bottom: 1px solid rgba(148, 163, 216, .1);
 }
-
 .submissions-page tbody tr {
     transition: background .18s;
 }
-
 .submissions-page tbody tr:hover {
     background: rgba(139, 92, 246, .07);
 }
-
 .submissions-page tbody tr:last-child td {
     border-bottom: 0;
 }
-
 .submissions-page .verdict {
     display: inline-block;
     padding: 5px 10px;
@@ -180,38 +160,107 @@
     font-size: 12px;
     font-weight: 800;
 }
-
 .submissions-page .accepted {
     color: #6ee7b7;
     background: rgba(16, 185, 129, .12);
 }
-
 .submissions-page .wrong {
     color: #fda4af;
     background: rgba(244, 63, 94, .12);
 }
-
 .submissions-page .pending {
     color: #fcd34d;
     background: rgba(245, 158, 11, .12);
 }
-
 .submissions-page .other {
     color: #a5b4fc;
     background: rgba(129, 140, 248, .12);
 }
-
 .submissions-page .empty-state {
     text-align: center;
     color: #929db8;
     padding: 38px 16px;
 }
-
 .submissions-page .result-count {
     color: #929db8;
     font-size: 13px;
     padding: 14px 18px;
     border-top: 1px solid rgba(148, 163, 216, .1);
+}
+.submissions-page .student-name {
+    font-weight: 700;
+}
+.submissions-page .mine-label {
+    color: #6ee7b7;
+    font-size: 11px;
+    margin-left: 5px;
+}
+.submissions-page .code-button {
+    padding: 8px 11px;
+    font-size: 12px;
+}
+
+/* Cửa sổ xem mã nguồn */
+.submissions-page .code-modal[hidden] {
+    display: none !important;
+}
+.submissions-page .code-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(3, 6, 18, .82);
+    backdrop-filter: blur(8px);
+}
+.submissions-page .code-dialog {
+    width: min(100%, 900px);
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #10172a;
+    border: 1px solid rgba(148, 163, 216, .24);
+    border-radius: 18px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, .4);
+}
+.submissions-page .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(148, 163, 216, .16);
+}
+.submissions-page .code-header h2 {
+    margin: 0;
+    font-size: 18px;
+}
+.submissions-page .code-message {
+    color: #aeb8d0;
+    padding: 12px 20px;
+    white-space: pre-wrap;
+}
+.submissions-page .code-content {
+    margin: 0;
+    padding: 20px;
+    overflow: auto;
+    color: #dbeafe;
+    background: #080d1a;
+    font: 13px/1.65 Consolas, Monaco, monospace;
+    white-space: pre;
+    tab-size: 4;
+}
+.submissions-page .close-code {
+    border: 1px solid rgba(148, 163, 216, .25);
+    border-radius: 9px;
+    padding: 8px 12px;
+    color: #edf0ff;
+    background: rgba(148, 163, 216, .1);
+    cursor: pointer;
+    font: inherit;
 }
 
 @media (max-width: 640px) {
@@ -219,24 +268,27 @@
         grid-template-columns: 1fr;
         gap: 10px;
     }
-
     .submissions-page .stat-card {
         padding: 14px 16px;
     }
-
     .submissions-page .toolbar {
         padding: 12px;
     }
-
     .submissions-page .toolbar input,
     .submissions-page .toolbar select,
     .submissions-page .toolbar button {
         width: 100%;
     }
-
     .submissions-page th,
     .submissions-page td {
         padding: 13px 14px;
+    }
+    .submissions-page .code-modal {
+        padding: 8px;
+    }
+    .submissions-page .code-content {
+        padding: 12px;
+        font-size: 12px;
     }
 }
 </style>
@@ -244,9 +296,11 @@
 <div class="submissions-page">
     <div class="submissions-header">
         <div>
-            <span class="eyebrow">YOUR ACTIVITY</span>
+            <span class="eyebrow">GLOBAL ACTIVITY</span>
             <h1>Lịch sử <span class="gradient-text">bài nộp.</span></h1>
-            <p class="muted">Theo dõi kết quả và hành trình chinh phục thuật toán của bạn.</p>
+            <p class="muted">
+                Theo dõi bài nộp của toàn bộ học sinh và xem mã nguồn theo quyền của bạn.
+            </p>
         </div>
         <button class="action-button" id="refresh-btn" type="button">
             ↻ Làm mới
@@ -255,7 +309,7 @@
 
     <div class="stats">
         <div class="glass-card stat-card">
-            <div class="stat-label">Tổng bài nộp</div>
+            <div class="stat-label">Tổng bài nộp đang hiển thị</div>
             <div class="stat-value" id="total-count">—</div>
         </div>
         <div class="glass-card stat-card">
@@ -271,7 +325,7 @@
     <div class="glass-card toolbar">
         <input id="submission-search"
                type="search"
-               placeholder="Tìm theo mã bài, ngôn ngữ, kết quả..."
+               placeholder="Tìm học sinh, mã bài, ngôn ngữ, kết quả..."
                aria-label="Tìm bài nộp">
 
         <select id="verdict-filter" aria-label="Lọc trạng thái">
@@ -289,19 +343,37 @@
                 <thead>
                     <tr>
                         <th>Mã bài nộp</th>
+                        <th>Học sinh</th>
                         <th>Bài tập</th>
                         <th>Ngôn ngữ</th>
                         <th>Kết quả</th>
                         <th>Điểm</th>
                         <th>Thời gian</th>
+                        <th>Mã nguồn</th>
                     </tr>
                 </thead>
                 <tbody id="submissions-body">
-                    <tr><td colspan="6" class="empty-state">Đang tải bài nộp...</td></tr>
+                    <tr>
+                        <td colspan="8" class="empty-state">Đang tải bài nộp...</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
         <div class="result-count" id="result-count">Đang tải dữ liệu...</div>
+    </div>
+
+    <div class="code-modal" id="code-modal" hidden>
+        <div class="code-dialog" role="dialog" aria-modal="true"
+             aria-labelledby="code-title">
+            <div class="code-header">
+                <h2 id="code-title">Mã nguồn bài nộp</h2>
+                <button type="button" class="close-code" id="close-code-btn">
+                    Đóng ✕
+                </button>
+            </div>
+            <div class="code-message" id="code-message">Đang tải mã nguồn...</div>
+            <pre class="code-content" id="code-content" hidden></pre>
+        </div>
     </div>
 </div>
 
@@ -311,6 +383,12 @@
     const searchInput = document.getElementById('submission-search');
     const verdictFilter = document.getElementById('verdict-filter');
     const refreshButton = document.getElementById('refresh-btn');
+
+    const codeModal = document.getElementById('code-modal');
+    const codeTitle = document.getElementById('code-title');
+    const codeMessage = document.getElementById('code-message');
+    const codeContent = document.getElementById('code-content');
+    const closeCodeButton = document.getElementById('close-code-btn');
 
     let submissions = [];
 
@@ -327,10 +405,18 @@
     }
 
     function getVerdictClass(verdict) {
-        const value = String(verdict || '').toLowerCase();
+        const value = String(verdict || '').toLowerCase().trim();
 
-        if (value.includes('accepted') || value === 'ac') return 'accepted';
-        if (value.includes('wrong answer') || value === 'wa') return 'wrong';
+        if (
+            value.includes('accepted') ||
+            value === 'ac' ||
+            value === 'full'
+        ) return 'accepted';
+
+        if (
+            value.includes('wrong answer') ||
+            value === 'wa'
+        ) return 'wrong';
 
         if (
             value.includes('pending') ||
@@ -343,16 +429,19 @@
     }
 
     function getVerdictLabel(verdict) {
-        const value = String(verdict || '').toLowerCase();
+        const value = String(verdict || '').toLowerCase().trim();
 
-        if (value === 'ac') return 'Accepted';
-        if (value === 'wa') return 'Wrong Answer';
-        if (value === 'tle') return 'Time Limit';
-        if (value === 'mle') return 'Memory Limit';
-        if (value === 're') return 'Runtime Error';
-        if (value === 'ce') return 'Compile Error';
+        const labels = {
+            'ac': 'Accepted',
+            'wa': 'Wrong Answer',
+            'tle': 'Time Limit',
+            'mle': 'Memory Limit',
+            're': 'Runtime Error',
+            'ce': 'Compile Error',
+            'full': 'FULL'
+        };
 
-        return verdict || 'Unknown';
+        return labels[value] || verdict || 'Unknown';
     }
 
     function getDate(value) {
@@ -374,18 +463,22 @@
 
             const searchable = [
                 item.id,
+                item.username,
                 item.problem_id,
                 item.language_id,
                 verdict,
                 item.score,
                 item.max_score,
-                item.created_at
+                item.created_at,
+                item.contest_id
             ].join(' ').toLowerCase();
 
-            return searchable.includes(keyword) && (!filter || category === filter);
+            return searchable.includes(keyword) &&
+                (!filter || category === filter);
         });
 
-        document.getElementById('total-count').textContent = submissions.length;
+        document.getElementById('total-count').textContent =
+            submissions.length;
 
         const accepted = submissions.filter(function (item) {
             return getVerdictClass(item.verdict) === 'accepted';
@@ -398,31 +491,51 @@
                 : '0%';
 
         if (!filtered.length) {
-            body.innerHTML = '<tr><td colspan="6" class="empty-state">' +
-                (submissions.length ? 'Không tìm thấy bài nộp phù hợp.' : 'Chưa có bài nộp nào.') +
+            body.innerHTML =
+                '<tr><td colspan="8" class="empty-state">' +
+                (submissions.length
+                    ? 'Không tìm thấy bài nộp phù hợp.'
+                    : 'Chưa có bài nộp nào.') +
                 '</td></tr>';
         } else {
             body.innerHTML = filtered.map(function (item) {
                 const verdict = getVerdictLabel(item.verdict);
                 const category = getVerdictClass(item.verdict);
+
                 const score = item.score == null
                     ? '—'
-                    : item.score + (item.max_score == null ? '' : ' / ' + item.max_score);
+                    : item.score +
+                      (item.max_score == null ? '' : ' / ' + item.max_score);
+
+                const username = item.username || 'Không rõ';
+                const mine = item.is_mine
+                    ? '<span class="mine-label">(Bạn)</span>'
+                    : '';
+
+                const codeLabel = item.is_mine
+                    ? 'Code của tôi'
+                    : 'Xem code';
 
                 return '<tr>' +
                     '<td>#' + escapeHTML(item.id) + '</td>' +
+                    '<td><span class="student-name">' +
+                        escapeHTML(username) + '</span>' + mine + '</td>' +
                     '<td>' + escapeHTML(item.problem_id ?? '—') + '</td>' +
                     '<td>' + escapeHTML(item.language_id ?? '—') + '</td>' +
                     '<td><span class="verdict ' + category + '">' +
                         escapeHTML(verdict) + '</span></td>' +
                     '<td>' + escapeHTML(score) + '</td>' +
                     '<td>' + escapeHTML(getDate(item.created_at)) + '</td>' +
+                    '<td><button type="button" class="code-button" ' +
+                        'data-code-id="' + escapeHTML(item.id) + '">' +
+                        codeLabel + '</button></td>' +
                 '</tr>';
             }).join('');
         }
 
         document.getElementById('result-count').textContent =
-            'Hiển thị ' + filtered.length + ' / ' + submissions.length + ' bài nộp';
+            'Hiển thị ' + filtered.length + ' / ' +
+            submissions.length + ' bài nộp';
     }
 
     async function loadSubmissions() {
@@ -438,7 +551,13 @@
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || data.message || 'Không thể tải bài nộp.');
+                if (response.status === 401) {
+                    throw new Error('Bạn cần đăng nhập để xem lịch sử bài nộp.');
+                }
+
+                throw new Error(
+                    data.error || data.message || 'Không thể tải bài nộp.'
+                );
             }
 
             submissions = Array.isArray(data)
@@ -447,7 +566,8 @@
 
             render();
         } catch (error) {
-            body.innerHTML = '<tr><td colspan="6" class="empty-state">' +
+            body.innerHTML =
+                '<tr><td colspan="8" class="empty-state">' +
                 escapeHTML(error.message || 'Lỗi khi tải dữ liệu.') +
                 '</td></tr>';
 
@@ -459,13 +579,87 @@
         }
     }
 
+    async function showSubmissionCode(submissionId) {
+        codeModal.hidden = false;
+        codeTitle.textContent = 'Mã nguồn bài nộp #' + submissionId;
+        codeMessage.textContent = 'Đang tải mã nguồn...';
+        codeContent.textContent = '';
+        codeContent.hidden = true;
+
+        try {
+            const response = await fetch(
+                '/api/submissions/' + encodeURIComponent(submissionId) + '/code',
+                {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'same-origin'
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    throw new Error('Bạn cần đăng nhập để xem mã nguồn.');
+                }
+
+                if (response.status === 403) {
+                    throw new Error(
+                        data.error ||
+                        'Bạn cần FULL bài này trước khi xem mã nguồn của người khác.'
+                    );
+                }
+
+                throw new Error(
+                    data.error || data.message || 'Không thể tải mã nguồn.'
+                );
+            }
+
+            codeMessage.textContent =
+                'Bài tập: ' + (data.problem_id || '—');
+
+            // Dùng textContent để mã nguồn chỉ hiển thị dưới dạng văn bản.
+            codeContent.textContent = data.source_code || '';
+            codeContent.hidden = false;
+        } catch (error) {
+            codeMessage.textContent =
+                error.message || 'Có lỗi khi tải mã nguồn.';
+        }
+    }
+
+    function closeCodeModal() {
+        codeModal.hidden = true;
+        codeContent.textContent = '';
+        codeContent.hidden = true;
+        codeMessage.textContent = '';
+    }
+
+    body.addEventListener('click', function (event) {
+        const button = event.target.closest('[data-code-id]');
+        if (!button) return;
+
+        showSubmissionCode(button.dataset.codeId);
+    });
+
     searchInput.addEventListener('input', render);
     verdictFilter.addEventListener('change', render);
     refreshButton.addEventListener('click', loadSubmissions);
+
+    closeCodeButton.addEventListener('click', closeCodeModal);
+
+    codeModal.addEventListener('click', function (event) {
+        if (event.target === codeModal) {
+            closeCodeModal();
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !codeModal.hidden) {
+            closeCodeModal();
+        }
+    });
 
     loadSubmissions();
 })();
 </script>
 
 {% endblock %}
-```
