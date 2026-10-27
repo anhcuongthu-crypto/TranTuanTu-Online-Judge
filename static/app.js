@@ -186,7 +186,8 @@ if (!user) {
 
 
             
-const items = await api('/api/submissions');
+const data = await api('/api/submissions');
+const items = Array.isArray(data) ? data : (data.submissions || []);
 
 // Hiển thị bảng mới dưới khu vực chọn bài.
 renderSubmissionTable(items);
