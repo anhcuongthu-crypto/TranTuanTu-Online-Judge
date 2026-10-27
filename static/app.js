@@ -166,12 +166,21 @@ async function refresh() {
             if (logout) logout.hidden = !user;
             if (admin) admin.hidden = !(user && user.is_admin);
 
-            if (!history) return;
+            
+if (!history && !document.querySelector('#submission-table')) return;
 
-            if (!user) {
-                history.textContent = 'Vui lòng đăng nhập để xem lịch sử.';
-                return;
-            }
+if (!user) {
+    if (history) {
+        history.textContent = 'Vui lòng đăng nhập để xem lịch sử.';
+    }
+
+    const table = document.querySelector('#submission-table');
+    if (table) {
+        table.textContent = 'Vui lòng đăng nhập để xem bài nộp.';
+    }
+    return;
+}
+
 
             const items = await api('/api/submissions');
 
