@@ -189,8 +189,10 @@ const items = await api('/api/submissions');
 renderSubmissionTable(items);
 
 // Giữ nguyên lịch sử bài nộp cũ.
+
 if (history) {
     history.innerHTML = items.length
+        ? '<table><thead><tr>' +
           '<th>Bài</th><th>Kết quả</th><th>Điểm</th><th>Thời gian</th>' +
           '</tr></thead><tbody>' +
           items.map(x => `
@@ -210,24 +212,6 @@ if (history) {
         : 'Chưa có bài nộp.';
 }
 
-                ? '<table><thead><tr>' +
-                  '<th>Bài</th><th>Kết quả</th><th>Điểm</th><th>Thời gian</th>' +
-                  '</tr></thead><tbody>' +
-                  items.map(x => `
-                    <tr>
-                        <td>
-                            <a class="text-link"
-                               href="/problems/${encodeURIComponent(x.problem_id)}">
-                                ${escapeHtml(x.problem_id)}
-                            </a>
-                        </td>
-                        <td>${escapeHtml(x.verdict)}</td>
-                        <td>${formatScore(x.score)}/${formatScore(x.max_score)}</td>
-                        <td>${escapeHtml(x.created_at)}</td>
-                    </tr>
-                  `).join('') +
-                  '</tbody></table>'
-                : 'Chưa có bài nộp.';
         })().catch(e => console.error('Lỗi tải tài khoản:', e)));
     }
 
