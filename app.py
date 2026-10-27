@@ -609,6 +609,7 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
 
         return jsonify(result)
 
+    
     @app.get('/api/submissions/<int:submission_id>/code')
     def submission_code(submission_id):
         user = current_user()
@@ -633,8 +634,9 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             # Admin được xem tất cả mã nguồn.
             is_admin = bool(user['is_admin'])
 
-            
-                        if not is_mine and not is_admin:
+            # Người khác chỉ xem được nếu đã FULL cùng bài,
+            # trong cùng contest hoặc cùng ngoài contest.
+            if not is_mine and not is_admin:
                 if row['contest_id'] is None:
                     full = db.execute(
                         '''SELECT 1
@@ -666,16 +668,12 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
                     return jsonify(
                         error='Bạn cần FULL bài này để xem code của người khác.'
                     ), 403
-                return jsonify(
-                    error='Bạn cần FULL bài này để xem code của người khác.'
-                ), 403
 
-
-        return jsonify({
-            'id': row['id'],
-            'problem_id': row['problem_id'],
-            'source_code': row['source_code']
-        })
+            return jsonify({
+                'id': row['id'],
+                'problem_id': row['problem_id'],
+                'source_code': row['source_code']
+            })
 
     @app.get('/api/submissions/<int:submission_id>/status')
     def submission_status(submission_id):
