@@ -380,13 +380,13 @@ async function loadProfile() {
         const color = form.elements.namedItem('avatar_color');
 
         if (bio) bio.value = user.bio || '';
-        if (color) color.value = user.avatar_color || '#7c3aed';
+        if (color) color.value = user.avatar_color || '#168BFF';
 
         const avatar = document.querySelector('#profile-avatar');
 
         if (avatar) {
             avatar.textContent = user.username.slice(0, 2).toUpperCase();
-            avatar.style.background = user.avatar_color || '#7c3aed';
+            avatar.style.background = user.avatar_color || '#168BFF';
         }
 
         if (details) {
@@ -419,7 +419,7 @@ document.querySelector('#profile-form')?.addEventListener('submit', async e => {
             method: 'PUT',
             body: JSON.stringify({
                 bio: bio ? bio.value : '',
-                avatar_color: color ? color.value : '#7c3aed'
+                avatar_color: color ? color.value : '#168BFF'
             })
         });
 
