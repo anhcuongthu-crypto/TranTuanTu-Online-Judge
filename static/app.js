@@ -558,6 +558,17 @@ async function loadAdmin() {
 }
 
 document.querySelector('#reload-users')?.addEventListener('click', loadAdmin);
+document.querySelector('#refresh-submissions')
+    ?.addEventListener('click', async e => {
+        const button = e.currentTarget;
+        button.disabled = true;
+
+        try {
+            await refresh();
+        } finally {
+            button.disabled = false;
+        }
+    });
 
 // ==================== KHỞI ĐỘNG ====================
 
