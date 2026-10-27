@@ -182,9 +182,34 @@ if (!user) {
 }
 
 
-            const items = await api('/api/submissions');
+            
+const items = await api('/api/submissions');
 
-            history.innerHTML = items.length
+// Hiển thị bảng mới dưới khu vực chọn bài.
+renderSubmissionTable(items);
+
+// Giữ nguyên lịch sử bài nộp cũ.
+if (history) {
+    history.innerHTML = items.length
+          '<th>Bài</th><th>Kết quả</th><th>Điểm</th><th>Thời gian</th>' +
+          '</tr></thead><tbody>' +
+          items.map(x => `
+            <tr>
+                <td>
+                    <a class="text-link"
+                       href="/problems/${encodeURIComponent(x.problem_id ?? '')}">
+                        ${escapeHtml(x.problem_id ?? '—')}
+                    </a>
+                </td>
+                <td>${escapeHtml(x.verdict ?? '—')}</td>
+                <td>${formatScore(x.score)}/${formatScore(x.max_score)}</td>
+                <td>${escapeHtml(x.created_at ?? '—')}</td>
+            </tr>
+          `).join('') +
+          '</tbody></table>'
+        : 'Chưa có bài nộp.';
+}
+
                 ? '<table><thead><tr>' +
                   '<th>Bài</th><th>Kết quả</th><th>Điểm</th><th>Thời gian</th>' +
                   '</tr></thead><tbody>' +
