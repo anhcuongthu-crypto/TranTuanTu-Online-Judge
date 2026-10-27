@@ -1,3 +1,4 @@
+
 {% extends 'base.html' %}
 {% block content %}
 
@@ -141,6 +142,7 @@
 
 <p id="notice" class="notice" role="status"></p>
 
+<!-- DANH SÁCH BÀI TẬP -->
 <section class="section-block" id="problem-section">
     <div class="section-heading">
         <div>
@@ -148,6 +150,7 @@
             <h2>Chọn bài, bắt đầu luyện.</h2>
             <p class="muted">
                 Tìm theo mã bài, tên bài hoặc chủ đề.
+                Bấm tiêu đề cột để sắp xếp.
             </p>
         </div>
 
@@ -155,14 +158,14 @@
             <span>⌕</span>
             <input
                 id="search"
+                type="search"
                 placeholder="Tìm bài tập..."
-                aria-label="Tìm bài tập"
+                aria-label="Tìm theo mã bài, tên bài hoặc chủ đề"
             >
         </div>
     </div>
 
-    
-    <div id="problems" class="problem-grid">
+    <div class="glass-card table-card" id="problems">
         Đang tải danh sách...
     </div>
 </section>
@@ -174,11 +177,15 @@
             <span class="eyebrow">SUBMISSION HISTORY</span>
             <h2>Bảng bài nộp</h2>
             <p class="muted">
-                Theo dõi trạng thái, điểm và mã nguồn các bài đã nộp.
+                Theo dõi trạng thái, điểm và mã bài nộp.
             </p>
         </div>
 
-        <button class="button button-glass" id="refresh-submissions">
+        <button
+            type="button"
+            class="button button-glass"
+            id="refresh-submissions"
+        >
             ↻ Làm mới
         </button>
     </div>
@@ -188,7 +195,7 @@
     </div>
 </section>
 
-
+<!-- BẢNG XẾP HẠNG -->
 <section class="section-block" id="leaderboard">
     <div class="section-heading">
         <div>
@@ -207,7 +214,8 @@
     </div>
 </section>
 
-<section class="section-block">
+<!-- LỊCH SỬ BÀI NỘP -->
+<section class="section-block" id="recent-activity">
     <div class="section-heading">
         <div>
             <span class="eyebrow">YOUR ACTIVITY</span>
