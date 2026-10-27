@@ -548,6 +548,9 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
     @app.get('/submissions')
     def submissions_page():
         return render_template('submissions.html')
+    @app.get('/leaderboard')
+    def leaderboard_page():
+    return render_template('leaderboard.html')
 
     @app.get('/about')
     def about_page():
