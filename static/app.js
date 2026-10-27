@@ -460,7 +460,7 @@ async function loadAdmin() {
                     </div>
                     ${
                         user.approved
-                            ? '<span class="pill pill-green">Đã duyệt</span>'
+                            ? '<span class="pill pill-blue">Đã duyệt</span>'
                             : `<button class="button button-primary approve-user"
                                        data-id="${escapeHtml(user.id)}">
                                    Duyệt tài khoản
