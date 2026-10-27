@@ -3,21 +3,11 @@
 {% block content %}
 
 <style>
-.submissions-page .problem-link {
-    color: #67e8f9;
-    font-weight: 800;
-    text-decoration: none;
-    transition: color .2s ease;
-}
-
-.submissions-page .problem-link:hover {
-    color: #a78bfa;
-    text-decoration: underline;
-}
 .submissions-page {
     color: var(--text, #edf0ff);
     padding: 12px 0 48px;
 }
+
 .submissions-page .eyebrow {
     color: #a99aff;
     font-size: 11px;
@@ -25,21 +15,25 @@
     letter-spacing: 2px;
     text-transform: uppercase;
 }
+
 .submissions-page h1 {
     font-size: clamp(28px, 4vw, 42px);
     margin: 10px 0;
     letter-spacing: -1.3px;
 }
+
 .submissions-page .gradient-text {
     background: linear-gradient(100deg, #a78bfa, #67e8f9);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
 }
+
 .submissions-page .muted {
     color: #929db8;
     line-height: 1.7;
 }
+
 .submissions-page .submissions-header {
     display: flex;
     justify-content: space-between;
@@ -48,6 +42,7 @@
     flex-wrap: wrap;
     margin-bottom: 24px;
 }
+
 .submissions-page .glass-card {
     background: rgba(20, 27, 48, .78);
     border: 1px solid rgba(148, 163, 216, .16);
@@ -55,24 +50,29 @@
     box-shadow: 0 16px 45px rgba(0, 0, 0, .15);
     backdrop-filter: blur(16px);
 }
+
 .submissions-page .stats {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
     margin-bottom: 20px;
 }
+
 .submissions-page .stat-card {
     padding: 18px 20px;
 }
+
 .submissions-page .stat-label {
     color: #929db8;
     font-size: 13px;
 }
+
 .submissions-page .stat-value {
     font-size: 27px;
     font-weight: 800;
     margin-top: 8px;
 }
+
 .submissions-page .toolbar {
     padding: 16px;
     display: flex;
@@ -80,6 +80,7 @@
     flex-wrap: wrap;
     margin-bottom: 18px;
 }
+
 .submissions-page input,
 .submissions-page select {
     box-sizing: border-box;
@@ -92,22 +93,27 @@
     outline: none;
     font: inherit;
 }
+
 .submissions-page input {
     flex: 1;
     min-width: 180px;
 }
+
 .submissions-page select {
     min-width: 155px;
 }
+
 .submissions-page input:focus,
 .submissions-page select:focus {
     border-color: #a78bfa;
     box-shadow: 0 0 0 3px rgba(167, 139, 250, .12);
 }
+
 .submissions-page select option {
     background: #141b30;
     color: #edf0ff;
 }
+
 .submissions-page .action-button,
 .submissions-page .code-button {
     border: 0;
@@ -120,50 +126,85 @@
     background: linear-gradient(110deg, #8b5cf6, #6366f1);
     transition: transform .2s, filter .2s;
 }
+
 .submissions-page .action-button:hover,
 .submissions-page .code-button:hover {
     transform: translateY(-1px);
     filter: brightness(1.12);
 }
+
 .submissions-page button:disabled {
     opacity: .6;
     cursor: wait;
     transform: none;
 }
+
+/* Bảng lịch sử bài nộp */
 .submissions-page .table-card {
     overflow: hidden;
+    border-radius: 16px;
 }
+
 .submissions-page .table-scroll {
     overflow-x: auto;
+    width: 100%;
 }
+
 .submissions-page table {
     width: 100%;
+    min-width: 850px;
     border-collapse: collapse;
     white-space: nowrap;
+    background: rgba(12, 17, 32, .35);
 }
-.submissions-page th {
-    color: #a8b1ca;
-    font-size: 11px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+
+.submissions-page thead th {
+    color: #f8fafc;
+    font-size: 12px;
+    letter-spacing: .4px;
+    text-transform: none;
     font-weight: 800;
-    background: rgba(7, 12, 27, .45);
+    background: rgba(35, 29, 48, .96);
+    border: 1px solid rgba(148, 163, 216, .25);
 }
+
 .submissions-page th,
 .submissions-page td {
-    padding: 16px 18px;
+    padding: 14px 16px;
     text-align: left;
-    border-bottom: 1px solid rgba(148, 163, 216, .1);
+    border: 1px solid rgba(148, 163, 216, .2);
 }
+
 .submissions-page tbody tr {
-    transition: background .18s;
+    background: rgba(255, 255, 255, .018);
+    transition: background .18s ease;
 }
+
+.submissions-page tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, .045);
+}
+
 .submissions-page tbody tr:hover {
-    background: rgba(139, 92, 246, .07);
+    background: rgba(139, 92, 246, .13);
 }
+
 .submissions-page tbody tr:last-child td {
-    border-bottom: 0;
+    border-bottom: 1px solid rgba(148, 163, 216, .2);
 }
+
+/* Liên kết mã bài tập */
+.submissions-page .problem-link {
+    color: #67e8f9;
+    font-weight: 800;
+    text-decoration: none;
+    transition: color .2s ease;
+}
+
+.submissions-page .problem-link:hover {
+    color: #a78bfa;
+    text-decoration: underline;
+}
+
 .submissions-page .verdict {
     display: inline-block;
     padding: 5px 10px;
@@ -171,41 +212,51 @@
     font-size: 12px;
     font-weight: 800;
 }
+
 .submissions-page .accepted {
     color: #6ee7b7;
     background: rgba(16, 185, 129, .12);
 }
+
 .submissions-page .wrong {
     color: #fda4af;
     background: rgba(244, 63, 94, .12);
 }
+
 .submissions-page .pending {
     color: #fcd34d;
     background: rgba(245, 158, 11, .12);
 }
+
 .submissions-page .other {
     color: #a5b4fc;
     background: rgba(129, 140, 248, .12);
 }
+
 .submissions-page .empty-state {
     text-align: center;
     color: #929db8;
     padding: 38px 16px;
+    white-space: normal;
 }
+
 .submissions-page .result-count {
     color: #929db8;
     font-size: 13px;
     padding: 14px 18px;
     border-top: 1px solid rgba(148, 163, 216, .1);
 }
+
 .submissions-page .student-name {
     font-weight: 700;
 }
+
 .submissions-page .mine-label {
     color: #6ee7b7;
     font-size: 11px;
     margin-left: 5px;
 }
+
 .submissions-page .code-button {
     padding: 8px 11px;
     font-size: 12px;
@@ -215,6 +266,7 @@
 .submissions-page .code-modal[hidden] {
     display: none !important;
 }
+
 .submissions-page .code-modal {
     position: fixed;
     inset: 0;
@@ -226,6 +278,7 @@
     background: rgba(3, 6, 18, .82);
     backdrop-filter: blur(8px);
 }
+
 .submissions-page .code-dialog {
     width: min(100%, 900px);
     max-height: 88vh;
@@ -237,6 +290,7 @@
     border-radius: 18px;
     box-shadow: 0 25px 80px rgba(0, 0, 0, .4);
 }
+
 .submissions-page .code-header {
     display: flex;
     align-items: center;
@@ -245,15 +299,18 @@
     padding: 16px 20px;
     border-bottom: 1px solid rgba(148, 163, 216, .16);
 }
+
 .submissions-page .code-header h2 {
     margin: 0;
     font-size: 18px;
 }
+
 .submissions-page .code-message {
     color: #aeb8d0;
     padding: 12px 20px;
     white-space: pre-wrap;
 }
+
 .submissions-page .code-content {
     margin: 0;
     padding: 20px;
@@ -264,6 +321,7 @@
     white-space: pre;
     tab-size: 4;
 }
+
 .submissions-page .close-code {
     border: 1px solid rgba(148, 163, 216, .25);
     border-radius: 9px;
@@ -279,24 +337,30 @@
         grid-template-columns: 1fr;
         gap: 10px;
     }
+
     .submissions-page .stat-card {
         padding: 14px 16px;
     }
+
     .submissions-page .toolbar {
         padding: 12px;
     }
+
     .submissions-page .toolbar input,
     .submissions-page .toolbar select,
     .submissions-page .toolbar button {
         width: 100%;
     }
+
     .submissions-page th,
     .submissions-page td {
-        padding: 13px 14px;
+        padding: 12px 13px;
     }
+
     .submissions-page .code-modal {
         padding: 8px;
     }
+
     .submissions-page .code-content {
         padding: 12px;
         font-size: 12px;
@@ -313,6 +377,7 @@
                 Theo dõi bài nộp của toàn bộ học sinh và xem mã nguồn theo quyền của bạn.
             </p>
         </div>
+
         <button class="action-button" id="refresh-btn" type="button">
             ↻ Làm mới
         </button>
@@ -323,10 +388,12 @@
             <div class="stat-label">Tổng bài nộp đang hiển thị</div>
             <div class="stat-value" id="total-count">—</div>
         </div>
+
         <div class="glass-card stat-card">
             <div class="stat-label">Accepted</div>
             <div class="stat-value" id="accepted-count" style="color:#6ee7b7">—</div>
         </div>
+
         <div class="glass-card stat-card">
             <div class="stat-label">Tỉ lệ Accepted</div>
             <div class="stat-value" id="accepted-rate">—</div>
@@ -363,6 +430,7 @@
                         <th>Mã nguồn</th>
                     </tr>
                 </thead>
+
                 <tbody id="submissions-body">
                     <tr>
                         <td colspan="8" class="empty-state">Đang tải bài nộp...</td>
@@ -370,6 +438,7 @@
                 </tbody>
             </table>
         </div>
+
         <div class="result-count" id="result-count">Đang tải dữ liệu...</div>
     </div>
 
@@ -382,6 +451,7 @@
                     Đóng ✕
                 </button>
             </div>
+
             <div class="code-message" id="code-message">Đang tải mã nguồn...</div>
             <pre class="code-content" id="code-content" hidden></pre>
         </div>
@@ -496,6 +566,7 @@
         }).length;
 
         document.getElementById('accepted-count').textContent = accepted;
+
         document.getElementById('accepted-rate').textContent =
             submissions.length
                 ? (accepted * 100 / submissions.length).toFixed(1) + '%'
@@ -519,6 +590,7 @@
                       (item.max_score == null ? '' : ' / ' + item.max_score);
 
                 const username = item.username || 'Không rõ';
+
                 const mine = item.is_mine
                     ? '<span class="mine-label">(Bạn)</span>'
                     : '';
@@ -527,18 +599,21 @@
                     ? 'Code của tôi'
                     : 'Xem code';
 
+                const problemId = item.problem_id;
+
+                const problemCell =
+                    problemId != null && String(problemId) !== ''
+                        ? '<a class="problem-link" href="/problems/' +
+                            encodeURIComponent(String(problemId)) + '">' +
+                            escapeHTML(problemId) +
+                          '</a>'
+                        : '—';
+
                 return '<tr>' +
                     '<td>#' + escapeHTML(item.id) + '</td>' +
                     '<td><span class="student-name">' +
                         escapeHTML(username) + '</span>' + mine + '</td>' +
-                    '<td>' +
-    (item.problem_id != null && String(item.problem_id) !== ''
-        ? '<a class="problem-link" href="/problems/' +
-            encodeURIComponent(String(item.problem_id)) + '">' +
-            escapeHTML(item.problem_id) +
-          '</a>'
-        : '—') +
-'</td>' +
+                    '<td>' + problemCell + '</td>' +
                     '<td>' + escapeHTML(item.language_id ?? '—') + '</td>' +
                     '<td><span class="verdict ' + category + '">' +
                         escapeHTML(verdict) + '</span></td>' +
@@ -566,18 +641,17 @@
                 credentials: 'same-origin'
             });
 
-            
-const text = await response.text();
-let data;
+            const text = await response.text();
+            let data;
 
-try {
-    data = JSON.parse(text);
-} catch (e) {
-    throw new Error(
-        'API /api/submissions không trả về JSON hợp lệ. ' +
-        'Có thể bạn chưa đăng nhập, sai đường dẫn API hoặc server đang lỗi.'
-    );
-}
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                throw new Error(
+                    'API /api/submissions không trả về JSON hợp lệ. ' +
+                    'Có thể bạn chưa đăng nhập, sai đường dẫn API hoặc server đang lỗi.'
+                );
+            }
 
             if (!response.ok) {
                 if (response.status === 401) {
@@ -617,27 +691,25 @@ try {
 
         try {
             const response = await fetch(
-                '/api/submissions/' + encodeURIComponent(submissionId) + '/code',
+                '/api/submissions/' +
+                encodeURIComponent(submissionId) + '/code',
                 {
                     headers: { 'Accept': 'application/json' },
                     credentials: 'same-origin'
                 }
             );
 
-            
-const text = await response.text();
-let data;
+            const text = await response.text();
+            let data;
 
-try {
-    data = JSON.parse(text);
-} catch (e) {
-    throw new Error(
-        'API mã nguồn không trả về JSON hợp lệ. ' +
-        'Kiểm tra đường dẫn /api/submissions/' +
-        submissionId + '/code và lỗi trên Render.'
-    );
-}
-
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                throw new Error(
+                    'API mã nguồn không trả về JSON hợp lệ. ' +
+                    'Kiểm tra đường dẫn API mã nguồn và lỗi trên Render.'
+                );
+            }
 
             if (!response.ok) {
                 if (response.status === 401) {
@@ -659,7 +731,7 @@ try {
             codeMessage.textContent =
                 'Bài tập: ' + (data.problem_id || '—');
 
-            // Dùng textContent để mã nguồn chỉ hiển thị dưới dạng văn bản.
+            // Hiển thị mã nguồn dạng văn bản, không thực thi HTML.
             codeContent.textContent = data.source_code || '';
             codeContent.hidden = false;
         } catch (error) {
