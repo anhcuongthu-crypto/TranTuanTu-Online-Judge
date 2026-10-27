@@ -520,7 +520,14 @@
                     '<td>#' + escapeHTML(item.id) + '</td>' +
                     '<td><span class="student-name">' +
                         escapeHTML(username) + '</span>' + mine + '</td>' +
-                    '<td>' + escapeHTML(item.problem_id ?? '—') + '</td>' +
+                    '<td>' +
+    (item.problem_id != null && String(item.problem_id) !== ''
+        ? '<a class="problem-link" href="/problems/' +
+            encodeURIComponent(String(item.problem_id)) + '">' +
+            escapeHTML(item.problem_id) +
+          '</a>'
+        : '—') +
+'</td>' +
                     '<td>' + escapeHTML(item.language_id ?? '—') + '</td>' +
                     '<td><span class="verdict ' + category + '">' +
                         escapeHTML(verdict) + '</span></td>' +
