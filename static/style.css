@@ -1264,3 +1264,106 @@ body {
         #06172e;
     color: #eaf4ff;
 }
+/* ===== FIX MÀU ADMIN + CHI TIẾT CONTEST ===== */
+
+body,
+main {
+    background-color: #06172e;
+    color: #eaf4ff;
+}
+
+/* Khối nội dung */
+.admin-hero,
+.glass-card,
+.table-card,
+.contest-card,
+.contest-item,
+.contest-detail,
+.contest-hero,
+.contest-content,
+.contest-info,
+.contest-problem,
+.contest-list {
+    background-color: #0b2b4d;
+    color: #eaf4ff;
+    border-color: #174b7e;
+}
+
+/* Chữ */
+.admin-hero h1,
+.admin-hero h2,
+.admin-hero h3,
+.glass-card h1,
+.glass-card h2,
+.glass-card h3,
+.contest-card h1,
+.contest-card h2,
+.contest-card h3,
+.contest-detail h1,
+.contest-detail h2,
+.contest-detail h3 {
+    color: #eaf4ff;
+}
+
+/* Bảng trong trang quản trị và cuộc thi */
+table {
+    color: #eaf4ff;
+    border-collapse: collapse;
+}
+
+thead,
+th {
+    background: #0a2b4d !important;
+    color: #7dd3fc !important;
+}
+
+td,
+th {
+    border-color: #174b7e !important;
+}
+
+tbody tr:hover {
+    background-color: #103b63;
+}
+
+/* Form */
+input,
+select,
+textarea {
+    background: #071d37 !important;
+    color: #eaf4ff !important;
+    border-color: #205783 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #8fb2d6;
+}
+
+/* Nút và liên kết */
+button,
+.button {
+    accent-color: #168bff;
+}
+
+a:hover {
+    color: #38bdf8;
+}
+
+/* Phân trang, trạng thái và nhãn */
+.badge,
+.status,
+.pill,
+.pill-purple,
+.pill-green {
+    border-color: #205783;
+}
+
+/* Không để chữ trong khối nội dung bị tối */
+.admin-hero p,
+.glass-card p,
+.contest-card p,
+.contest-detail p,
+.contest-content p {
+    color: #b4cce8;
+}
