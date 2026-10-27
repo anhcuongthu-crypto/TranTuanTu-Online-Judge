@@ -148,7 +148,10 @@ async function refresh() {
     const tasks = [];
 
     // Tài khoản và lịch sử.
-    if (authSection || status || logout || admin || history) {
+    if (
+    authSection || status || logout || admin ||
+    history || document.querySelector('#submission-table')
+) {
         tasks.push((async () => {
             const me = await api('/api/me');
             const user = me.user;
