@@ -548,7 +548,22 @@
                 credentials: 'same-origin'
             });
 
-            const data = await response.json();
+            const contentType = response.headers.get('content-type') || '';
+let data;
+
+if (contentType.includes('application/json')) {
+    data = await response.json();
+} else {
+    const text = await response.text();
+
+    if (response.redirected || text.trimStart().toLowerCase().startsWith('<!doctype')) {
+        throw new Error(
+            'Server trả về trang HTML thay vì dữ liệu bài nộp. Hãy đăng nhập lại hoặc kiểm tra API /api/submissions.'
+        );
+    }
+
+    throw new Error('API không trả về JSON hợp lệ. Kiểm tra đường dẫn /api/submissions.');
+}
 
             if (!response.ok) {
                 if (response.status === 401) {
