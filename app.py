@@ -1610,7 +1610,10 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
         save_history(
             app.config['DATABASE_PATH'], 'bulk_rename', old, new
         )
-        save_problems(new, app.config['PROBLEMS_PATH'])
+        
+save_problems(new, app.config['PROBLEMS_PATH'])
+update_problems_cache(new)
+
         changed = sum(
             1 for before, after in zip(old, new)
             if before.get('title') != after.get('title')
@@ -1637,11 +1640,11 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             'remove_duplicates', old, new, removed
         )
         save_problems(new, app.config['PROBLEMS_PATH'])
+        update_problems_cache(target)
         return jsonify(
-            ok=True,
-            removed=len(removed),
-            remaining=len(new),
-            message=f'Đã loại {len(removed)} bài trùng.'
+           ok=True,
+    restored_count=len(target),
+    message='Đã khôi phục ngân hàng đề về trạng thái trước thao tác.'
         )
 
     # ==================== PROBLEM HISTORY ====================
