@@ -433,6 +433,12 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
         if p:
             return render_template('problem.html', problem=p)
         return render_template('not_found.html'), 404
+        @app.get('/problems/<pid>')
+        def problem_page(pid):
+    p = next((x for x in problems() if x['id'] == pid), None)
+    if p:
+        return render_template('problem.html', problem=p)
+    return render_template('not_found.html'), 404
 
     @app.get('/api/problems')
     def api_problems():
