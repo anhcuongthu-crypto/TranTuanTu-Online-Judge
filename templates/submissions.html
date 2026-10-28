@@ -635,7 +635,7 @@
 
         if (!filtered.length) {
             body.innerHTML =
-                '<tr><td colspan="8" class="empty-state">' +
+                '<tr><td colspan="9" class="empty-state">' +
                 (submissions.length
                     ? 'Không tìm thấy bài nộp phù hợp.'
                     : 'Chưa có bài nộp nào.') +
@@ -742,7 +742,7 @@
             render();
         } catch (error) {
             body.innerHTML =
-                '<tr><td colspan="8" class="empty-state">' +
+                '<tr><td colspan="9" class="empty-state">' +
                 escapeHTML(error.message || 'Lỗi khi tải dữ liệu.') +
                 '</td></tr>';
 
