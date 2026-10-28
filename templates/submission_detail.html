@@ -1,4 +1,5 @@
- {% extends 'base.html' %}
+
+{% extends 'base.html' %}
 
 {% block title %}Chi tiết bài nộp #{{ submission_id }} — OJ Studio{% endblock %}
 
@@ -6,12 +7,12 @@
 <style>
 .submission-detail {
     color: var(--text, #edf0ff);
-    padding: 12px 0 48px;
+    max-width: 1100px;
+    margin: auto;
+    padding: 18px 0 48px;
 }
-.submission-detail .muted {
-    color: #929db8;
-    line-height: 1.7;
-}
+.submission-detail * { box-sizing: border-box; }
+.submission-detail .muted { color: #929db8; line-height: 1.7; }
 .submission-detail .eyebrow {
     color: #a99aff;
     font-size: 11px;
@@ -24,32 +25,29 @@
     margin: 10px 0;
     overflow-wrap: anywhere;
 }
+.submission-detail h2 { font-size: 19px; margin: 0 0 15px; }
 .submission-detail .gradient-text {
     background: linear-gradient(100deg, #a78bfa, #67e8f9);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
 }
-.submission-detail .panel {
-    background: rgba(20, 27, 48, .78);
-    border: 1px solid rgba(148, 163, 216, .16);
-    border-radius: 16px;
-    padding: 20px;
-    margin-top: 18px;
-    min-width: 0;
-    box-sizing: border-box;
-}
 .submission-detail .summary {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
 }
-.submission-detail .stat-label {
-    color: #929db8;
-    font-size: 13px;
+.submission-detail .panel {
+    background: rgba(20, 27, 48, .78);
+    border: 1px solid rgba(148, 163, 216, .16);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 16px;
+    min-width: 0;
 }
+.submission-detail .stat-label { color: #929db8; font-size: 13px; }
 .submission-detail .stat-value {
-    margin-top: 8px;
+    margin-top: 9px;
     font-size: clamp(20px, 3vw, 28px);
     font-weight: 800;
     overflow-wrap: anywhere;
@@ -76,7 +74,7 @@
     background: rgba(245, 158, 11, .12);
 }
 .submission-detail .subtask {
-    margin-top: 16px;
+    margin-top: 14px;
     border: 1px solid rgba(148, 163, 216, .18);
     border-radius: 13px;
     overflow: hidden;
@@ -91,17 +89,11 @@
     padding: 15px 16px;
     border-bottom: 1px solid rgba(148, 163, 216, .15);
 }
-.submission-detail .subtask-head h2 {
-    margin: 0;
-    font-size: 16px;
-}
-.submission-detail .table-scroll {
-    width: 100%;
-    overflow-x: auto;
-}
+.submission-detail .subtask-head h3 { margin: 0; font-size: 16px; }
+.submission-detail .table-scroll { width: 100%; overflow-x: auto; }
 .submission-detail table {
     width: 100%;
-    min-width: 600px;
+    min-width: 570px;
     border-collapse: collapse;
     font-size: 13px;
 }
@@ -115,23 +107,20 @@
     color: #cbd5e1;
     background: rgba(35, 29, 48, .75);
 }
-.submission-detail tr:last-child td {
-    border-bottom: 0;
-}
-.submission-detail .passed {
-    color: #6ee7b7;
-    font-weight: 800;
-}
-.submission-detail .failed {
-    color: #fda4af;
-    font-weight: 800;
-}
+.submission-detail tr:last-child td { border-bottom: 0; }
+.submission-detail .passed { color: #6ee7b7; font-weight: 800; }
+.submission-detail .failed { color: #fda4af; font-weight: 800; }
 .submission-detail .message {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     color: #fda4af;
     font-family: monospace;
     font-size: 12px;
+}
+.submission-detail .notice {
+    color: #aeb8d0;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
 }
 .submission-detail .actions {
     display: flex;
@@ -154,30 +143,47 @@
     background: linear-gradient(110deg, #8b5cf6, #6366f1);
     border: 0;
 }
-.submission-detail .notice {
-    color: #aeb8d0;
-    line-height: 1.7;
+.submission-detail .btn:disabled { opacity: .5; cursor: wait; }
+.submission-detail .progress {
+    height: 6px;
+    border-radius: 20px;
+    background: rgba(148, 163, 216, .15);
+    overflow: hidden;
+    margin-top: 13px;
+}
+.submission-detail .progress-inner {
+    height: 100%;
+    width: 35%;
+    background: linear-gradient(90deg, #8b5cf6, #67e8f9);
+    animation: submission-progress 1.4s ease-in-out infinite alternate;
+}
+@keyframes submission-progress {
+    from { transform: translateX(-20%); }
+    to { transform: translateX(200%); }
+}
+.submission-detail pre {
+    white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
 @media (max-width: 640px) {
-    .submission-detail .summary {
-        grid-template-columns: 1fr;
-    }
-    .submission-detail .panel {
-        padding: 15px;
-    }
+    .submission-detail .summary { grid-template-columns: 1fr; }
+    .submission-detail .panel { padding: 15px; }
 }
 </style>
 
 <div class="submission-detail">
     <span class="eyebrow">SUBMISSION DETAILS</span>
     <h1>Bài nộp <span class="gradient-text">#{{ submission_id }}</span></h1>
-    <p class="muted">Kết quả chấm bài và trạng thái từng test sẽ được cập nhật tự động.</p>
+    <p class="muted">
+        Theo dõi trạng thái chấm, điểm số và kết quả từng test của bài nộp.
+    </p>
 
     <div class="summary">
         <div class="panel">
             <div class="stat-label">Trạng thái</div>
-            <div class="stat-value"><span id="verdict" class="status pending">Đang tải...</span></div>
+            <div class="stat-value">
+                <span id="verdict" class="status pending">Đang tải...</span>
+            </div>
         </div>
         <div class="panel">
             <div class="stat-label">Điểm đạt được</div>
@@ -192,25 +198,44 @@
     <div class="panel">
         <strong>Thông tin bài chấm</strong>
         <p class="notice" id="submission-info">Đang tải thông tin...</p>
-        <p class="notice" id="update-info">Đang kết nối đến hệ thống chấm bài...</p>
+        <p class="notice" id="update-info">Đang kết nối hệ thống chấm bài...</p>
+        <div id="progress" class="progress">
+            <div class="progress-inner"></div>
+        </div>
     </div>
 
     <div class="panel">
         <span class="eyebrow">TEST RESULTS</span>
         <h2>Kết quả từng test</h2>
-        <div id="test-results" class="notice">Đang tải kết quả...</div>
+        <div id="test-results" class="notice">
+            Đang tải kết quả...
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Mã nguồn đã nộp</h2>
+        <p class="notice" id="code-message">Đang tải mã nguồn...</p>
+        <pre id="source-code" style="display:none;overflow:auto;padding:15px;border-radius:10px;background:#080d1b;color:#dbeafe;font-size:13px;"></pre>
     </div>
 
     <div class="actions">
-        <a class="btn btn-primary" id="problem-link" href="/problems">Quay lại bài tập</a>
+        <a class="btn btn-primary" id="problem-link" href="/problems">
+            Xem đề bài
+        </a>
+        <a class="btn" id="contest-link" href="/contests" style="display:none">
+            Quay lại contest
+        </a>
         <a class="btn" href="/submissions">Lịch sử bài nộp</a>
-        <button class="btn" id="refresh-detail" type="button">↻ Cập nhật</button>
+        <button class="btn" id="refresh-detail" type="button">
+            ↻ Cập nhật
+        </button>
     </div>
 </div>
 
 <script>
 (function () {
     const submissionId = {{ submission_id | tojson }};
+
     const verdictEl = document.getElementById('verdict');
     const scoreEl = document.getElementById('score');
     const problemEl = document.getElementById('problem-id');
@@ -219,108 +244,241 @@
     const resultsEl = document.getElementById('test-results');
     const refreshButton = document.getElementById('refresh-detail');
     const problemLink = document.getElementById('problem-link');
+    const contestLink = document.getElementById('contest-link');
+    const progressEl = document.getElementById('progress');
+    const sourceCodeEl = document.getElementById('source-code');
+    const codeMessageEl = document.getElementById('code-message');
 
     let timer = null;
     let loading = false;
     let finished = false;
+    let codeLoaded = false;
 
     function escapeHTML(value) {
         return String(value ?? '').replace(/[&<>"']/g, function (c) {
             return {
-                '&': '&amp;', '<': '&lt;', '>': '&gt;',
-                '"': '&quot;', "'": '&#39;'
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
             }[c];
         });
     }
 
     function verdictClass(verdict) {
         const v = String(verdict || '').toLowerCase();
-        if (v === 'accepted' || v === 'ac' || v === 'full') return 'ac';
-        if (v.includes('wrong answer') || v === 'wa' ||
-            v.includes('runtime error') || v.includes('time limit') ||
-            v.includes('memory limit') || v === 'error') return 'wa';
-        if (v.includes('queued') || v.includes('processing') ||
-            v.includes('running') || v.includes('pending')) return 'pending';
+
+        if (v === 'accepted' || v === 'ac' || v === 'full') {
+            return 'ac';
+        }
+
+        if (
+            v.includes('wrong answer') ||
+            v === 'wa' ||
+            v.includes('runtime error') ||
+            v.includes('time limit') ||
+            v.includes('memory limit') ||
+            v.includes('compilation error') ||
+            v.includes('error') ||
+            v.includes('failed')
+        ) {
+            return 'wa';
+        }
+
+        if (
+            v.includes('queued') ||
+            v.includes('processing') ||
+            v.includes('running') ||
+            v.includes('pending') ||
+            v.includes('judging')
+        ) {
+            return 'pending';
+        }
+
         return '';
     }
 
     function isFinished(verdict) {
         const v = String(verdict || '').toLowerCase();
-        return !(
-            v === 'queued' || v === 'processing' ||
-            v === 'running' || v === 'pending'
+
+        return ![
+            'queued',
+            'processing',
+            'running',
+            'pending',
+            'judging'
+        ].includes(v);
+    }
+
+    function isAccepted(status) {
+        const v = String(status || '').toLowerCase();
+
+        return [
+            'accepted',
+            'ac',
+            'passed',
+            'correct'
+        ].includes(v);
+    }
+
+    function formatValue(value, fallback) {
+        if (value === null || value === undefined || value === '') {
+            return fallback ?? '—';
+        }
+
+        return value;
+    }
+
+    function renderTestRow(test, index) {
+        const status = formatValue(
+            test.status ?? test.verdict ?? test.result,
+            'Chưa có kết quả'
         );
+
+        const ok = isAccepted(status);
+        const statusClass = ok ? 'passed' :
+            (String(status).toLowerCase().includes('unknown') ? '' : 'failed');
+
+        let html = '<tr>' +
+            '<td>#' + escapeHTML(test.test ?? test.test_id ?? index + 1) + '</td>' +
+            '<td class="' + statusClass + '">' + escapeHTML(status) + '</td>' +
+            '<td>' + escapeHTML(formatValue(test.score, '—'));
+
+        if (test.max_score !== undefined && test.max_score !== null) {
+            html += ' / ' + escapeHTML(test.max_score);
+        }
+
+        html += '</td>' +
+            '<td>' + escapeHTML(formatValue(test.time ?? test.time_ms, '—')) + '</td>' +
+            '<td>' + escapeHTML(formatValue(test.memory ?? test.memory_kb, '—')) + '</td>' +
+            '</tr>';
+
+        if (test.message || test.error) {
+            html += '<tr><td colspan="5" class="message">' +
+                escapeHTML(test.message ?? test.error) +
+                '</td></tr>';
+        }
+
+        return html;
     }
 
     function renderTests(details) {
-        if (!Array.isArray(details) || !details.length) {
+        if (!Array.isArray(details) || details.length === 0) {
             resultsEl.textContent =
-                'Chưa có dữ liệu test. Nếu bài đang được chấm, trang sẽ tự cập nhật.';
+                'Chưa có dữ liệu test chi tiết từ hệ thống chấm. ' +
+                'Nếu bài đang được chấm, trang sẽ tự cập nhật.';
             return;
         }
 
         let html = '';
 
-        details.forEach(function (st, index) {
-            const tests = Array.isArray(st.tests) ? st.tests : [];
-            const name = st.name || ('Subtask ' + (index + 1));
+        details.forEach(function (item, index) {
+            // Hỗ trợ dữ liệu theo subtask.
+            const tests = Array.isArray(item.tests) ? item.tests : null;
 
-            html += '<section class="subtask"><div class="subtask-head">' +
-                '<h2>' + escapeHTML(name) + '</h2>' +
-                '<strong>' + escapeHTML(st.score ?? 0) + ' / ' +
-                escapeHTML(st.max_score ?? 0) + ' điểm</strong>' +
-                '</div>';
+            if (tests) {
+                const name = item.name || item.subtask_name ||
+                    ('Subtask ' + (index + 1));
 
-            if (!tests.length) {
-                html += '<p class="notice" style="padding:14px">Chưa có dữ liệu test.</p>';
-            } else {
-                html += '<div class="table-scroll"><table><thead><tr>' +
-                    '<th>Test</th><th>Kết quả</th><th>Điểm</th>' +
-                    '<th>Thời gian</th><th>Bộ nhớ</th>' +
-                    '</tr></thead><tbody>';
+                html += '<section class="subtask">' +
+                    '<div class="subtask-head">' +
+                    '<h3>' + escapeHTML(name) + '</h3>' +
+                    '<strong>' +
+                    escapeHTML(formatValue(item.score, 0)) +
+                    ' / ' +
+                    escapeHTML(formatValue(item.max_score, 0)) +
+                    ' điểm</strong></div>';
 
-                tests.forEach(function (test) {
-                    const status = String(test.status || 'Unknown');
-                    const ok = status.toLowerCase() === 'accepted' ||
-                        status.toLowerCase() === 'ac' ||
-                        status.toLowerCase() === 'passed';
+                if (tests.length === 0) {
+                    html += '<p class="notice" style="padding:14px">' +
+                        'Chưa có kết quả test trong subtask này.</p>';
+                } else {
+                    html += '<div class="table-scroll"><table>' +
+                        '<thead><tr><th>Test</th><th>Kết quả</th>' +
+                        '<th>Điểm</th><th>Thời gian</th><th>Bộ nhớ</th>' +
+                        '</tr></thead><tbody>';
 
-                    html += '<tr>' +
-                        '<td>#' + escapeHTML(test.test ?? '—') + '</td>' +
-                        '<td class="' + (ok ? 'passed' : 'failed') + '">' +
-                        escapeHTML(status) + '</td>' +
-                        '<td>' + escapeHTML(test.score ?? 0) + ' / ' +
-                        escapeHTML(test.max_score ?? 0) + '</td>' +
-                        '<td>' + escapeHTML(test.time ?? '—') + '</td>' +
-                        '<td>' + escapeHTML(test.memory ?? '—') + '</td>' +
-                        '</tr>';
+                    tests.forEach(function (test, testIndex) {
+                        html += renderTestRow(test, testIndex);
+                    });
 
-                    if (test.message) {
-                        html += '<tr><td colspan="5" class="message">' +
-                            escapeHTML(test.message) + '</td></tr>';
-                    }
-                });
+                    html += '</tbody></table></div>';
+                }
 
-                html += '</tbody></table></div>';
+                html += '</section>';
+                return;
             }
 
-            html += '</section>';
+            // Hỗ trợ trường hợp details là danh sách test phẳng.
+            if (item.status || item.verdict || item.result || item.test !== undefined) {
+                html += '<section class="subtask">' +
+                    '<div class="subtask-head"><h3>Test #' +
+                    escapeHTML(item.test ?? item.test_id ?? index + 1) +
+                    '</h3></div>' +
+                    '<div class="table-scroll"><table>' +
+                    '<thead><tr><th>Test</th><th>Kết quả</th>' +
+                    '<th>Điểm</th><th>Thời gian</th><th>Bộ nhớ</th>' +
+                    '</tr></thead><tbody>' +
+                    renderTestRow(item, index) +
+                    '</tbody></table></div></section>';
+                return;
+            }
+
+            // Trường hợp backend trả về thông báo dạng chuỗi.
+            html += '<section class="subtask"><div class="subtask-head">' +
+                '<h3>' + escapeHTML(item.name || ('Kết quả ' + (index + 1))) +
+                '</h3></div><pre style="padding:14px">' +
+                escapeHTML(JSON.stringify(item, null, 2)) +
+                '</pre></section>';
         });
 
         resultsEl.innerHTML = html;
     }
 
+    async function loadCode() {
+        if (codeLoaded) return;
+
+        try {
+            const response = await fetch(
+                '/api/submissions/' +
+                encodeURIComponent(submissionId) + '/code',
+                {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'same-origin'
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Không thể tải mã nguồn.');
+            }
+
+            sourceCodeEl.textContent = data.source_code || '';
+            sourceCodeEl.style.display = 'block';
+            codeMessageEl.style.display = 'none';
+            codeLoaded = true;
+        } catch (error) {
+            codeMessageEl.textContent =
+                error.message || 'Không thể tải mã nguồn bài nộp.';
+        }
+    }
+
     async function loadDetails() {
         if (loading || finished) return;
+
         loading = true;
         refreshButton.disabled = true;
 
         try {
             const response = await fetch(
-                '/api/submissions/' + encodeURIComponent(submissionId) + '/status',
+                '/api/submissions/' +
+                encodeURIComponent(submissionId) + '/status',
                 {
                     headers: { 'Accept': 'application/json' },
-                    credentials: 'same-origin'
+                    credentials: 'same-origin',
+                    cache: 'no-store'
                 }
             );
 
@@ -329,45 +487,69 @@
 
             try {
                 data = JSON.parse(raw);
-            } catch (e) {
+            } catch (error) {
                 throw new Error('Server không trả về JSON hợp lệ.');
             }
 
             if (!response.ok) {
-                throw new Error(data.error || data.message ||
-                    'Không thể tải bài nộp (HTTP ' + response.status + ').');
+                throw new Error(
+                    data.error ||
+                    data.message ||
+                    'Không thể tải bài nộp (HTTP ' + response.status + ').'
+                );
             }
 
             const verdict = data.verdict || data.status || 'Unknown';
 
             verdictEl.textContent = verdict;
             verdictEl.className = 'status ' + verdictClass(verdict);
-            scoreEl.textContent = (data.score ?? 0) + ' / ' +
-                (data.max_score ?? '—');
-            problemEl.textContent = data.problem_id ?? '—';
 
-            if (data.problem_id != null) {
+            scoreEl.textContent =
+                formatValue(data.score, 0) + ' / ' +
+                formatValue(data.max_score, '—');
+
+            problemEl.textContent = formatValue(data.problem_id, '—');
+
+            if (data.problem_id !== null && data.problem_id !== undefined) {
                 problemLink.href = '/problems/' +
                     encodeURIComponent(String(data.problem_id));
-                problemLink.textContent = 'Xem đề bài';
             }
 
-            infoEl.textContent = 'Mã bài nộp: #' + submissionId +
-                (data.created_at ? ' · Thời gian nộp: ' + data.created_at : '');
+            if (data.contest_id !== null && data.contest_id !== undefined) {
+                contestLink.href = '/contests/' +
+                    encodeURIComponent(String(data.contest_id));
+                contestLink.style.display = 'inline-block';
+            } else {
+                contestLink.style.display = 'none';
+            }
+
+            infoEl.textContent =
+                'Mã bài nộp: #' + submissionId +
+                (data.created_at
+                    ? ' · Thời gian nộp: ' + data.created_at
+                    : '') +
+                (data.language_id !== undefined
+                    ? ' · Ngôn ngữ ID: ' + data.language_id
+                    : '');
 
             renderTests(data.details);
 
+            await loadCode();
+
             if (isFinished(verdict)) {
                 finished = true;
+                progressEl.style.display = 'none';
                 updateEl.textContent = 'Đã nhận kết quả chấm cuối cùng.';
                 if (timer) clearInterval(timer);
             } else {
+                progressEl.style.display = 'block';
                 updateEl.textContent =
-                    'Bài đang được xử lý. Trang sẽ tự kiểm tra lại sau 2 giây.';
+                    'Bài đang được xử lý. Trang tự kiểm tra lại sau 2 giây.';
             }
         } catch (error) {
-            updateEl.textContent = error.message ||
-                'Lỗi kết nối. Hãy bấm Cập nhật để thử lại.';
+            updateEl.textContent =
+                (error.message || 'Lỗi kết nối.') +
+                ' Bấm Cập nhật để thử lại.';
         } finally {
             loading = false;
             refreshButton.disabled = false;
@@ -376,11 +558,21 @@
 
     refreshButton.addEventListener('click', function () {
         finished = false;
-        loadDetails();
+
+        if (timer) clearInterval(timer);
+
+        loadDetails().finally(function () {
+            if (!finished) {
+                timer = setInterval(loadDetails, 2000);
+            }
+        });
     });
 
     loadDetails();
-    timer = setInterval(loadDetails, 2000);
+
+    timer = setInterval(function () {
+        if (!finished) loadDetails();
+    }, 2000);
 })();
 </script>
 {% endblock %}
