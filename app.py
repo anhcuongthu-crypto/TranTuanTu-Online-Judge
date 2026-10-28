@@ -1542,7 +1542,7 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             return jsonify(ok=True, id=pid)
         except Exception as e:
             return jsonify(error=str(e)), 400
-                # XÓA CÁC BÀI TRÙNG NỘI DUNG
+    # XÓA CÁC BÀI TRÙNG NỘI DUNG
     @app.post('/api/admin/problems/remove-duplicates')
     def admin_remove_duplicates():
         if not admin_required():
