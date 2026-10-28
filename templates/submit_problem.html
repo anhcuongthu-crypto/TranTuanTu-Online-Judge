@@ -1,4 +1,5 @@
- {% extends 'base.html' %}
+
+{% extends 'base.html' %}
 
 {% block title %}Nộp bài {{ problem.id }} — OJ Studio{% endblock %}
 
@@ -56,6 +57,63 @@ int main() {
         class="result-box"
         aria-live="polite"
         style="white-space:pre-wrap;overflow-wrap:anywhere;margin-top:20px;"
-    >Kết quả chấm sẽ hiển thị tại đây.</pre>
+    >Sẵn sàng nộp bài.</pre>
 </section>
+
+<script>
+(() => {
+    const button = document.getElementById('submit');
+    const source = document.getElementById('source');
+    const language = document.getElementById('language');
+    const result = document.getElementById('result');
+
+    button.addEventListener('click', async () => {
+        const code = source.value;
+
+        if (!code.trim()) {
+            result.textContent = 'M chưa nhập mã nguồn!';
+            source.focus();
+            return;
+        }
+
+        button.disabled = true;
+        button.textContent = 'Đang gửi bài...';
+        result.textContent = 'Đang gửi mã nguồn lên hệ thống...';
+
+        try {
+            const response = await fetch('/api/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    problem_id: button.dataset.problem,
+                    source_code: code,
+                    language_id: Number(language.value)
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Không thể nộp bài.');
+            }
+
+            if (!data.submission_id) {
+                throw new Error('Hệ thống chưa trả về mã bài nộp.');
+            }
+
+            result.textContent = 'Nộp bài thành công! Đang chuyển đến trang kết quả...';
+
+            window.location.href =
+                '/submission/' + encodeURIComponent(data.submission_id);
+
+        } catch (error) {
+            result.textContent = 'Lỗi: ' + error.message;
+            button.disabled = false;
+            button.innerHTML = 'Nộp bài <span>↗</span>';
+        }
+    });
+})();
+</script>
 {% endblock %}
