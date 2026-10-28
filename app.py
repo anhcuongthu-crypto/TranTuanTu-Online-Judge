@@ -1563,38 +1563,7 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
     # ==================== BULK PROBLEM TOOLS ====================
 
     
-    @app.post('/api/admin/problems/remove-duplicates')
-    def admin_remove_duplicates():
-        if not admin_required():
-            return jsonify(error='Chỉ admin.'), 403
-
-        old = problems()
-        new, removed = remove_duplicates(old)
-
-        if not removed:
-            return jsonify(
-                ok=True,
-                removed=0,
-                message='Không tìm thấy bài trùng.'
-            )
-
-        save_history(
-            app.config['DATABASE_PATH'],
-            'remove_duplicates',
-            old,
-            new,
-            removed
-        )
-
-        save_problems(new, app.config['PROBLEMS_PATH'])
-        update_problems_cache(new)
-
-        return jsonify(
-            ok=True,
-            removed=len(removed),
-            remaining=len(new),
-            message=f'Đã xóa {len(removed)} bài trùng.'
-        )
+    
 
     @app.post('/api/admin/problems/remove-duplicates')
     def admin_remove_duplicates():
