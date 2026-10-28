@@ -1607,12 +1607,12 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
                 ok=True, changed=0, message='Không có thay đổi.'
             )
 
-        save_history(
+                save_history(
             app.config['DATABASE_PATH'], 'bulk_rename', old, new
         )
-        
-save_problems(new, app.config['PROBLEMS_PATH'])
-update_problems_cache(new)
+
+        save_problems(new, app.config['PROBLEMS_PATH'])
+        update_problems_cache(new)
 
         changed = sum(
             1 for before, after in zip(old, new)
