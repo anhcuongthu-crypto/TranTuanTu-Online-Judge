@@ -494,7 +494,7 @@
 
                 <tbody id="submissions-body">
                     <tr>
-                        <td colspan="8" class="empty-state">Đang tải bài nộp...</td>
+                        <td colspan="9" class="empty-state">Đang tải bài nộp...</td>
                     </tr>
                 </tbody>
             </table>
@@ -930,11 +930,19 @@
         codeMessage.textContent = '';
     }
 
-    body.addEventListener('click', function (event) {
-        const button = event.target.closest('[data-code-id]');
-        if (!button) return;
+        body.addEventListener('click', function (event) {
+        const detailButton = event.target.closest('[data-detail-id]');
 
-        showSubmissionCode(button.dataset.codeId);
+        if (detailButton) {
+            showSubmissionDetails(detailButton.dataset.detailId);
+            return;
+        }
+
+        const codeButton = event.target.closest('[data-code-id]');
+
+        if (codeButton) {
+            showSubmissionCode(codeButton.dataset.codeId);
+        }
     });
 
     searchInput.addEventListener('input', render);
