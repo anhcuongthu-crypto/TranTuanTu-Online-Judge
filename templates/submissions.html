@@ -800,6 +800,117 @@
                 error.message || 'Có lỗi khi tải mã nguồn.';
         }
     }
+        async function showSubmissionDetails(submissionId) {
+        const row = document.getElementById(
+            'detail-row-' + submissionId
+        );
+        const panel = document.getElementById(
+            'detail-content-' + submissionId
+        );
+
+        if (!row || !panel) return;
+
+        if (!row.hidden) {
+            row.hidden = true;
+            return;
+        }
+
+        row.hidden = false;
+        panel.textContent = 'Đang tải chi tiết chấm...';
+
+        try {
+            const response = await fetch(
+                '/api/submissions/' +
+                encodeURIComponent(submissionId) + '/status',
+                {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'same-origin'
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error || 'Không thể tải chi tiết chấm.'
+                );
+            }
+
+            const details = Array.isArray(data.details)
+                ? data.details
+                : [];
+
+            if (!details.length) {
+                panel.textContent =
+                    'Chưa có dữ liệu chi tiết từng test. ' +
+                    'Có thể bài đang được chấm hoặc server chưa lưu chi tiết.';
+                return;
+            }
+
+            let html =
+                '<p><strong>Kết quả:</strong> ' +
+                escapeHTML(data.verdict || '—') +
+                ' | <strong>Điểm:</strong> ' +
+                escapeHTML(data.score ?? '—') + ' / ' +
+                escapeHTML(data.max_score ?? '—') +
+                '</p>';
+
+            details.forEach(function (st, index) {
+                html += '<section class="detail-subtask">' +
+                    '<h3>' +
+                    escapeHTML(st.name || ('Subtask ' + (index + 1))) +
+                    ' — ' + escapeHTML(st.score ?? 0) +
+                    ' / ' + escapeHTML(st.max_score ?? 0) +
+                    '</h3>';
+
+                html += '<div class="table-scroll"><table>' +
+                    '<thead><tr>' +
+                    '<th>Test</th><th>Trạng thái</th>' +
+                    '<th>Điểm</th><th>Thời gian</th>' +
+                    '<th>Bộ nhớ</th>' +
+                    '</tr></thead><tbody>';
+
+                const tests = Array.isArray(st.tests) ? st.tests : [];
+
+                if (!tests.length) {
+                    html += '<tr><td colspan="5">' +
+                        'Chưa có dữ liệu test.</td></tr>';
+                }
+
+                tests.forEach(function (test) {
+                    const status = String(test.status || '—');
+                    const passed =
+                        status.toLowerCase().includes('accepted') ||
+                        status.toLowerCase() === 'ac' ||
+                        status.toLowerCase() === 'passed';
+
+                    html += '<tr>' +
+                        '<td>' + escapeHTML(test.test ?? '—') + '</td>' +
+                        '<td class="' +
+                        (passed ? 'detail-success' : 'detail-error') +
+                        '">' + escapeHTML(status) + '</td>' +
+                        '<td>' + escapeHTML(test.score ?? 0) +
+                        ' / ' + escapeHTML(test.max_score ?? 0) +
+                        '</td>' +
+                        '<td>' + escapeHTML(test.time ?? '—') + '</td>' +
+                        '<td>' + escapeHTML(test.memory ?? '—') + '</td>' +
+                        '</tr>';
+
+                    if (test.message) {
+                        html += '<tr><td colspan="5" class="detail-error">' +
+                            escapeHTML(test.message) + '</td></tr>';
+                    }
+                });
+
+                html += '</tbody></table></div></section>';
+            });
+
+            panel.innerHTML = html;
+        } catch (error) {
+            panel.textContent =
+                error.message || 'Lỗi khi tải chi tiết chấm.';
+        }
+    }
 
     function closeCodeModal() {
         codeModal.hidden = true;
