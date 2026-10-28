@@ -1542,6 +1542,45 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             return jsonify(ok=True, id=pid)
         except Exception as e:
             return jsonify(error=str(e)), 400
+                # XÓA CÁC BÀI TRÙNG NỘI DUNG
+    @app.post('/api/admin/problems/remove-duplicates')
+    def admin_remove_duplicates():
+        if not admin_required():
+            return jsonify(error='Chỉ admin.'), 403
+
+        try:
+            old = problems()
+            new, removed = remove_duplicates(old)
+
+            if not removed:
+                return jsonify(
+                    ok=True,
+                    removed=0,
+                    remaining=len(new),
+                    message='Không tìm thấy bài trùng.'
+                )
+
+            save_history(
+                app.config['DATABASE_PATH'],
+                'remove_duplicates',
+                old,
+                new,
+                removed
+            )
+
+            save_problems(new, app.config['PROBLEMS_PATH'])
+            update_problems_cache(new)
+
+            return jsonify(
+                ok=True,
+                removed=len(removed),
+                remaining=len(new),
+                message='Đã xóa các bài trùng thành công.'
+            )
+
+        except Exception as e:
+            app.logger.exception('Lỗi xóa bài trùng')
+            return jsonify(error=str(e)), 500
 
     
     
