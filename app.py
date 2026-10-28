@@ -1652,11 +1652,13 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             'restore_history', before, target
         )
         save_problems(target, app.config['PROBLEMS_PATH'])
-        return jsonify(
-            ok=True,
-            restored_count=len(target),
-            message='Đã khôi phục ngân hàng đề về trạng thái trước thao tác.'
-        )
+update_problems_cache(target)
+
+return jsonify(
+    ok=True,
+    restored_count=len(target),
+    message='Đã khôi phục ngân hàng đề về trạng thái trước thao tác.'
+)
 
     @app.get('/admin/problem-history')
     def admin_problem_history_page():
