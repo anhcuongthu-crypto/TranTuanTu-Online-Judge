@@ -129,7 +129,6 @@ h3 { overflow-wrap: anywhere; }
 }
 
 .problem:hover { background: var(--hover-bg); }
-
 .problem h3 { margin: 0 0 7px; }
 
 .score {
@@ -209,7 +208,7 @@ th, td {
 
 th {
     color: var(--muted);
-    background: rgb(15 23 42 / 35%);
+    background: #f8fafc;
 }
 
 tbody tr:hover { background: var(--hover-bg); }
@@ -257,6 +256,7 @@ tbody tr:hover { background: var(--hover-bg); }
     background: #ffedd5;
     color: #9a3412;
 }
+
 .editbox {
     margin-top: 18px;
     padding: 16px;
@@ -448,11 +448,9 @@ const stateText = {
 
 function normalizeRows(data) {
     if (Array.isArray(data)) return data;
-
     if (Array.isArray(data.submissions)) return data.submissions;
     if (Array.isArray(data.results)) return data.results;
     if (Array.isArray(data.items)) return data.items;
-
     return [];
 }
 
@@ -481,7 +479,7 @@ async function loadContest() {
     const data = await api(`/api/contests/${CONTEST_ID}`);
 
     contestData = data;
-    problemList = data.problems || [];
+    problemList = Array.isArray(data.problems) ? data.problems : [];
 
     $('contestHeader').innerHTML = `
         <span class="badge">${esc(stateText[data.state] || data.state || 'Chưa rõ')}</span>
@@ -587,6 +585,7 @@ function showProblem(pid) {
         block: 'start'
     });
 }
+
 function openProblemFromUrl() {
     const params = new URLSearchParams(window.location.search);
     const pid = params.get('problem');
@@ -725,10 +724,6 @@ async function loadLeaderboard() {
     }
 }
 
-/*
- * API lịch sử bên dưới là phương án dự kiến.
- * Cần đối chiếu endpoint thực tế trong app.py nếu backend của m khác.
- */
 async function loadContestSubmissions() {
     const box = $('contestSubmissions');
     box.innerHTML = '<p class="muted">Đang tải lịch sử...</p>';
@@ -765,14 +760,15 @@ async function loadContestSubmissions() {
                             const score = r.score ?? r.points ?? r.points_earned ?? '—';
                             const time = r.created_at || r.submitted_at ||
                                 r.submission_time || r.time;
+                            const sid = r.submission_id ?? r.id;
 
                             return `
                                 <tr>
                                     <td>
-                                        <a href="#problemDetailPanel"
-                                            data-submission-pid="${esc(pid)}">
-                                            ${esc(title)}
-                                        </a>
+                                        ${sid !== undefined && sid !== null
+                                            ? `<a href="/submission/${encodeURIComponent(sid)}">${esc(title)}</a>`
+                                            : `<a href="#problemDetailPanel" data-submission-pid="${esc(pid)}">${esc(title)}</a>`
+                                        }
                                     </td>
                                     <td>
                                         <span class="status-pill ${statusClass(status)}">
@@ -792,7 +788,6 @@ async function loadContestSubmissions() {
         box.querySelectorAll('[data-submission-pid]').forEach(a => {
             a.addEventListener('click', e => {
                 e.preventDefault();
-
                 const pid = a.dataset.submissionPid;
                 if (pid) showProblem(pid);
             });
@@ -855,15 +850,15 @@ $('submitForm').addEventListener('submit', async event => {
             })
         });
 
-        
-if (!result.submission_id) {
-    throw new Error('Máy chủ chưa trả về mã bài nộp.');
-}
+        if (!result.submission_id) {
+            throw new Error('Máy chủ chưa trả về mã bài nộp.');
+        }
 
-window.location.href =
-    `/submission/${encodeURIComponent(result.submission_id)}`;
-return;
+        // Chuyển thẳng sang trang chi tiết bài nộp.
+        window.location.href =
+            `/submission/${encodeURIComponent(result.submission_id)}`;
 
+        return;
     } catch (error) {
         message.textContent = 'Nộp bài thất bại: ' + error.message;
         message.className = 'status error';
@@ -885,7 +880,6 @@ async function init() {
     }
 
     try {
-        
         await loadAdmin();
         await loadContest();
 
@@ -896,8 +890,6 @@ async function init() {
             loadContestSubmissions()
         ]);
 
-
-        // Làm mới lịch sử định kỳ khi đang mở trang.
         submissionRefreshTimer = setInterval(() => {
             loadContestSubmissions();
             loadLeaderboard();
@@ -922,3 +914,4 @@ init();
 </script>
 </body>
 </html>
+
