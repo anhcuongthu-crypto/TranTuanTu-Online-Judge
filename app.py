@@ -902,37 +902,64 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             return jsonify(error='Không tìm thấy cuộc thi.'), 404
         return jsonify(item)
 
-    @app.get('/api/contests/<int:contest_id>/leaderboard')
-    def contest_leaderboard(contest_id):
+    
+    # ==================== CONTEST SUBMISSIONS HISTORY ====================
+
+    @app.get('/api/contests/<int:contest_id>/submissions')
+    def contest_submissions_history(contest_id):
         user = current_user()
+
+        if not user:
+            return jsonify(error='Cần đăng nhập.'), 401
+
         with connect(app.config['DATABASE_PATH']) as db:
             contest = db.execute(
-                'SELECT is_visible FROM contests WHERE id=?',
+                'SELECT id, is_visible FROM contests WHERE id=?',
                 (contest_id,)
             ).fetchone()
+
             if not contest:
                 return jsonify(error='Không tìm thấy cuộc thi.'), 404
-            if not contest['is_visible'] and not (user and user['is_admin']):
+
+            if not contest['is_visible'] and not user['is_admin']:
                 return jsonify(error='Không tìm thấy cuộc thi.'), 404
+
             rows = db.execute(
-                '''SELECT u.username,
-                          COALESCE(SUM(best.score), 0) AS score,
-                          COUNT(CASE WHEN best.solved=1 THEN 1 END) AS solved
-                   FROM users u
-                   LEFT JOIN (
-                       SELECT user_id, problem_id, MAX(score) AS score,
-                              MAX(CASE WHEN verdict='Accepted' THEN 1 ELSE 0 END) AS solved
-                       FROM submissions
-                       WHERE contest_id=?
-                         AND verdict NOT IN ('Queued', 'Processing', 'Judge Unavailable')
-                       GROUP BY user_id, problem_id
-                   ) best ON best.user_id=u.id
-                   WHERE u.approved=1
-                   GROUP BY u.id
-                   ORDER BY score DESC, solved DESC, u.username ASC''',
+                '''SELECT s.id, s.user_id, u.username,
+                          s.problem_id, s.language_id, s.verdict,
+                          s.score, s.max_score, s.created_at,
+                          s.contest_id
+                   FROM submissions s
+                   JOIN users u ON u.id = s.user_id
+                   WHERE s.contest_id = ?
+                     AND u.approved = 1
+                   ORDER BY s.id DESC
+                   LIMIT 500''',
                 (contest_id,)
             ).fetchall()
-        return jsonify([dict(row) for row in rows])
+
+        # Lấy tên đề để giao diện hiển thị dễ hiểu hơn.
+        contest_data = get_contest_data(
+            contest_id, allow_hidden=bool(user['is_admin'])
+        )
+
+        problem_titles = {}
+        if contest_data:
+            for p in contest_data['problems']:
+                problem_titles[str(p['id'])] = p['title']
+
+        result = []
+
+        for row in rows:
+            item = dict(row)
+            item['is_mine'] = item['user_id'] == user['id']
+            item['problem_title'] = problem_titles.get(
+                str(item['problem_id']),
+                str(item['problem_id'])
+            )
+            result.append(item)
+
+        return jsonify(result)
 
     # ==================== CONTEST SUBMISSION ====================
 
