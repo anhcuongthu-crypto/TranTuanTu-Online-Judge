@@ -874,13 +874,17 @@ async function init() {
     }
 
     try {
+        
         await loadAdmin();
         await loadContest();
+
+        openProblemFromUrl();
 
         await Promise.allSettled([
             loadLeaderboard(),
             loadContestSubmissions()
         ]);
+
 
         // Làm mới lịch sử định kỳ khi đang mở trang.
         submissionRefreshTimer = setInterval(() => {
