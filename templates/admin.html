@@ -6,113 +6,202 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản trị Online Judge</title>
     <style>
-        
 :root {
-  color-scheme: dark;
-  --bg: #090d19;
-  --panel: #11182a;
-  --line: #293652;
-  --text: #edf2ff;
-  --muted: #9eacc5;
-  --purple: #8b5cf6;
-  --cyan: #22d3ee;
+    color-scheme: dark;
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --line: #334155;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --purple: #6366f1;
+    --cyan: #38bdf8;
 }
+
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
+
 body {
-  margin: 0;
-  padding: 24px;
-  background: #090d19;
-  color: var(--text);
-  font: 15px/1.6 system-ui, sans-serif;
+    margin: 0;
+    padding: 24px;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.6 system-ui, sans-serif;
 }
+
 h1, h2, h3 {
-  color: #edf2ff;
+    color: #f8fafc;
 }
-p, small {
-  color: var(--muted);
+
+p, small, .muted {
+    color: var(--muted);
 }
+
 .panel, section {
-  background: #11182a;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 20px;
-  margin: 18px 0;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    margin: 18px 0;
 }
+
 button {
-  background: var(--purple);
-  color: white;
-  border: 0;
-  border-radius: 9px;
-  padding: 10px 14px;
-  font-weight: 700;
-  cursor: pointer;
+    background: var(--purple);
+    color: white;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    padding: 10px 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .2s;
 }
+
 button:hover {
-  background: #7c3aed;
+    filter: brightness(1.15);
 }
+
+button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
 button.danger {
-  background: #be123c;
+    background: #e11d48;
 }
+
 button.secondary {
-  background: #25324b;
-  border: 1px solid #394865;
+    background: #334155;
+    border-color: #475569;
 }
+
+button.success {
+    background: #059669;
+}
+
 input:not([type="checkbox"]),
 select,
 textarea {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  padding: 11px 12px;
-  margin: 7px 0 14px;
-  border: 1px solid #35435f;
-  border-radius: 9px;
-  background: #0a1121;
-  color: #edf2ff;
-  font: inherit;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    padding: 11px 12px;
+    margin: 7px 0 14px;
+    border: 1px solid #475569;
+    border-radius: 9px;
+    background: #0f172a;
+    color: #f1f5f9;
+    font: inherit;
 }
+
 input:focus, select:focus, textarea:focus {
-  outline: 2px solid var(--purple);
+    outline: 2px solid var(--purple);
+    border-color: var(--purple);
 }
+
 input[type="checkbox"] {
-  accent-color: var(--purple);
+    accent-color: var(--purple);
 }
+
 label {
-  color: #dbe5fa;
+    color: #e2e8f0;
 }
+
 a {
-  color: var(--cyan);
+    color: var(--cyan);
 }
+
 pre, code {
-  background: #080e1b;
-  color: #dbeafe;
-  border-radius: 8px;
-  overflow-wrap: anywhere;
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 8px;
+    overflow-wrap: anywhere;
 }
-.user-row,
-.submission-row,
-.problem-row,
-.contest-row {
-  border-bottom: 1px solid var(--line);
-  padding: 14px 0;
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
 }
-.contest-problem-option,
-.custom-problem-item {
-  background: #0b1324;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  padding: 12px;
-  margin: 8px 0;
+
+.problem-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
 }
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 16px 0;
+}
+
+.message {
+    margin: 10px 0;
+}
+
 .error-message {
-  color: #fb7185;
+    color: #fb7185;
 }
+
 .success-message {
-  color: #34d399;
+    color: #34d399;
 }
+
+.user-status {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: #78350f;
+    color: #fde68a;
+    font-size: 12px;
+}
+
+.user-status.approved {
+    background: #064e3b;
+    color: #6ee7b7;
+}
+
+.contest-problem-option,
+.custom-problem-item,
+.problem-item {
+    background: #172338;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 12px;
+    margin: 8px 0;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin: 24px 0;
+}
+
+[hidden] {
+    display: none !important;
+}
+
 @media (max-width: 650px) {
+    body {
+        padding: 12px;
+    }
+
+    .panel, section {
+        padding: 14px;
+    }
+
+    .section-heading {
+        align-items: stretch;
+    }
+
+    .section-heading button {
+        max-width: 100%;
+    }
+}
   body {
     padding: 12px;
   }
