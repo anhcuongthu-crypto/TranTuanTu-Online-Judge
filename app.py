@@ -588,7 +588,6 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
         return jsonify(ok=True, bio=bio, avatar_color=color)
 
     @app.get('/api/submissions')
-    
     def submission_history():
         user = current_user()
         if not user:
@@ -682,23 +681,75 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
                 'source_code': row['source_code']
             })
 
+    
     @app.get('/api/submissions/<int:submission_id>/status')
     def submission_status(submission_id):
         user = current_user()
         if not user:
             return jsonify(error='Cần đăng nhập.'), 401
+
         with connect(app.config['DATABASE_PATH']) as db:
             row = db.execute(
-                '''SELECT id, problem_id, language_id, verdict,
-                          score, max_score, details_json, created_at, contest_id
-                   FROM submissions WHERE id=? AND user_id=?''',
-                (submission_id, user['id'])
+                '''SELECT id, user_id, problem_id, language_id,
+                          verdict, score, max_score, details_json,
+                          created_at, contest_id
+                   FROM submissions
+                   WHERE id=?''',
+                (submission_id,)
             ).fetchone()
-        if not row:
-            return jsonify(error='Không tìm thấy bài nộp.'), 404
+
+            if not row:
+                return jsonify(error='Không tìm thấy bài nộp.'), 404
+
+            is_mine = row['user_id'] == user['id']
+            is_admin = bool(user['is_admin'])
+
+            # Bài của mình và admin: luôn được xem.
+            # Người khác: phải FULL cùng bài, cùng contest.
+            if not is_mine and not is_admin:
+                if row['contest_id'] is None:
+                    full = db.execute(
+                        '''SELECT 1
+                           FROM submissions
+                           WHERE user_id=?
+                             AND problem_id=?
+                             AND contest_id IS NULL
+                             AND max_score > 0
+                             AND score >= max_score
+                           LIMIT 1''',
+                        (user['id'], row['problem_id'])
+                    ).fetchone()
+                else:
+                    full = db.execute(
+                        '''SELECT 1
+                           FROM submissions
+                           WHERE user_id=?
+                             AND problem_id=?
+                             AND contest_id=?
+                             AND max_score > 0
+                             AND score >= max_score
+                           LIMIT 1''',
+                        (
+                            user['id'],
+                            row['problem_id'],
+                            row['contest_id']
+                        )
+                    ).fetchone()
+
+                if not full:
+                    return jsonify(
+                        error='Bạn cần FULL bài này để xem chi tiết bài nộp của người khác.'
+                    ), 403
+
         result = dict(row)
-        result['details'] = json.loads(result.pop('details_json') or '[]')
+        result['details'] = json.loads(
+            result.pop('details_json') or '[]'
+        )
+        result.pop('user_id', None)
+        result['is_mine'] = is_mine
+
         return jsonify(result)
+
 
     @app.get('/api/leaderboard')
     def leaderboard():
