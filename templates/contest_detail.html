@@ -855,19 +855,15 @@ $('submitForm').addEventListener('submit', async event => {
             })
         });
 
-        message.textContent =
-            result.message ||
-            result.status ||
-            (result.submission_id
-                ? `Đã gửi bài. Mã bài nộp: ${result.submission_id}`
-                : 'Máy chủ đã nhận yêu cầu nộp bài.');
+        
+if (!result.submission_id) {
+    throw new Error('Máy chủ chưa trả về mã bài nộp.');
+}
 
-        message.className = 'status success';
+window.location.href =
+    `/submission/${encodeURIComponent(result.submission_id)}`;
+return;
 
-        await Promise.allSettled([
-            loadLeaderboard(),
-            loadContestSubmissions()
-        ]);
     } catch (error) {
         message.textContent = 'Nộp bài thất bại: ' + error.message;
         message.className = 'status error';
