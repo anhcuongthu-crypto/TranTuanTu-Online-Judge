@@ -854,9 +854,13 @@ $('submitForm').addEventListener('submit', async event => {
             throw new Error('Máy chủ chưa trả về mã bài nộp.');
         }
 
-        // Chuyển thẳng sang trang chi tiết bài nộp.
-        window.location.href =
-    `/contest-submission/${encodeURIComponent(result.submission_id)}`;
+        message.textContent =
+    `Đã nộp bài thành công!\nMã bài nộp: ${result.submission_id}\nĐang cập nhật lịch sử...`;
+
+message.className = 'status success';
+
+await loadContestSubmissions();
+await loadLeaderboard();
 return;
     } catch (error) {
         message.textContent = 'Nộp bài thất bại: ' + error.message;
