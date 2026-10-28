@@ -856,9 +856,8 @@ $('submitForm').addEventListener('submit', async event => {
 
         // Chuyển thẳng sang trang chi tiết bài nộp.
         window.location.href =
-            `/submission/${encodeURIComponent(result.submission_id)}`;
-
-        return;
+    `/contest-submission/${encodeURIComponent(result.submission_id)}`;
+return;
     } catch (error) {
         message.textContent = 'Nộp bài thất bại: ' + error.message;
         message.className = 'status error';
