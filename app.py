@@ -1562,83 +1562,38 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
 
     # ==================== BULK PROBLEM TOOLS ====================
 
-    @app.put('/api/admin/problems/bulk-rename')
-    def admin_bulk_rename():
+    
+    @app.post('/api/admin/problems/remove-duplicates')
+    def admin_remove_duplicates():
         if not admin_required():
             return jsonify(error='Chỉ admin.'), 403
-        data = request.get_json(silent=True) or {}
-        changes = data.get('changes')
-        if not isinstance(changes, list) or not changes:
-            return jsonify(
-                error='changes phải là danh sách không rỗng.'
-            ), 400
 
         old = problems()
-        by_id = {str(item['id']): item for item in old}
-        seen = set()
-        normalized = []
+        new, removed = remove_duplicates(old)
 
-        for item in changes:
-            if not isinstance(item, dict):
-                return jsonify(error='Mỗi thay đổi phải là object.'), 400
-            pid = str(item.get('id', '')).strip()
-            title = str(item.get('title', '')).strip()
-            if not pid or pid not in by_id:
-                return jsonify(error='Không tìm thấy bài có ID: ' + pid), 404
-            if pid in seen:
-                return jsonify(error='ID bị lặp trong changes: ' + pid), 400
-            if not title or len(title) > 200:
-                return jsonify(
-                    error='Tên bài phải từ 1 đến 200 ký tự.'
-                ), 400
-            seen.add(pid)
-            normalized.append((pid, title))
+        if not removed:
+            return jsonify(
+                ok=True,
+                removed=0,
+                message='Không tìm thấy bài trùng.'
+            )
 
-        new = json.loads(json.dumps(old, ensure_ascii=False))
-        for item in new:
-            pid = str(item['id'])
-            for changed_id, title in normalized:
-                if pid == changed_id:
-                    item['title'] = title
-                    break
-
-        if new == old:
-    return jsonify(
-        ok=True, changed=0, message='Không có thay đổi.'
-    )
-
-save_history(
-    app.config['DATABASE_PATH'],
-    'bulk_rename',
-    old,
-    new
-)
-
-save_problems(new, app.config['PROBLEMS_PATH'])
-update_problems_cache(new)
-
-changed = sum(
-    1 for before, after in zip(old, new)
-    if before.get('title') != after.get('title')
-)
-
-return jsonify(
-    ok=True,
-    changed=changed,
-    message='Đã đổi tên bài thành công.'
-)
+        save_history(
+            app.config['DATABASE_PATH'],
+            'remove_duplicates',
+            old,
+            new,
+            removed
+        )
 
         save_problems(new, app.config['PROBLEMS_PATH'])
         update_problems_cache(new)
 
-        changed = sum(
-            1 for before, after in zip(old, new)
-            if before.get('title') != after.get('title')
-        )
         return jsonify(
             ok=True,
-            changed=changed,
-            message='Đã đổi tên bài thành công.'
+            removed=len(removed),
+            remaining=len(new),
+            message=f'Đã xóa {len(removed)} bài trùng.'
         )
 
     @app.post('/api/admin/problems/remove-duplicates')
