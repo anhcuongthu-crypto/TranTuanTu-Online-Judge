@@ -588,6 +588,7 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
         return jsonify(ok=True, bio=bio, avatar_color=color)
 
     @app.get('/api/submissions')
+    
     def submission_history():
         user = current_user()
         if not user:
@@ -597,7 +598,7 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             rows = db.execute(
                 '''SELECT s.id, s.user_id, u.username,
                           s.problem_id, s.language_id, s.verdict,
-                          s.score, s.max_score, s.details_json,
+                          s.score, s.max_score,
                           s.created_at, s.contest_id
                    FROM submissions s
                    JOIN users u ON u.id = s.user_id
@@ -609,13 +610,11 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
         result = []
         for row in rows:
             item = dict(row)
-            item['details'] = json.loads(
-                item.pop('details_json') or '[]'
-            )
             item['is_mine'] = item['user_id'] == user['id']
             result.append(item)
 
         return jsonify(result)
+
 
     
     @app.get('/api/submissions/<int:submission_id>/code')
