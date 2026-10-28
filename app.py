@@ -901,6 +901,55 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
         if not item:
             return jsonify(error='Không tìm thấy cuộc thi.'), 404
         return jsonify(item)
+        
+    @app.get('/api/contests/<int:contest_id>/leaderboard')
+    def contest_leaderboard(contest_id):
+        user = current_user()
+
+        with connect(app.config['DATABASE_PATH']) as db:
+            contest = db.execute(
+                'SELECT id, is_visible FROM contests WHERE id=?',
+                (contest_id,)
+            ).fetchone()
+
+            if not contest:
+                return jsonify(error='Không tìm thấy cuộc thi.'), 404
+
+            if not contest['is_visible'] and not (
+                user and user['is_admin']
+            ):
+                return jsonify(error='Không tìm thấy cuộc thi.'), 404
+
+            rows = db.execute(
+                '''SELECT u.username,
+                          COALESCE(SUM(best.score), 0) AS score,
+                          COUNT(
+                              CASE WHEN best.solved=1 THEN 1 END
+                          ) AS solved
+                   FROM users u
+                   LEFT JOIN (
+                       SELECT user_id, problem_id,
+                              MAX(score) AS score,
+                              MAX(
+                                  CASE WHEN verdict='Accepted'
+                                       THEN 1 ELSE 0 END
+                              ) AS solved
+                       FROM submissions
+                       WHERE contest_id=?
+                         AND verdict NOT IN (
+                             'Queued', 'Processing',
+                             'Judge Unavailable'
+                         )
+                       GROUP BY user_id, problem_id
+                   ) best ON best.user_id=u.id
+                   WHERE u.approved=1
+                   GROUP BY u.id
+                   ORDER BY score DESC, solved DESC, u.username ASC''',
+                (contest_id,)
+            ).fetchall()
+
+        return jsonify([dict(row) for row in rows])
+
 
     
     # ==================== CONTEST SUBMISSIONS HISTORY ====================
