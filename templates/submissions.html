@@ -662,13 +662,34 @@
 
                 const problemId = item.problem_id;
 
-                const problemCell =
-                    problemId != null && String(problemId) !== ''
-                        ? '<a class="problem-link" href="/problems/' +
-                            encodeURIComponent(String(problemId)) + '">' +
-                            escapeHTML(problemId) +
-                          '</a>'
-                        : '—';
+                
+const contestId = item.contest_id;
+
+let problemCell = '—';
+
+if (problemId != null && String(problemId) !== '') {
+    let problemUrl;
+
+    if (contestId != null) {
+        problemUrl = '/contests/' +
+            encodeURIComponent(String(contestId)) +
+            '?problem=' + encodeURIComponent(String(problemId));
+    } else {
+        problemUrl = '/problems/' +
+            encodeURIComponent(String(problemId));
+    }
+
+    problemCell =
+        '<a class="problem-link" href="' + problemUrl + '">' +
+            escapeHTML(String(problemId)) +
+            (contestId != null
+                ? ' <span style="font-size:11px;color:#a78bfa">' +
+                    '(Contest #' + escapeHTML(String(contestId)) + ')' +
+                  '</span>'
+                : '') +
+        '</a>';
+}
+
 
                 return '<tr>' +
                     '<td>#' + escapeHTML(item.id) + '</td>' +
