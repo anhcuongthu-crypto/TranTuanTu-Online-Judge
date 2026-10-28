@@ -680,9 +680,20 @@
                         escapeHTML(verdict) + '</span></td>' +
                     '<td>' + escapeHTML(score) + '</td>' +
                     '<td>' + escapeHTML(getDate(item.created_at)) + '</td>' +
-                    '<td><button type="button" class="code-button" ' +
+                                        '<td><button type="button" class="code-button" ' +
                         'data-code-id="' + escapeHTML(item.id) + '">' +
                         codeLabel + '</button></td>' +
+                    '<td><button type="button" class="detail-button" ' +
+                        'data-detail-id="' + escapeHTML(item.id) + '">' +
+                        'Chi tiết</button></td>' +
+                '</tr>' +
+                '<tr id="detail-row-' + escapeHTML(item.id) + '" hidden>' +
+                    '<td colspan="9">' +
+                        '<div class="detail-panel" id="detail-content-' +
+                            escapeHTML(item.id) + '">' +
+                            'Đang tải chi tiết...' +
+                        '</div>' +
+                    '</td>' +
                 '</tr>';
             }).join('');
         }
