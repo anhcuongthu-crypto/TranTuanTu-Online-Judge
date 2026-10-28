@@ -550,6 +550,59 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
     @app.get('/submissions')
     def submissions_page():
         return render_template('submissions.html')
+        @app.get('/submission/<int:submission_id>')
+def submission_page(submission_id):
+    user = current_user()
+    if not user:
+        return redirect(url_for('home'))
+
+    with connect(app.config['DATABASE_PATH']) as db:
+        row = db.execute(
+            'SELECT id, user_id FROM submissions WHERE id=?',
+            (submission_id,)
+        ).fetchone()
+
+    if not row:
+        return render_template('not_found.html'), 404
+
+    if row['user_id'] != user['id'] and not user['is_admin']:
+        # Cho phép người khác xem trang nếu đã FULL bài đó.
+        with connect(app.config['DATABASE_PATH']) as db:
+            submission = db.execute(
+                'SELECT problem_id, contest_id FROM submissions WHERE id=?',
+                (submission_id,)
+            ).fetchone()
+
+            if submission['contest_id'] is None:
+                full = db.execute(
+                    '''SELECT 1 FROM submissions
+                       WHERE user_id=? AND problem_id=?
+                         AND contest_id IS NULL
+                         AND max_score > 0 AND score >= max_score
+                       LIMIT 1''',
+                    (user['id'], submission['problem_id'])
+                ).fetchone()
+            else:
+                full = db.execute(
+                    '''SELECT 1 FROM submissions
+                       WHERE user_id=? AND problem_id=?
+                         AND contest_id=?
+                         AND max_score > 0 AND score >= max_score
+                       LIMIT 1''',
+                    (
+                        user['id'],
+                        submission['problem_id'],
+                        submission['contest_id']
+                    )
+                ).fetchone()
+
+        if not full:
+            return render_template('not_found.html'), 403
+
+    return render_template(
+        'submission_detail.html',
+        submission_id=submission_id
+    )
 
     @app.get('/leaderboard')
     def leaderboard_page():
