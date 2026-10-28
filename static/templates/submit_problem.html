@@ -1,0 +1,61 @@
+ {% extends 'base.html' %}
+
+{% block title %}Nộp bài {{ problem.id }} — OJ Studio{% endblock %}
+
+{% block content %}
+<div class="breadcrumbs">
+    <a href="/problems/{{ problem.id }}">← Quay lại đề bài</a>
+    <span>/</span>
+    <span>Nộp bài</span>
+</div>
+
+<section class="glass-card" style="width:100%;box-sizing:border-box;">
+    <span class="eyebrow">SUBMIT SOLUTION</span>
+    <h1>{{ problem.id }} · {{ problem.title }}</h1>
+
+    <p class="muted">
+        Đọc kỹ đề bài trước khi nộp.
+        <a href="/problems/{{ problem.id }}">Xem đề bài</a>
+    </p>
+
+    <label for="language">Ngôn ngữ</label>
+    <select id="language">
+        <option value="54">C++ (GCC 9.2.0)</option>
+    </select>
+
+    <label for="source">Mã nguồn</label>
+    <textarea
+        id="source"
+        rows="22"
+        spellcheck="false"
+        style="display:block;width:100%;box-sizing:border-box;resize:vertical;font-family:monospace;tab-size:4;"
+    >#include &lt;bits/stdc++.h&gt;
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    return 0;
+}</textarea>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+        <button
+            id="submit"
+            class="button button-primary"
+            style="min-width:160px;"
+            data-problem="{{ problem.id }}"
+            type="button"
+        >
+            Nộp bài <span>↗</span>
+        </button>
+    </div>
+
+    <pre
+        id="result"
+        class="result-box"
+        aria-live="polite"
+        style="white-space:pre-wrap;overflow-wrap:anywhere;margin-top:20px;"
+    >Kết quả chấm sẽ hiển thị tại đây.</pre>
+</section>
+{% endblock %}
