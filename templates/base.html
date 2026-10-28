@@ -11,10 +11,50 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#6d28d9">
+    <meta name="color-scheme" content="dark">
 
-    <title>{% block title %}OJ Studio — Luyện Tin học{% endblock %}</title>
+    <title>{% block title %}TranTu OJ Studio — Luyện lập trình C++ và Tin học{% endblock %}</title>
+
+    <meta
+        name="description"
+        content="{% block meta_description %}TranTu OJ Studio là nền tảng luyện lập trình C++, thực hành bài tập Tin học, nộp bài chấm tự động và tham gia các cuộc thi lập trình.{% endblock %}"
+    >
+
+    <meta name="robots" content="index, follow">
+
+    <link
+        rel="canonical"
+        href="https://trantuantu-online-judge.onrender.com/"
+    >
+
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:site_name" content="TranTu OJ Studio">
+    <meta
+        property="og:title"
+        content="TranTu OJ Studio — Luyện lập trình C++ và Tin học"
+    >
+    <meta
+        property="og:description"
+        content="Luyện lập trình C++, thực hành bài tập Tin học, nộp bài chấm tự động và tham gia các cuộc thi tại TranTu OJ Studio."
+    >
+    <meta
+        property="og:url"
+        content="https://trantuantu-online-judge.onrender.com/"
+    >
+
+    <meta name="twitter:card" content="summary">
+    <meta
+        name="twitter:title"
+        content="TranTu OJ Studio — Luyện lập trình C++ và Tin học"
+    >
+    <meta
+        name="twitter:description"
+        content="Nền tảng luyện lập trình C++, làm bài tập và thi Tin học trực tuyến."
+    >
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <link
         href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
@@ -29,16 +69,16 @@
     <div class="ambient ambient-b"></div>
 
     <header class="topbar">
-        <a href="/" class="brand">
+        <a href="/" class="brand" aria-label="TranTu OJ Studio - Trang chủ">
             <span class="brand-mark">λ</span>
 
             <span>
-                OJ<span class="brand-gradient"> Studio</span>
+                TranTu<span class="brand-gradient"> OJ Studio</span>
                 <small>THINK · CODE · GROW</small>
             </span>
         </a>
 
-        <nav>
+        <nav aria-label="Điều hướng chính">
             <a href="/">Bài tập</a>
             <a href="/contests">🏆 Contest</a>
             <a href="/submissions">📝 Các bài nộp</a>
@@ -54,6 +94,7 @@
             <button
                 id="logout-button"
                 class="button button-ghost"
+                type="button"
                 hidden
             >
                 Đăng xuất
@@ -61,16 +102,16 @@
         </div>
     </header>
 
-    <main>
+    <main id="main-content">
         {% block content %}{% endblock %}
     </main>
 
     <footer>
         <div class="footer-brand">
-            OJ Studio <span>✦</span>
+            TranTu OJ Studio <span>✦</span>
         </div>
 
-        <p>Nền tảng luyện lập trình · Chấm bài qua Judge0</p>
+        <p>Nền tảng luyện lập trình C++ · Bài tập Tin học · Chấm bài tự động qua Judge0</p>
 
         <small>
             Đặt mục tiêu, luyện từng bài, tiến bộ mỗi ngày.
