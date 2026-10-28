@@ -851,17 +851,20 @@ $('submitForm').addEventListener('submit', async event => {
         });
 
         if (!result.submission_id) {
-            throw new Error('Máy chủ chưa trả về mã bài nộp.');
-        }
+    throw new Error('Máy chủ chưa trả về mã bài nộp.');
+}
 
-        message.textContent =
-    `Đã nộp bài thành công!\nMã bài nộp: ${result.submission_id}\nĐang cập nhật lịch sử...`;
-
+message.textContent =
+    `Đã nhận bài nộp!\nMã bài nộp: ${result.submission_id}\nĐang cập nhật lịch sử...`;
 message.className = 'status success';
 
-await loadContestSubmissions();
-await loadLeaderboard();
-return;
+await Promise.allSettled([
+    loadContestSubmissions(),
+    loadLeaderboard()
+]);
+
+message.textContent =
+    `Đã gửi bài nộp thành công!\nMã bài nộp: ${result.submission_id}\nXem kết quả tại mục "Bài nộp trong contest".`;
     } catch (error) {
         message.textContent = 'Nộp bài thất bại: ' + error.message;
         message.className = 'status error';
