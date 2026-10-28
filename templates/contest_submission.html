@@ -1,0 +1,136 @@
+```html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thông tin bài nộp - TranTu OJ</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: #f5f7fb;
+    color: #1e293b;
+    font-family: Arial, sans-serif;
+}
+
+header {
+    padding: 18px 6%;
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+header a {
+    color: #4f46e5;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+main {
+    max-width: 760px;
+    margin: 45px auto;
+    padding: 0 16px;
+}
+
+.panel {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 5px 20px #0f172a0a;
+}
+
+h1 { margin-top: 0; }
+
+.muted {
+    color: #64748b;
+    line-height: 1.7;
+}
+
+.info {
+    margin: 24px 0;
+    padding: 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.info p { margin: 9px 0; }
+
+button {
+    border: 0;
+    border-radius: 9px;
+    padding: 13px 18px;
+    background: #4f46e5;
+    color: white;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+button:hover { background: #4338ca; }
+
+.secondary {
+    background: #475569;
+    margin-left: 6px;
+}
+
+.secondary:hover { background: #334155; }
+
+#message {
+    margin-top: 16px;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+@media (max-width: 520px) {
+    .panel { padding: 20px; }
+    button { width: 100%; margin: 5px 0; }
+    .secondary { margin-left: 0; }
+}
+</style>
+</head>
+
+<body>
+<header>
+    <a href="/">TranTu OJ</a>
+</header>
+
+<main>
+    <section class="panel">
+        <h1>Thông tin bài nộp</h1>
+        <p class="muted">
+            Bài làm của bạn đã được gửi lên hệ thống.
+            Bạn có thể mở trang kết quả để theo dõi quá trình chấm.
+        </p>
+
+        <div class="info">
+            <p><b>Mã bài nộp:</b> #{{ submission_id }}</p>
+            <p><b>Trạng thái:</b> Đã gửi yêu cầu chấm</p>
+            <p class="muted">
+                Kết quả có thể chưa xuất hiện ngay nếu hệ thống đang chấm bài.
+            </p>
+        </div>
+
+        <button id="viewResult">Xem kết quả chấm bài →</button>
+        <button class="secondary" onclick="history.back()">
+            Quay lại
+        </button>
+
+        <div id="message"></div>
+    </section>
+</main>
+
+<script>
+const submissionId = {{ submission_id | tojson }};
+
+document.getElementById('viewResult').addEventListener('click', () => {
+    window.location.href =
+        '/submission/' + encodeURIComponent(submissionId);
+});
+</script>
+</body>
+</html>
+```
