@@ -1,0 +1,386 @@
+ {% extends 'base.html' %}
+
+{% block title %}Chi tiết bài nộp #{{ submission_id }} — OJ Studio{% endblock %}
+
+{% block content %}
+<style>
+.submission-detail {
+    color: var(--text, #edf0ff);
+    padding: 12px 0 48px;
+}
+.submission-detail .muted {
+    color: #929db8;
+    line-height: 1.7;
+}
+.submission-detail .eyebrow {
+    color: #a99aff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+.submission-detail h1 {
+    font-size: clamp(27px, 4vw, 40px);
+    margin: 10px 0;
+    overflow-wrap: anywhere;
+}
+.submission-detail .gradient-text {
+    background: linear-gradient(100deg, #a78bfa, #67e8f9);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.submission-detail .panel {
+    background: rgba(20, 27, 48, .78);
+    border: 1px solid rgba(148, 163, 216, .16);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 18px;
+    min-width: 0;
+    box-sizing: border-box;
+}
+.submission-detail .summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+.submission-detail .stat-label {
+    color: #929db8;
+    font-size: 13px;
+}
+.submission-detail .stat-value {
+    margin-top: 8px;
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+.submission-detail .status {
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 800;
+    background: rgba(129, 140, 248, .12);
+    color: #c4b5fd;
+}
+.submission-detail .status.ac {
+    color: #6ee7b7;
+    background: rgba(16, 185, 129, .12);
+}
+.submission-detail .status.wa {
+    color: #fda4af;
+    background: rgba(244, 63, 94, .12);
+}
+.submission-detail .status.pending {
+    color: #fcd34d;
+    background: rgba(245, 158, 11, .12);
+}
+.submission-detail .subtask {
+    margin-top: 16px;
+    border: 1px solid rgba(148, 163, 216, .18);
+    border-radius: 13px;
+    overflow: hidden;
+    background: rgba(9, 14, 29, .4);
+}
+.submission-detail .subtask-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 15px 16px;
+    border-bottom: 1px solid rgba(148, 163, 216, .15);
+}
+.submission-detail .subtask-head h2 {
+    margin: 0;
+    font-size: 16px;
+}
+.submission-detail .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+.submission-detail table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.submission-detail th,
+.submission-detail td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(148, 163, 216, .13);
+}
+.submission-detail th {
+    color: #cbd5e1;
+    background: rgba(35, 29, 48, .75);
+}
+.submission-detail tr:last-child td {
+    border-bottom: 0;
+}
+.submission-detail .passed {
+    color: #6ee7b7;
+    font-weight: 800;
+}
+.submission-detail .failed {
+    color: #fda4af;
+    font-weight: 800;
+}
+.submission-detail .message {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: #fda4af;
+    font-family: monospace;
+    font-size: 12px;
+}
+.submission-detail .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+.submission-detail .btn {
+    display: inline-block;
+    border: 1px solid rgba(148, 163, 216, .25);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #edf0ff;
+    text-decoration: none;
+    background: rgba(148, 163, 216, .08);
+    font: inherit;
+    cursor: pointer;
+}
+.submission-detail .btn-primary {
+    background: linear-gradient(110deg, #8b5cf6, #6366f1);
+    border: 0;
+}
+.submission-detail .notice {
+    color: #aeb8d0;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+    .submission-detail .summary {
+        grid-template-columns: 1fr;
+    }
+    .submission-detail .panel {
+        padding: 15px;
+    }
+}
+</style>
+
+<div class="submission-detail">
+    <span class="eyebrow">SUBMISSION DETAILS</span>
+    <h1>Bài nộp <span class="gradient-text">#{{ submission_id }}</span></h1>
+    <p class="muted">Kết quả chấm bài và trạng thái từng test sẽ được cập nhật tự động.</p>
+
+    <div class="summary">
+        <div class="panel">
+            <div class="stat-label">Trạng thái</div>
+            <div class="stat-value"><span id="verdict" class="status pending">Đang tải...</span></div>
+        </div>
+        <div class="panel">
+            <div class="stat-label">Điểm đạt được</div>
+            <div class="stat-value" id="score">—</div>
+        </div>
+        <div class="panel">
+            <div class="stat-label">Mã bài tập</div>
+            <div class="stat-value" id="problem-id">—</div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <strong>Thông tin bài chấm</strong>
+        <p class="notice" id="submission-info">Đang tải thông tin...</p>
+        <p class="notice" id="update-info">Đang kết nối đến hệ thống chấm bài...</p>
+    </div>
+
+    <div class="panel">
+        <span class="eyebrow">TEST RESULTS</span>
+        <h2>Kết quả từng test</h2>
+        <div id="test-results" class="notice">Đang tải kết quả...</div>
+    </div>
+
+    <div class="actions">
+        <a class="btn btn-primary" id="problem-link" href="/problems">Quay lại bài tập</a>
+        <a class="btn" href="/submissions">Lịch sử bài nộp</a>
+        <button class="btn" id="refresh-detail" type="button">↻ Cập nhật</button>
+    </div>
+</div>
+
+<script>
+(function () {
+    const submissionId = {{ submission_id | tojson }};
+    const verdictEl = document.getElementById('verdict');
+    const scoreEl = document.getElementById('score');
+    const problemEl = document.getElementById('problem-id');
+    const infoEl = document.getElementById('submission-info');
+    const updateEl = document.getElementById('update-info');
+    const resultsEl = document.getElementById('test-results');
+    const refreshButton = document.getElementById('refresh-detail');
+    const problemLink = document.getElementById('problem-link');
+
+    let timer = null;
+    let loading = false;
+    let finished = false;
+
+    function escapeHTML(value) {
+        return String(value ?? '').replace(/[&<>"']/g, function (c) {
+            return {
+                '&': '&amp;', '<': '&lt;', '>': '&gt;',
+                '"': '&quot;', "'": '&#39;'
+            }[c];
+        });
+    }
+
+    function verdictClass(verdict) {
+        const v = String(verdict || '').toLowerCase();
+        if (v === 'accepted' || v === 'ac' || v === 'full') return 'ac';
+        if (v.includes('wrong answer') || v === 'wa' ||
+            v.includes('runtime error') || v.includes('time limit') ||
+            v.includes('memory limit') || v === 'error') return 'wa';
+        if (v.includes('queued') || v.includes('processing') ||
+            v.includes('running') || v.includes('pending')) return 'pending';
+        return '';
+    }
+
+    function isFinished(verdict) {
+        const v = String(verdict || '').toLowerCase();
+        return !(
+            v === 'queued' || v === 'processing' ||
+            v === 'running' || v === 'pending'
+        );
+    }
+
+    function renderTests(details) {
+        if (!Array.isArray(details) || !details.length) {
+            resultsEl.textContent =
+                'Chưa có dữ liệu test. Nếu bài đang được chấm, trang sẽ tự cập nhật.';
+            return;
+        }
+
+        let html = '';
+
+        details.forEach(function (st, index) {
+            const tests = Array.isArray(st.tests) ? st.tests : [];
+            const name = st.name || ('Subtask ' + (index + 1));
+
+            html += '<section class="subtask"><div class="subtask-head">' +
+                '<h2>' + escapeHTML(name) + '</h2>' +
+                '<strong>' + escapeHTML(st.score ?? 0) + ' / ' +
+                escapeHTML(st.max_score ?? 0) + ' điểm</strong>' +
+                '</div>';
+
+            if (!tests.length) {
+                html += '<p class="notice" style="padding:14px">Chưa có dữ liệu test.</p>';
+            } else {
+                html += '<div class="table-scroll"><table><thead><tr>' +
+                    '<th>Test</th><th>Kết quả</th><th>Điểm</th>' +
+                    '<th>Thời gian</th><th>Bộ nhớ</th>' +
+                    '</tr></thead><tbody>';
+
+                tests.forEach(function (test) {
+                    const status = String(test.status || 'Unknown');
+                    const ok = status.toLowerCase() === 'accepted' ||
+                        status.toLowerCase() === 'ac' ||
+                        status.toLowerCase() === 'passed';
+
+                    html += '<tr>' +
+                        '<td>#' + escapeHTML(test.test ?? '—') + '</td>' +
+                        '<td class="' + (ok ? 'passed' : 'failed') + '">' +
+                        escapeHTML(status) + '</td>' +
+                        '<td>' + escapeHTML(test.score ?? 0) + ' / ' +
+                        escapeHTML(test.max_score ?? 0) + '</td>' +
+                        '<td>' + escapeHTML(test.time ?? '—') + '</td>' +
+                        '<td>' + escapeHTML(test.memory ?? '—') + '</td>' +
+                        '</tr>';
+
+                    if (test.message) {
+                        html += '<tr><td colspan="5" class="message">' +
+                            escapeHTML(test.message) + '</td></tr>';
+                    }
+                });
+
+                html += '</tbody></table></div>';
+            }
+
+            html += '</section>';
+        });
+
+        resultsEl.innerHTML = html;
+    }
+
+    async function loadDetails() {
+        if (loading || finished) return;
+        loading = true;
+        refreshButton.disabled = true;
+
+        try {
+            const response = await fetch(
+                '/api/submissions/' + encodeURIComponent(submissionId) + '/status',
+                {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'same-origin'
+                }
+            );
+
+            const raw = await response.text();
+            let data;
+
+            try {
+                data = JSON.parse(raw);
+            } catch (e) {
+                throw new Error('Server không trả về JSON hợp lệ.');
+            }
+
+            if (!response.ok) {
+                throw new Error(data.error || data.message ||
+                    'Không thể tải bài nộp (HTTP ' + response.status + ').');
+            }
+
+            const verdict = data.verdict || data.status || 'Unknown';
+
+            verdictEl.textContent = verdict;
+            verdictEl.className = 'status ' + verdictClass(verdict);
+            scoreEl.textContent = (data.score ?? 0) + ' / ' +
+                (data.max_score ?? '—');
+            problemEl.textContent = data.problem_id ?? '—';
+
+            if (data.problem_id != null) {
+                problemLink.href = '/problems/' +
+                    encodeURIComponent(String(data.problem_id));
+                problemLink.textContent = 'Xem đề bài';
+            }
+
+            infoEl.textContent = 'Mã bài nộp: #' + submissionId +
+                (data.created_at ? ' · Thời gian nộp: ' + data.created_at : '');
+
+            renderTests(data.details);
+
+            if (isFinished(verdict)) {
+                finished = true;
+                updateEl.textContent = 'Đã nhận kết quả chấm cuối cùng.';
+                if (timer) clearInterval(timer);
+            } else {
+                updateEl.textContent =
+                    'Bài đang được xử lý. Trang sẽ tự kiểm tra lại sau 2 giây.';
+            }
+        } catch (error) {
+            updateEl.textContent = error.message ||
+                'Lỗi kết nối. Hãy bấm Cập nhật để thử lại.';
+        } finally {
+            loading = false;
+            refreshButton.disabled = false;
+        }
+    }
+
+    refreshButton.addEventListener('click', function () {
+        finished = false;
+        loadDetails();
+    });
+
+    loadDetails();
+    timer = setInterval(loadDetails, 2000);
+})();
+</script>
+{% endblock %}
