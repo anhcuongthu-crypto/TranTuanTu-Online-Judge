@@ -1603,13 +1603,30 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
                     break
 
         if new == old:
-            return jsonify(
-                ok=True, changed=0, message='Không có thay đổi.'
-            )
+    return jsonify(
+        ok=True, changed=0, message='Không có thay đổi.'
+    )
 
-                save_history(
-            app.config['DATABASE_PATH'], 'bulk_rename', old, new
-        )
+save_history(
+    app.config['DATABASE_PATH'],
+    'bulk_rename',
+    old,
+    new
+)
+
+save_problems(new, app.config['PROBLEMS_PATH'])
+update_problems_cache(new)
+
+changed = sum(
+    1 for before, after in zip(old, new)
+    if before.get('title') != after.get('title')
+)
+
+return jsonify(
+    ok=True,
+    changed=changed,
+    message='Đã đổi tên bài thành công.'
+)
 
         save_problems(new, app.config['PROBLEMS_PATH'])
         update_problems_cache(new)
