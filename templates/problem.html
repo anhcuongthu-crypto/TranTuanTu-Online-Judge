@@ -1,4 +1,3 @@
-
 {% extends 'base.html' %}
 
 {% block title %}{{ problem.id }} · {{ problem.title }} — OJ Studio{% endblock %}
@@ -27,9 +26,10 @@
 <div class="problem-layout" style="display:block;">
 
     <!-- MÔ TẢ ĐỀ BÀI -->
-    <section class="problem-content glass-card"
-             style="width:100%;box-sizing:border-box;margin-bottom:24px;">
-
+    <section
+        class="problem-content glass-card"
+        style="width:100%;box-sizing:border-box;margin-bottom:24px;"
+    >
         <h2>
             <span class="heading-symbol">▤</span>
             Mô tả dữ liệu
@@ -94,62 +94,16 @@
         </p>
     </section>
 
-    <!-- KHUNG NỘP BÀI: NẰM BÊN DƯỚI ĐỀ -->
-    <section class="glass-card submit-card"
-             style="display:block;width:100%;max-width:none;box-sizing:border-box;">
+    <!-- NÚT CHUYỂN SANG TRANG NỘP BÀI RIÊNG -->
+    <div style="display:flex;justify-content:flex-end;margin:20px 0;">
+        <a
+            href="/problems/{{ problem.id }}/submit"
+            class="button button-primary"
+            style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;"
+        >
+            Nộp bài <span>↗</span>
+        </a>
+    </div>
 
-        <div class="submit-title">
-            <span class="card-icon purple-icon">&lt;/&gt;</span>
-
-            <div>
-                <h2>Nộp lời giải</h2>
-                <p class="muted">C++ · GCC 9.2.0</p>
-            </div>
-        </div>
-
-        <label for="language">Ngôn ngữ</label>
-
-        <select id="language">
-            <option value="54">C++ (GCC 9.2.0)</option>
-        </select>
-
-        <label for="source">Mã nguồn</label>
-
-        <textarea
-            id="source"
-            rows="20"
-            spellcheck="false"
-            style="display:block;width:100%;box-sizing:border-box;resize:vertical;font-family:monospace;tab-size:4;"
-        >#include &lt;bits/stdc++.h&gt;
-using namespace std;
-
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-
-    return 0;
-}</textarea>
-
-        <div style="display:flex;justify-content:flex-end;margin-top:16px;">
-            <button
-                id="submit"
-                class="button button-primary"
-                style="min-width:160px;"
-                data-problem="{{ problem.id }}"
-                type="button"
-            >
-                Nộp bài <span>↗</span>
-            </button>
-        </div>
-
-        <!-- Giữ nguyên ID để tương thích với JS hiện có -->
-        <pre
-            id="result"
-            class="result-box"
-            aria-live="polite"
-            style="white-space:pre-wrap;overflow-wrap:anywhere;margin-top:20px;"
-        >Kết quả chấm sẽ hiển thị tại đây.</pre>
-
-    </section>
 </div>
 {% endblock %}
