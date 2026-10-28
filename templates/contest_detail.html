@@ -587,6 +587,21 @@ function showProblem(pid) {
         block: 'start'
     });
 }
+function openProblemFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const pid = params.get('problem');
+
+    if (pid === null) return;
+
+    const problem = problemList.find(
+        p => String(p.id) === String(pid)
+    );
+
+    if (problem) {
+        showProblem(problem.id);
+        $('problemId').value = String(problem.id);
+    }
+}
 
 async function editProblem(p) {
     const area = $('editArea');
