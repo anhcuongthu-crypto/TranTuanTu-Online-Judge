@@ -1609,14 +1609,23 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             app.config['DATABASE_PATH'],
             'restore_history', before, target
         )
-        save_problems(target, app.config['PROBLEMS_PATH'])
-update_problems_cache(target)
+        
+        
 
-return jsonify(
-    ok=True,
-    restored_count=len(target),
-    message='Đã khôi phục ngân hàng đề về trạng thái trước thao tác.'
-)
+        try:
+            save_problems(target, app.config['PROBLEMS_PATH'])
+            update_problems_cache(target)
+        except Exception as exc:
+            app.logger.exception('Lỗi khôi phục ngân hàng đề')
+            return jsonify(
+                error='Không thể lưu dữ liệu khôi phục: ' + str(exc)
+            ), 500
+
+        return jsonify(
+            ok=True,
+            restored_count=len(target),
+            message='Đã khôi phục ngân hàng đề về trạng thái trước thao tác.'
+        )
 
     @app.get('/admin/problem-history')
     def admin_problem_history_page():
