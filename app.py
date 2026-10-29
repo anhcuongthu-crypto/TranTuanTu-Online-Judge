@@ -1607,6 +1607,159 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
                 ), 409
             db.execute('DELETE FROM contests WHERE id=?', (contest_id,))
         return jsonify(ok=True)
+            # ==================== SỬA TEST TRONG CONTEST ====================
+
+    @app.put(
+        '/api/admin/contests/<int:contest_id>/problems/<pid>/tests'
+    )
+    def admin_update_contest_tests(contest_id, pid):
+        if not admin_required():
+            return jsonify(error='Chỉ admin.'), 403
+
+        d = request.get_json(silent=True) or {}
+        subtasks = d.get('subtasks')
+
+        if not isinstance(subtasks, list) or not subtasks:
+            return jsonify(
+                error='Phải có ít nhất một subtask.'
+            ), 400
+
+        # Kiểm tra cấu trúc subtasks và test.
+        ids = set()
+        score_sum = 0
+
+        try:
+            for s in subtasks:
+                if not isinstance(s, dict):
+                    raise ValueError('Subtask không hợp lệ.')
+
+                sid = str(s.get('id', '')).strip()
+                name = str(s.get('name', '')).strip()
+                score = float(s.get('score', 0))
+                tests = s.get('tests')
+
+                if not sid or not name or sid in ids:
+                    raise ValueError(
+                        'ID subtask thiếu hoặc bị trùng.'
+                    )
+
+                if score <= 0 or not __import__('math').isfinite(score):
+                    raise ValueError('Điểm subtask không hợp lệ.')
+
+                if not isinstance(tests, list) or not tests:
+                    raise ValueError(
+                        f'Subtask {sid} phải có ít nhất một test.'
+                    )
+
+                for t in tests:
+                    if (
+                        not isinstance(t, dict)
+                        or not isinstance(t.get('input'), str)
+                        or not isinstance(t.get('output'), str)
+                    ):
+                        raise ValueError(
+                            f'Test trong subtask {sid} phải có input '
+                            'và output dạng chuỗi.'
+                        )
+
+                ids.add(sid)
+                score_sum += score
+
+        except (ValueError, TypeError, OverflowError) as exc:
+            return jsonify(error=str(exc)), 400
+
+        with connect(app.config['DATABASE_PATH']) as db:
+            member = db.execute(
+                '''SELECT problem_id FROM contest_problems
+                   WHERE contest_id=? AND problem_id=?''',
+                (contest_id, pid)
+            ).fetchone()
+
+            custom = db.execute(
+                '''SELECT * FROM contest_custom_problems
+                   WHERE contest_id=? AND problem_id=?''',
+                (contest_id, pid)
+            ).fetchone()
+
+        if not member:
+            return jsonify(
+                error='Bài này không thuộc contest.'
+            ), 404
+
+        # Trường hợp 1: bài riêng của contest.
+        if custom:
+            try:
+                total_score = float(custom['total_score'])
+            except (ValueError, TypeError):
+                return jsonify(
+                    error='Điểm tối đa của bài không hợp lệ.'
+                ), 400
+
+            if abs(score_sum - total_score) > 1e-9:
+                return jsonify(
+                    error='Tổng điểm subtask phải bằng điểm tối đa.'
+                ), 400
+
+            with connect(app.config['DATABASE_PATH']) as db:
+                db.execute(
+                    '''UPDATE contest_custom_problems
+                       SET subtasks_json=?
+                       WHERE contest_id=? AND problem_id=?''',
+                    (
+                        json.dumps(subtasks, ensure_ascii=False),
+                        contest_id,
+                        pid
+                    )
+                )
+
+            return jsonify(
+                ok=True,
+                type='custom',
+                message='Đã cập nhật test của bài riêng trong contest.'
+            )
+
+        # Trường hợp 2: bài lấy từ ngân hàng đề.
+        try:
+            bank = problems(refresh=True)
+            idx = next(
+                (
+                    i for i, p in enumerate(bank)
+                    if str(p.get('id')) == pid
+                ),
+                None
+            )
+
+            if idx is None:
+                return jsonify(
+                    error='Không tìm thấy bài trong ngân hàng đề.'
+                ), 404
+
+            total_score = float(bank[idx]['total_score'])
+
+            if abs(score_sum - total_score) > 1e-9:
+                return jsonify(
+                    error='Tổng điểm subtask phải bằng điểm tối đa '
+                          'của bài trong ngân hàng.'
+                ), 400
+
+            # Chỉ thay tests/subtasks, giữ nguyên các trường khác.
+            bank[idx]['subtasks'] = subtasks
+
+            save_problems(bank, app.config['PROBLEMS_PATH'])
+            update_problems_cache(bank)
+
+        except Exception as exc:
+            app.logger.exception('Lỗi cập nhật test ngân hàng đề')
+            return jsonify(
+                error='Không lưu được test lên ngân hàng/GitHub: '
+                      + str(exc)
+            ), 500
+
+        return jsonify(
+            ok=True,
+            type='bank',
+            message='Đã cập nhật test và lưu ngân hàng đề lên GitHub.'
+        )
 
     # ==================== ADMIN PROBLEM API ===================
 
