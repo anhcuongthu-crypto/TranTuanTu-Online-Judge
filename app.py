@@ -1468,11 +1468,16 @@ db.executemany(
                     )
 
                     db.execute(
-                        '''INSERT INTO contest_problems
-                           (contest_id, problem_id, position)
-                           VALUES (?, ?, ?)''',
-                        (contest_id, pid, i)
-                    )
+    '''INSERT INTO contest_problems
+       (contest_id, problem_id, position, total_score)
+       VALUES (?, ?, ?, ?)''',
+    (
+        contest_id,
+        pid,
+        i,
+        float(p['total_score'])
+    )
+)
         except DB_INTEGRITY_ERRORS as exc:
             return jsonify(
                 error='Không lưu được Contest do dữ liệu trùng hoặc không hợp lệ: '
