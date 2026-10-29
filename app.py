@@ -840,19 +840,17 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
         code = d.get('source_code', '')
         language = d.get('language_id', 54)
         p = next((x for x in problems() if x['id'] == pid), None)
-        
         if not p:
             return jsonify(error='Không tìm thấy bài.'), 404
-
-        # Áp dụng điểm tối đa riêng của contest
-        p = dict(p)
-        p['total_score'] = float(member['total_score'])
-
+        if not isinstance(code, str) or not code.strip() or len(code) > 100000:
+            return jsonify(error='Mã nguồn trống hoặc vượt 100 KB.'), 400
+        try:
+            language = int(language)
+        except (ValueError, TypeError):
+            return jsonify(error='language_id không hợp lệ.'), 400
         job_id, submission_id = enqueue(
-            app, user['id'], p, code, language,
-            contest_id=contest_id
+            app, user['id'], p, code, language
         )
-
         return jsonify(
             submission_id=submission_id,
             job_id=job_id,
@@ -1079,16 +1077,11 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             p = next((x for x in problems() if str(x['id']) == pid), None)
 
         if not p:
-    return jsonify(error='Không tìm thấy bài.'), 404
+            return jsonify(error='Không tìm thấy bài.'), 404
 
-# Áp dụng điểm tối đa riêng của contest
-p = dict(p)
-p['total_score'] = float(member['total_score'])
-
-job_id, submission_id = enqueue(
-    app, user['id'], p, code, language,
-    contest_id=contest_id
-)
+        job_id, submission_id = enqueue(
+            app, user['id'], p, code, language, contest_id=contest_id
+        )
 
         return jsonify(
             submission_id=submission_id,
