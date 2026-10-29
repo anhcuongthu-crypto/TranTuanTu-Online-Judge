@@ -1081,15 +1081,9 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
         if not p:
     return jsonify(error='Không tìm thấy bài.'), 404
 
-# Áp dụng điểm tối đa riêng của contest
-p = dict(p)
-p['total_score'] = float(member['total_score'])
-
 job_id, submission_id = enqueue(
-    app, user['id'], p, code, language,
-    contest_id=contest_id
+    app, user['id'], p, code, language
 )
-
         return jsonify(
             submission_id=submission_id,
             job_id=job_id,
