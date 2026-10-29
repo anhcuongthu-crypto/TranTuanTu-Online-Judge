@@ -892,15 +892,21 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             result.append(item)
         return jsonify(result)
 
+    
     @app.get('/api/contests/<int:contest_id>')
     def api_contest_detail(contest_id):
+        app.logger.info("API CONTEST DETAIL CALLED: %s", contest_id)
+
         user = current_user()
         item = get_contest_data(
             contest_id, bool(user and user['is_admin'])
         )
+
         if not item:
             return jsonify(error='Không tìm thấy cuộc thi.'), 404
+
         return jsonify(item)
+
         
     @app.get('/api/contests/<int:contest_id>/leaderboard')
     def contest_leaderboard(contest_id):
