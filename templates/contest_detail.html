@@ -545,7 +545,8 @@ function showProblem(pid) {
     if (!p) return;
 
     // Hỗ trợ nhiều tên trường dữ liệu khác nhau
-    const statement = p.statement ?? p.description ?? p.content ?? p.problem_statement ?? '';
+    const statement = String(
+    p.statement || p.description || p.content || p.problem_statement || '');
     const inputDesc = p.input_desc ?? p.input_description ?? p.input ?? '';
     const outputDesc = p.output_desc ?? p.output_description ?? p.output ?? '';
 
