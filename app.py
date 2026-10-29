@@ -1238,6 +1238,7 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
         return jsonify(result)
 
     
+    
     @app.post('/api/admin/contests')
     def admin_create_contest():
         admin = admin_required()
@@ -1245,11 +1246,12 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             return jsonify(error='Chỉ admin.'), 403
 
         d = request.get_json(silent=True) or {}
+
         title = str(d.get('title', '')).strip()
         description = str(d.get('description', '')).strip()
-        problem_ids = d.get('problem_ids')
+        problem_ids = d.get('problem_ids', [])
         custom_problems = d.get('custom_problems', [])
-        visible = bool(d.get('is_visible', True))
+        visible = d.get('is_visible', True)
 
         if not title or len(title) > 160:
             return jsonify(error='Tên cuộc thi không hợp lệ.'), 400
@@ -1257,9 +1259,11 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
         if len(description) > 5000:
             return jsonify(error='Mô tả tối đa 5000 ký tự.'), 400
 
-        if problem_ids is not None:
-           if not isinstance(problem_ids, list) or not problem_ids:
-            return jsonify(error='Chọn ít nhất một bài thi.'), 400
+        if not isinstance(visible, bool):
+            return jsonify(error='Trạng thái hiển thị không hợp lệ.'), 400
+
+        if not isinstance(problem_ids, list):
+            return jsonify(error='problem_ids phải là danh sách.'), 400
 
         if not isinstance(custom_problems, list):
             return jsonify(error='custom_problems phải là danh sách.'), 400
@@ -1278,22 +1282,27 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
                     error='Thời gian kết thúc phải sau thời gian bắt đầu.'
                 ), 400
 
-            ids = None
+            bank_problems = {
+                str(p['id']): p for p in problems()
+            }
 
-if problem_ids is not None:
-    bank = {p['id'] for p in problems()}
-    ids = []
+            # Kiểm tra các bài lấy từ ngân hàng đề.
+            ids = []
 
-    for value in problem_ids:
-        pid = str(value)
+            for value in problem_ids:
+                pid = str(value).strip()
 
-        if pid not in bank:
-            return jsonify(error='Không tìm thấy bài: ' + pid), 400
+                if not pid or pid not in bank_problems:
+                    return jsonify(
+                        error='Không tìm thấy bài: ' + pid
+                    ), 400
 
-        if pid not in ids:
-            ids.append(pid)
+                if pid not in ids:
+                    ids.append(pid)
 
+            # Kiểm tra các bài riêng của Contest.
             custom_ids = set()
+            checked_custom = []
 
             for p in custom_problems:
                 if not isinstance(p, dict):
@@ -1310,7 +1319,7 @@ if problem_ids is not None:
                         error='Bài riêng phải có ID, tên và đề bài.'
                     ), 400
 
-                if pid in bank:
+                if pid in bank_problems:
                     return jsonify(
                         error=f'ID {pid} đã tồn tại trong ngân hàng đề.'
                     ), 400
@@ -1336,16 +1345,21 @@ if problem_ids is not None:
                         error=f'Thông số bài {pid} không hợp lệ.'
                     ), 400
 
-                if (total_score <= 0 or time_limit <= 0 or
-                        memory_limit <= 0):
-                    return jsonify(
-                        error=f'Điểm, thời gian và bộ nhớ của {pid} phải dương.'
-                    ), 400
-
-                if not all(map(lambda x: __import__('math').isfinite(x),
-                               [total_score, time_limit])):
+                if not all(
+                    __import__('math').isfinite(x)
+                    for x in (total_score, time_limit)
+                ):
                     return jsonify(
                         error=f'Thông số bài {pid} không hợp lệ.'
+                    ), 400
+
+                if (
+                    total_score <= 0
+                    or time_limit <= 0
+                    or memory_limit <= 0
+                ):
+                    return jsonify(
+                        error=f'Điểm, thời gian và bộ nhớ của {pid} phải dương.'
                     ), 400
 
                 score_sum = 0
@@ -1368,8 +1382,12 @@ if problem_ids is not None:
                             error=f'Điểm subtask của {pid} không hợp lệ.'
                         ), 400
 
-                    if (not sid or not name or score <= 0 or
-                            not __import__('math').isfinite(score)):
+                    if not __import__('math').isfinite(score):
+                        return jsonify(
+                            error=f'Điểm subtask của {pid} không hợp lệ.'
+                        ), 400
+
+                    if not sid or not name or score <= 0:
                         return jsonify(
                             error=f'Subtask của {pid} thiếu ID, tên hoặc điểm hợp lệ.'
                         ), 400
@@ -1384,16 +1402,18 @@ if problem_ids is not None:
                             error=f'Mỗi subtask của {pid} phải có test.'
                         ), 400
 
-                    subtask_ids.add(sid)
-                    score_sum += score
-
                     for t in tests:
-                        if (not isinstance(t, dict) or
-                                not isinstance(t.get('input'), str) or
-                                not isinstance(t.get('output'), str)):
+                        if (
+                            not isinstance(t, dict)
+                            or not isinstance(t.get('input'), str)
+                            or not isinstance(t.get('output'), str)
+                        ):
                             return jsonify(
                                 error=f'Test của bài {pid} phải có input và output dạng chuỗi.'
                             ), 400
+
+                    subtask_ids.add(sid)
+                    score_sum += score
 
                 if abs(score_sum - total_score) > 1e-9:
                     return jsonify(
@@ -1401,11 +1421,21 @@ if problem_ids is not None:
                     ), 400
 
                 custom_ids.add(pid)
+                checked_custom.append({
+                    **p,
+                    'id': pid,
+                    'title': problem_title,
+                    'statement': statement,
+                    'total_score': total_score,
+                    'time_limit': time_limit,
+                    'memory_limit': memory_limit
+                })
 
         except (ValueError, TypeError) as exc:
             return jsonify(error=str(exc)), 400
         except Exception as exc:
-            return jsonify(error=str(exc)), 400
+            app.logger.exception('Lỗi kiểm tra dữ liệu Contest')
+            return jsonify(error='Dữ liệu Contest không hợp lệ: ' + str(exc)), 400
 
         try:
             with connect(app.config['DATABASE_PATH']) as db:
@@ -1415,36 +1445,34 @@ if problem_ids is not None:
                         is_visible, created_by)
                        VALUES (?, ?, ?, ?, ?, ?)''',
                     (
-                        title, description,
+                        title,
+                        description,
                         start.isoformat(timespec='minutes'),
                         end.isoformat(timespec='minutes'),
-                        int(visible), admin['id']
+                        int(visible),
+                        admin['id']
                     )
                 )
 
                 contest_id = cur.lastrowid
 
-                bank_problems = {
-    str(p['id']): p for p in problems()
-}
+                # Lưu các bài lấy từ ngân hàng đề.
+                for i, pid in enumerate(ids):
+                    db.execute(
+                        '''INSERT INTO contest_problems
+                           (contest_id, problem_id, position, total_score)
+                           VALUES (?, ?, ?, ?)''',
+                        (
+                            contest_id,
+                            pid,
+                            i,
+                            float(bank_problems[pid]['total_score'])
+                        )
+                    )
 
-db.executemany(
-    '''INSERT INTO contest_problems
-       (contest_id, problem_id, position, total_score)
-       VALUES (?, ?, ?, ?)''',
-    [
-        (
-            contest_id,
-            pid,
-            i,
-            float(bank_problems[pid]['total_score'])
-        )
-        for i, pid in enumerate(ids)
-    ]
-)
-
-                for i, p in enumerate(custom_problems, start=len(ids)):
-                    pid = str(p['id']).strip()
+                # Lưu đề riêng và danh sách bài thi của Contest.
+                for i, p in enumerate(checked_custom, start=len(ids)):
+                    pid = p['id']
 
                     db.execute(
                         '''INSERT INTO contest_custom_problems
@@ -1456,30 +1484,31 @@ db.executemany(
                         (
                             contest_id,
                             pid,
-                            str(p['title']).strip(),
-                            str(p['statement']).strip(),
+                            p['title'],
+                            p['statement'],
                             str(p.get('input_desc', '')),
                             str(p.get('output_desc', '')),
                             json.dumps(p['subtasks'], ensure_ascii=False),
-                            float(p['total_score']),
-                            float(p.get('time_limit', 1)),
-                            int(p.get('memory_limit', 256000)),
+                            p['total_score'],
+                            p['time_limit'],
+                            p['memory_limit'],
                             str(p.get('sample_input', '')),
                             str(p.get('sample_output', ''))
                         )
                     )
 
                     db.execute(
-    '''INSERT INTO contest_problems
-       (contest_id, problem_id, position, total_score)
-       VALUES (?, ?, ?, ?)''',
-    (
-        contest_id,
-        pid,
-        i,
-        float(p['total_score'])
-    )
-)
+                        '''INSERT INTO contest_problems
+                           (contest_id, problem_id, position, total_score)
+                           VALUES (?, ?, ?, ?)''',
+                        (
+                            contest_id,
+                            pid,
+                            i,
+                            p['total_score']
+                        )
+                    )
+
         except DB_INTEGRITY_ERRORS as exc:
             return jsonify(
                 error='Không lưu được Contest do dữ liệu trùng hoặc không hợp lệ: '
@@ -1487,9 +1516,12 @@ db.executemany(
             ), 400
         except Exception as exc:
             app.logger.exception('Không tạo được Contest')
-            return jsonify(error='Lỗi khi lưu Contest: ' + str(exc)), 500
+            return jsonify(
+                error='Lỗi khi lưu Contest: ' + str(exc)
+            ), 500
 
         return jsonify(ok=True, id=contest_id), 201
+
 
 
     @app.put('/api/admin/contests/<int:contest_id>')
