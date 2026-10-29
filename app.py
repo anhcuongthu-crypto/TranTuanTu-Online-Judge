@@ -189,15 +189,38 @@ def github_read_problems():
 
 
 def validate_problem(p):
-    if not p.get('title') or not p.get('statement') or not p.get('subtasks'):
+    if (
+        not p.get('title')
+        or not p.get('statement')
+        or not p.get('subtasks')
+    ):
         raise ValueError('Thiếu tiêu đề, đề bài hoặc subtasks.')
-    if int(p.get('total_score', 0)) <= 0:
-        raise ValueError('total_score phải dương.')
-    if sum(int(s['score']) for s in p['subtasks']) != int(p['total_score']):
+
+    import math
+
+    try:
+        total_score = float(p.get('total_score', 0))
+        subtask_scores = [
+            float(s['score']) for s in p['subtasks']
+        ]
+    except (KeyError, TypeError, ValueError, OverflowError):
+        raise ValueError('Điểm bài hoặc điểm subtask không hợp lệ.')
+
+    if (
+        not math.isfinite(total_score)
+        or total_score <= 0
+        or any(
+            not math.isfinite(score) or score <= 0
+            for score in subtask_scores
+        )
+    ):
+        raise ValueError('Điểm bài và điểm subtask phải là số dương hợp lệ.')
+
+    if abs(sum(subtask_scores) - total_score) > 1e-9:
         raise ValueError('Tổng điểm subtasks phải bằng total_score.')
+
     if any(not s.get('tests') for s in p['subtasks']):
         raise ValueError('Mỗi subtask cần ít nhất một test.')
-
 
 def initialize_problem_file(app):
     target = Path(app.config['PROBLEMS_PATH'])
