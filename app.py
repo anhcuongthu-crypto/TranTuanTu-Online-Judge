@@ -1247,7 +1247,7 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
         d = request.get_json(silent=True) or {}
         title = str(d.get('title', '')).strip()
         description = str(d.get('description', '')).strip()
-        problem_ids = d.get('problem_ids', [])
+        problem_ids = d.get('problem_ids')
         custom_problems = d.get('custom_problems', [])
         visible = bool(d.get('is_visible', True))
 
@@ -1257,8 +1257,9 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
         if len(description) > 5000:
             return jsonify(error='Mô tả tối đa 5000 ký tự.'), 400
 
-        if not isinstance(problem_ids, list):
-            return jsonify(error='problem_ids phải là danh sách.'), 400
+        if problem_ids is not None:
+           if not isinstance(problem_ids, list) or not problem_ids:
+            return jsonify(error='Chọn ít nhất một bài thi.'), 400
 
         if not isinstance(custom_problems, list):
             return jsonify(error='custom_problems phải là danh sách.'), 400
@@ -1277,19 +1278,20 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
                     error='Thời gian kết thúc phải sau thời gian bắt đầu.'
                 ), 400
 
-            bank = {str(p['id']) for p in problems()}
-            ids = []
+            ids = None
 
-            for value in problem_ids:
-                pid = str(value).strip()
+if problem_ids is not None:
+    bank = {p['id'] for p in problems()}
+    ids = []
 
-                if pid not in bank:
-                    return jsonify(
-                        error='Không tìm thấy bài: ' + pid
-                    ), 400
+    for value in problem_ids:
+        pid = str(value)
 
-                if pid not in ids:
-                    ids.append(pid)
+        if pid not in bank:
+            return jsonify(error='Không tìm thấy bài: ' + pid), 400
+
+        if pid not in ids:
+            ids.append(pid)
 
             custom_ids = set()
 
