@@ -275,8 +275,13 @@ hr {
     </section>
     
 
-        <section class="panel" id="test-editor-panel">
-    <h2>🧪 Sửa test chấm bài</h2>
+        
+<section class="panel" id="test-editor-panel">
+    <h2>🧪 Sửa test chấm bài bằng JSON</h2>
+    <p class="muted">
+        Chọn bài và subtask, sửa toàn bộ danh sách test trong một mảng JSON.
+        Có thể thêm, xóa hoặc sửa nhiều test cùng lúc.
+    </p>
 
     <label for="test-problem">Bài tập</label>
     <select id="test-problem">
@@ -288,35 +293,27 @@ hr {
         <option value="">Chọn bài trước</option>
     </select>
 
-    <label for="test-index">Test cần sửa</label>
-    <select id="test-index" disabled>
-        <option value="">Chọn subtask trước</option>
-    </select>
-
-    <label for="test-input">Input</label>
-    <textarea id="test-input" rows="7"
-              placeholder="Nhập dữ liệu đầu vào..."></textarea>
-
-    <label for="test-output">Output chuẩn</label>
-    <textarea id="test-output" rows="7"
-              placeholder="Nhập kết quả đúng..."></textarea>
+    <label for="test-json">Danh sách test (JSON array)</label>
+    <textarea
+        id="test-json"
+        rows="22"
+        spellcheck="false"
+        style="font-family:monospace;white-space:pre;overflow:auto"
+        placeholder='[{"input":"5\n","output":"5\n"}]'
+    ></textarea>
 
     <div class="toolbar">
-        <button type="button" id="test-add" class="success">
-            + Thêm test
+        <button type="button" id="test-format" class="secondary">
+            Định dạng JSON
         </button>
-
-        <button type="button" id="test-delete" class="danger">
-            Xóa test này
-        </button>
-
-        <button type="button" id="test-save">
+        <button type="button" id="test-save" class="success">
             Lưu test lên GitHub
         </button>
     </div>
 
     <div id="test-message" class="message"></div>
 </section>
+
 
 
     <!-- THÊM / SỬA BÀI TẬP -->
