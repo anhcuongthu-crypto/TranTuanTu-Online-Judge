@@ -355,12 +355,11 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
                 return None
 
             ids = db.execute(
-                '''SELECT problem_id FROM contest_problems
-                   WHERE contest_id=?
-                   ORDER BY position, problem_id''',
-                (contest_id,)
-            ).fetchall()
-
+    '''SELECT problem_id, total_score FROM contest_problems
+       WHERE contest_id=?
+       ORDER BY position, problem_id''',
+    (contest_id,)
+).fetchall()
             custom_rows = db.execute(
                 '''SELECT problem_id, title, statement,
                           input_desc, output_desc, total_score,
