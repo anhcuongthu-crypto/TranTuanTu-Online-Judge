@@ -1422,15 +1422,24 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
 
                 contest_id = cur.lastrowid
 
-                db.executemany(
-                    '''INSERT INTO contest_problems
-                       (contest_id, problem_id, position)
-                       VALUES (?, ?, ?)''',
-                    [
-                        (contest_id, pid, i)
-                        for i, pid in enumerate(ids)
-                    ]
-                )
+                bank_problems = {
+    str(p['id']): p for p in problems()
+}
+
+db.executemany(
+    '''INSERT INTO contest_problems
+       (contest_id, problem_id, position, total_score)
+       VALUES (?, ?, ?, ?)''',
+    [
+        (
+            contest_id,
+            pid,
+            i,
+            float(bank_problems[pid]['total_score'])
+        )
+        for i, pid in enumerate(ids)
+    ]
+)
 
                 for i, p in enumerate(custom_problems, start=len(ids)):
                     pid = str(p['id']).strip()
