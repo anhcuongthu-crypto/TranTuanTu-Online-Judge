@@ -581,15 +581,15 @@ function showProblem(pid) {
             statement || 'Chưa có nội dung đề bài.'
         )}</div>
 
-        <h3>Dữ liệu vào</h3>
-        <div style="white-space:pre-wrap;line-height:1.8">${esc(
-            inputDesc || 'Xem định dạng dữ liệu trong đề bài và ví dụ.'
-        )}</div>
+        ${inputDesc.trim() ? `
+    <h3>Dữ liệu vào</h3>
+    <div style="white-space:pre-wrap;line-height:1.8">${esc(inputDesc)}</div>
+` : ''}
 
-        <h3>Dữ liệu ra</h3>
-        <div style="white-space:pre-wrap;line-height:1.8">${esc(
-            outputDesc || 'Xem yêu cầu kết quả trong đề bài.'
-        )}</div>
+${outputDesc.trim() ? `
+    <h3>Dữ liệu ra</h3>
+    <div style="white-space:pre-wrap;line-height:1.8">${esc(outputDesc)}</div>
+` : ''}
 
         ${sampleInput !== '' || sampleOutput !== '' ? `
             <h3>Ví dụ</h3>
