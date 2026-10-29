@@ -32,6 +32,7 @@ def _is_judge_error(status):
     )
 
 
+
 def _get_test_scores(st):
     tests = st.get('tests', [])
     n = len(tests)
@@ -42,14 +43,10 @@ def _get_test_scores(st):
     if all('score' in test for test in tests):
         return [float(test['score']) for test in tests]
 
-    total = int(st.get('score', 0))
-    base = total // n
-    remainder = total - base * n
+    total = float(st.get('score', 0))
+    base = total / n
 
-    return [
-        base + (1 if i < remainder else 0)
-        for i in range(n)
-    ]
+    return [base for _ in range(n)]
 
 
 def _run_batch_with_retry(
