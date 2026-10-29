@@ -273,6 +273,53 @@ hr {
 
         <div id="problem-list">Đang tải danh sách bài...</div>
     </section>
+    
+<!-- TRÌNH SỬA TEST -->
+<section class="panel" id="test-editor-panel">
+    <h2>🧪 Sửa test chấm bài</h2>
+    <p class="muted">
+        Chọn bài, subtask và test để sửa riêng Input/Output.
+        Những test khác sẽ được giữ nguyên.
+    </p>
+
+    <label for="test-problem">Bài tập</label>
+    <select id="test-problem">
+        <option value="">Đang tải danh sách bài...</option>
+    </select>
+
+    <label for="test-subtask">Subtask</label>
+    <select id="test-subtask" disabled>
+        <option value="">Chọn bài trước</option>
+    </select>
+
+    <label for="test-index">Test cần sửa</label>
+    <select id="test-index" disabled>
+        <option value="">Chọn subtask trước</option>
+    </select>
+
+    <label for="test-input">Input</label>
+    <textarea id="test-input" rows="7"
+        placeholder="Nhập dữ liệu đầu vào..."></textarea>
+
+    <label for="test-output">Output chuẩn</label>
+    <textarea id="test-output" rows="7"
+        placeholder="Nhập kết quả đúng..."></textarea>
+
+    <div class="toolbar">
+        <button type="button" id="test-add" class="success">
+            + Thêm test
+        </button>
+        <button type="button" id="test-delete" class="danger">
+            Xóa test này
+        </button>
+        <button type="button" id="test-save">
+            Lưu test lên GitHub
+        </button>
+    </div>
+
+    <div id="test-message" class="message"></div>
+</section>
+
 
     <!-- THÊM / SỬA BÀI TẬP -->
     <!-- QUẢN LÝ CONTEST -->
