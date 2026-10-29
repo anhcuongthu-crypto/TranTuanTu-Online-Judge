@@ -1077,11 +1077,16 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             p = next((x for x in problems() if str(x['id']) == pid), None)
 
         if not p:
-            return jsonify(error='Không tìm thấy bài.'), 404
+    return jsonify(error='Không tìm thấy bài.'), 404
 
-        job_id, submission_id = enqueue(
-            app, user['id'], p, code, language, contest_id=contest_id
-        )
+# Áp dụng điểm tối đa riêng của contest
+p = dict(p)
+p['total_score'] = float(member['total_score'])
+
+job_id, submission_id = enqueue(
+    app, user['id'], p, code, language,
+    contest_id=contest_id
+)
 
         return jsonify(
             submission_id=submission_id,
