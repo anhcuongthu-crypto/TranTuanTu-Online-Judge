@@ -964,6 +964,365 @@ sampleOutput.value = firstTest?.output ?? '';
                 saveButton.disabled = false;
             }
         });
+        
+        // TRÌNH SỬA TEST CHẤM BÀI
+        const testProblemSelect = document.getElementById('test-problem');
+        const testSubtaskSelect = document.getElementById('test-subtask');
+        const testIndexSelect = document.getElementById('test-index');
+        const testInput = document.getElementById('test-input');
+        const testOutput = document.getElementById('test-output');
+        const testMessage = document.getElementById('test-message');
+        const testAddButton = document.getElementById('test-add');
+        const testDeleteButton = document.getElementById('test-delete');
+        const testSaveButton = document.getElementById('test-save');
+
+        let testProblems = [];
+        let testEditingProblem = null;
+
+        function showTestMessage(text, isError = false) {
+            testMessage.textContent = text;
+            testMessage.className = 'message ' +
+                (isError ? 'error-message' : 'success-message');
+        }
+
+        function getCurrentTest() {
+            const si = Number(testSubtaskSelect.value);
+            const ti = Number(testIndexSelect.value);
+
+            if (!testEditingProblem ||
+                !Number.isInteger(si) ||
+                !Number.isInteger(ti)) {
+                return null;
+            }
+
+            return testEditingProblem.subtasks?.[si]?.tests?.[ti] ?? null;
+        }
+
+        // Ghi nội dung đang sửa vào dữ liệu tạm.
+        function updateCurrentTestFromFields() {
+            const currentTest = getCurrentTest();
+
+            if (currentTest) {
+                currentTest.input = testInput.value;
+                currentTest.output = testOutput.value;
+            }
+        }
+
+        function renderTestFields() {
+            const currentTest = getCurrentTest();
+
+            testInput.value = currentTest?.input ?? '';
+            testOutput.value = currentTest?.output ?? '';
+
+            const hasTest = currentTest !== null;
+
+            testInput.disabled = !hasTest;
+            testOutput.disabled = !hasTest;
+            testDeleteButton.disabled = !hasTest;
+            testSaveButton.disabled = !testEditingProblem;
+        }
+
+        function renderTestIndexes(preferredIndex = 0) {
+            const si = Number(testSubtaskSelect.value);
+            const subtask = testEditingProblem?.subtasks?.[si];
+
+            testIndexSelect.replaceChildren();
+
+            if (!subtask || !Array.isArray(subtask.tests) ||
+                subtask.tests.length === 0) {
+                testIndexSelect.add(new Option('Subtask chưa có test', ''));
+                testIndexSelect.disabled = true;
+                renderTestFields();
+                return;
+            }
+
+            subtask.tests.forEach((test, index) => {
+                testIndexSelect.add(
+                    new Option(`Test ${index + 1}`, String(index))
+                );
+            });
+
+            testIndexSelect.disabled = false;
+
+            const index = Math.max(
+                0,
+                Math.min(preferredIndex, subtask.tests.length - 1)
+            );
+
+            testIndexSelect.value = String(index);
+            renderTestFields();
+        }
+
+        function renderTestSubtasks(preferredIndex = 0) {
+            testSubtaskSelect.replaceChildren();
+
+            const subtasks = testEditingProblem?.subtasks;
+
+            if (!Array.isArray(subtasks) || subtasks.length === 0) {
+                testSubtaskSelect.add(
+                    new Option('Bài chưa có subtask', '')
+                );
+                testSubtaskSelect.disabled = true;
+                testIndexSelect.disabled = true;
+                renderTestFields();
+                return;
+            }
+
+            subtasks.forEach((subtask, index) => {
+                testSubtaskSelect.add(
+                    new Option(
+                        `${subtask.id ?? index + 1} — ` +
+                        `${subtask.name ?? 'Subtask ' + (index + 1)}`,
+                        String(index)
+                    )
+                );
+            });
+
+            testSubtaskSelect.disabled = false;
+            testSubtaskSelect.value = String(
+                Math.min(preferredIndex, subtasks.length - 1)
+            );
+
+            renderTestIndexes(0);
+        }
+
+        async function loadTestProblemOptions(selectedId = '') {
+            try {
+                testProblems = await api('/api/admin/problems');
+
+                testProblemSelect.replaceChildren();
+                testProblemSelect.add(
+                    new Option('— Chọn bài tập —', '')
+                );
+
+                for (const problem of testProblems) {
+                    testProblemSelect.add(
+                        new Option(
+                            `${problem.id} — ${problem.title}`,
+                            String(problem.id)
+                        )
+                    );
+                }
+
+                if (selectedId &&
+                    testProblems.some(
+                        p => String(p.id) === String(selectedId)
+                    )) {
+                    testProblemSelect.value = String(selectedId);
+                    await loadTestProblem(selectedId);
+                } else {
+                    testEditingProblem = null;
+                    testSubtaskSelect.replaceChildren(
+                        new Option('Chọn bài trước', '')
+                    );
+                    testSubtaskSelect.disabled = true;
+                    testIndexSelect.replaceChildren(
+                        new Option('Chọn subtask trước', '')
+                    );
+                    testIndexSelect.disabled = true;
+                    testInput.value = '';
+                    testOutput.value = '';
+                    renderTestFields();
+                }
+            } catch (error) {
+                showTestMessage(
+                    'Không tải được danh sách bài: ' + error.message,
+                    true
+                );
+            }
+        }
+
+        async function loadTestProblem(problemId) {
+            try {
+                const problem = testProblems.find(
+                    p => String(p.id) === String(problemId)
+                );
+
+                if (!problem) {
+                    testEditingProblem = null;
+                    renderTestSubtasks();
+                    return;
+                }
+
+                // Sao chép để việc sửa không ảnh hưởng dữ liệu đang tải.
+                testEditingProblem = JSON.parse(JSON.stringify(problem));
+
+                showTestMessage('');
+                renderTestSubtasks(0);
+            } catch (error) {
+                showTestMessage(
+                    'Không tải được bài: ' + error.message,
+                    true
+                );
+            }
+        }
+
+        testProblemSelect.addEventListener('change', async () => {
+            const problemId = testProblemSelect.value;
+
+            if (!problemId) {
+                testEditingProblem = null;
+                renderTestSubtasks();
+                return;
+            }
+
+            await loadTestProblem(problemId);
+        });
+
+        testSubtaskSelect.addEventListener('change', () => {
+            updateCurrentTestFromFields();
+            renderTestIndexes(0);
+            showTestMessage('');
+        });
+
+        testIndexSelect.addEventListener('change', () => {
+            updateCurrentTestFromFields();
+            renderTestFields();
+            showTestMessage('');
+        });
+
+        // Thêm một test mới vào subtask đang chọn.
+        testAddButton.addEventListener('click', () => {
+            if (!testEditingProblem) {
+                showTestMessage('Hãy chọn bài tập trước.', true);
+                return;
+            }
+
+            updateCurrentTestFromFields();
+
+            const si = Number(testSubtaskSelect.value);
+            const subtask = testEditingProblem.subtasks?.[si];
+
+            if (!subtask) {
+                showTestMessage('Hãy chọn subtask trước.', true);
+                return;
+            }
+
+            if (!Array.isArray(subtask.tests)) {
+                subtask.tests = [];
+            }
+
+            subtask.tests.push({
+                input: '',
+                output: ''
+            });
+
+            renderTestIndexes(subtask.tests.length - 1);
+            showTestMessage(
+                'Đã thêm test vào dữ liệu tạm. Nhấn "Lưu test lên GitHub" để lưu.'
+            );
+            testInput.focus();
+        });
+
+        // Xóa test đang chọn; không cho subtask mất toàn bộ test.
+        testDeleteButton.addEventListener('click', () => {
+            const si = Number(testSubtaskSelect.value);
+            const ti = Number(testIndexSelect.value);
+            const subtask = testEditingProblem?.subtasks?.[si];
+
+            if (!subtask || !Array.isArray(subtask.tests) ||
+                !Number.isInteger(ti) || !subtask.tests[ti]) {
+                showTestMessage('Hãy chọn test cần xóa.', true);
+                return;
+            }
+
+            if (subtask.tests.length <= 1) {
+                showTestMessage(
+                    'Mỗi subtask phải có ít nhất một test. Hãy thêm test khác trước khi xóa test này.',
+                    true
+                );
+                return;
+            }
+
+            if (!confirm(`Xóa Test ${ti + 1} của subtask này?`)) {
+                return;
+            }
+
+            subtask.tests.splice(ti, 1);
+            renderTestIndexes(Math.min(ti, subtask.tests.length - 1));
+
+            showTestMessage(
+                'Đã xóa test trong dữ liệu tạm. Nhấn "Lưu test lên GitHub" để lưu.'
+            );
+        });
+
+        // Lưu toàn bộ bài đã chỉnh sửa qua API hiện có.
+        testSaveButton.addEventListener('click', async () => {
+            if (!testEditingProblem) {
+                showTestMessage('Hãy chọn bài tập trước.', true);
+                return;
+            }
+
+            updateCurrentTestFromFields();
+
+            if (!Array.isArray(testEditingProblem.subtasks) ||
+                testEditingProblem.subtasks.length === 0) {
+                showTestMessage('Bài phải có ít nhất một subtask.', true);
+                return;
+            }
+
+            for (let i = 0; i < testEditingProblem.subtasks.length; i++) {
+                const subtask = testEditingProblem.subtasks[i];
+
+                if (!Array.isArray(subtask.tests) ||
+                    subtask.tests.length === 0) {
+                    showTestMessage(
+                        `Subtask ${i + 1} phải có ít nhất một test.`,
+                        true
+                    );
+                    return;
+                }
+
+                for (let j = 0; j < subtask.tests.length; j++) {
+                    const test = subtask.tests[j];
+
+                    if (typeof test.input !== 'string' ||
+                        typeof test.output !== 'string') {
+                        showTestMessage(
+                            `Test ${j + 1} của subtask ${i + 1} thiếu input hoặc output dạng chuỗi.`,
+                            true
+                        );
+                        return;
+                    }
+                }
+            }
+
+            testSaveButton.disabled = true;
+            testSaveButton.textContent = 'Đang lưu...';
+
+            try {
+                await api(
+                    `/api/admin/problems/${encodeURIComponent(testEditingProblem.id)}`,
+                    {
+                        method: 'PUT',
+                        body: JSON.stringify(testEditingProblem)
+                    }
+                );
+
+                const savedId = String(testEditingProblem.id);
+
+                // Làm mới dữ liệu sau khi server xác nhận đã lưu.
+                await loadProblems();
+                await loadContestProblems();
+                await loadTestProblemOptions(savedId);
+
+                showTestMessage(
+                    'Đã lưu test thành công. Các test khác được giữ nguyên.'
+                );
+            } catch (error) {
+                showTestMessage(
+                    'Lưu test thất bại: ' + error.message,
+                    true
+                );
+            } finally {
+                testSaveButton.disabled = false;
+                testSaveButton.textContent = 'Lưu test lên GitHub';
+            }
+        });
+
+        // Tải danh sách bài cho trình sửa test.
+        loadTestProblemOptions();
+
 
         // QUẢN LÝ CONTEST
         const contestProblems = document.getElementById('contestProblems');
