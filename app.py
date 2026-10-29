@@ -403,7 +403,7 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
                 item['problems'].append({
                     'id': pid,
                     'title': p.get('title', pid),
-                    'total_score': p['total_score'],
+                    'total_score': row['total_score'],
                     'is_custom': False,
                     'statement': p.get('statement', ''),
                     'input_desc': p.get('input_desc', ''),
