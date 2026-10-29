@@ -551,6 +551,7 @@ function showProblem(pid) {
     const outputDesc = p.output_desc ?? p.output_description ?? p.output ?? '';
 
     $('problemDetailPanel').hidden = false;
+    $('problemDetailPanel').style.display = 'block';
 
     $('problemDetail').innerHTML = `
         <h2>${esc(p.title || 'Bài thi')}</h2>
