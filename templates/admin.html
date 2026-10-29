@@ -1838,6 +1838,378 @@ async function editContestProblem(contestId, problemId) {
 
         loadContestProblems();
         loadContestList();
+        
+        // ==================== SỬA TEST TRONG CONTEST ====================
+        const contestTestContest = document.getElementById('contestTestContest');
+        const contestTestProblem = document.getElementById('contestTestProblem');
+        const contestTestJson = document.getElementById('contestTestJson');
+        const contestTestFormat = document.getElementById('contestTestFormat');
+        const contestTestSave = document.getElementById('contestTestSave');
+        const contestTestReload = document.getElementById('contestTestReload');
+        const contestTestMessage = document.getElementById('contestTestMessage');
+
+        let contestTestProblems = [];
+        let contestTestCurrentProblem = null;
+
+        function showContestTestMessage(text, isError = false) {
+            contestTestMessage.textContent = text;
+            contestTestMessage.className = 'message ' +
+                (isError ? 'error-message' : 'success-message');
+        }
+
+        function resetContestTestEditor(message = 'Chọn Contest trước.') {
+            contestTestProblems = [];
+            contestTestCurrentProblem = null;
+
+            contestTestProblem.replaceChildren(
+                new Option(message, '')
+            );
+            contestTestProblem.disabled = true;
+            contestTestJson.value = '';
+            contestTestJson.disabled = true;
+            contestTestSave.disabled = true;
+        }
+
+        // Tải danh sách Contest cho trình sửa test.
+        async function loadContestTestContests(preferredContestId = '') {
+            contestTestContest.disabled = true;
+            contestTestReload.disabled = true;
+            resetContestTestEditor('Đang tải danh sách bài...');
+
+            try {
+                const result = await api('/api/admin/contests');
+                const contests = Array.isArray(result)
+                    ? result
+                    : (result.contests || result.items || []);
+
+                contestTestContest.replaceChildren(
+                    new Option('— Chọn Contest —', '')
+                );
+
+                for (const contest of contests) {
+                    contestTestContest.add(
+                        new Option(
+                            `${contest.title || 'Contest'} (#${contest.id})`,
+                            String(contest.id)
+                        )
+                    );
+                }
+
+                contestTestContest.disabled = false;
+
+                if (preferredContestId &&
+                    contests.some(c =>
+                        String(c.id) === String(preferredContestId)
+                    )) {
+                    contestTestContest.value = String(preferredContestId);
+                    await loadContestTestProblems(preferredContestId);
+                } else {
+                    contestTestContest.value = '';
+                    resetContestTestEditor('Chọn Contest trước.');
+                }
+            } catch (error) {
+                resetContestTestEditor('Không tải được bài.');
+                showContestTestMessage(
+                    'Không tải được danh sách Contest: ' + error.message,
+                    true
+                );
+            } finally {
+                contestTestContest.disabled = false;
+                contestTestReload.disabled = false;
+            }
+        }
+
+        // Tải danh sách bài thuộc Contest đã chọn.
+        async function loadContestTestProblems(
+            contestId,
+            preferredProblemId = ''
+        ) {
+            resetContestTestEditor('Đang tải bài...');
+            showContestTestMessage('');
+
+            if (!contestId) {
+                resetContestTestEditor('Chọn Contest trước.');
+                return;
+            }
+
+            contestTestProblem.disabled = true;
+
+            try {
+                const data = await api(`/api/contests/${contestId}`);
+                contestTestProblems = Array.isArray(data.problems)
+                    ? data.problems
+                    : [];
+
+                contestTestProblem.replaceChildren(
+                    new Option('— Chọn bài —', '')
+                );
+
+                for (const problem of contestTestProblems) {
+                    const type = problem.is_custom
+                        ? 'Bài riêng'
+                        : 'Bài ngân hàng';
+
+                    contestTestProblem.add(
+                        new Option(
+                            `${problem.id} — ${problem.title} (${type})`,
+                            String(problem.id)
+                        )
+                    );
+                }
+
+                contestTestProblem.disabled = false;
+
+                if (preferredProblemId &&
+                    contestTestProblems.some(p =>
+                        String(p.id) === String(preferredProblemId)
+                    )) {
+                    contestTestProblem.value = String(preferredProblemId);
+                    renderContestTestEditor(preferredProblemId);
+                } else {
+                    contestTestProblem.value = '';
+                    contestTestCurrentProblem = null;
+                    contestTestJson.value = '';
+                    contestTestJson.disabled = true;
+                    contestTestSave.disabled = true;
+
+                    if (contestTestProblems.length === 0) {
+                        resetContestTestEditor(
+                            'Contest chưa có bài tập.'
+                        );
+                    }
+                }
+            } catch (error) {
+                resetContestTestEditor('Không tải được bài.');
+                showContestTestMessage(
+                    'Không tải được bài trong Contest: ' + error.message,
+                    true
+                );
+            }
+        }
+
+        // Đổ toàn bộ subtasks và tests vào ô JSON.
+        function renderContestTestEditor(problemId) {
+            const problem = contestTestProblems.find(
+                p => String(p.id) === String(problemId)
+            );
+
+            if (!problem) {
+                contestTestCurrentProblem = null;
+                contestTestJson.value = '';
+                contestTestJson.disabled = true;
+                contestTestSave.disabled = true;
+                return;
+            }
+
+            if (!Array.isArray(problem.subtasks)) {
+                showContestTestMessage(
+                    'Bài này chưa có dữ liệu subtasks để sửa.',
+                    true
+                );
+                contestTestJson.value = '';
+                contestTestJson.disabled = true;
+                contestTestSave.disabled = true;
+                return;
+            }
+
+            contestTestCurrentProblem =
+                JSON.parse(JSON.stringify(problem));
+
+            contestTestJson.value = JSON.stringify(
+                contestTestCurrentProblem.subtasks,
+                null,
+                2
+            );
+
+            contestTestJson.disabled = false;
+            contestTestSave.disabled = false;
+            showContestTestMessage(
+                problem.is_custom
+                    ? 'Bài riêng: thay đổi chỉ áp dụng cho Contest này.'
+                    : 'Bài ngân hàng: thay đổi sẽ ảnh hưởng đến bài dùng chung.'
+            );
+        }
+
+        contestTestContest.addEventListener('change', async () => {
+            await loadContestTestProblems(contestTestContest.value);
+        });
+
+        contestTestProblem.addEventListener('change', () => {
+            renderContestTestEditor(contestTestProblem.value);
+        });
+
+        // Định dạng JSON.
+        contestTestFormat.addEventListener('click', () => {
+            try {
+                const subtasks = JSON.parse(contestTestJson.value);
+
+                if (!Array.isArray(subtasks)) {
+                    throw new Error('Dữ liệu phải là một mảng JSON [].');
+                }
+
+                contestTestJson.value = JSON.stringify(subtasks, null, 2);
+                showContestTestMessage('JSON hợp lệ về cú pháp.');
+            } catch (error) {
+                showContestTestMessage(
+                    'JSON không hợp lệ: ' + error.message,
+                    true
+                );
+            }
+        });
+
+        // Lưu test qua API sửa test trong Contest.
+        contestTestSave.addEventListener('click', async () => {
+            const contestId = contestTestContest.value;
+            const problemId = contestTestProblem.value;
+
+            if (!contestId || !problemId || !contestTestCurrentProblem) {
+                showContestTestMessage(
+                    'Hãy chọn Contest và bài cần sửa.',
+                    true
+                );
+                return;
+            }
+
+            let subtasks;
+
+            try {
+                subtasks = JSON.parse(contestTestJson.value);
+            } catch (error) {
+                showContestTestMessage(
+                    'JSON không hợp lệ: ' + error.message,
+                    true
+                );
+                return;
+            }
+
+            if (!Array.isArray(subtasks) || subtasks.length === 0) {
+                showContestTestMessage(
+                    'Bài phải có ít nhất một subtask.',
+                    true
+                );
+                return;
+            }
+
+            const ids = new Set();
+            let totalScore = 0;
+
+            for (let i = 0; i < subtasks.length; i++) {
+                const subtask = subtasks[i];
+
+                if (!subtask || typeof subtask !== 'object' ||
+                    Array.isArray(subtask) ||
+                    subtask.id === undefined ||
+                    String(subtask.id).trim() === '' ||
+                    !String(subtask.name || '').trim() ||
+                    !Number.isFinite(Number(subtask.score)) ||
+                    Number(subtask.score) <= 0 ||
+                    !Array.isArray(subtask.tests) ||
+                    subtask.tests.length === 0) {
+                    showContestTestMessage(
+                        `Subtask ${i + 1} thiếu ID, tên, điểm hoặc test.`,
+                        true
+                    );
+                    return;
+                }
+
+                const id = String(subtask.id);
+
+                if (ids.has(id)) {
+                    showContestTestMessage(
+                        `ID subtask "${id}" bị trùng.`,
+                        true
+                    );
+                    return;
+                }
+
+                ids.add(id);
+                totalScore += Number(subtask.score);
+
+                for (let j = 0; j < subtask.tests.length; j++) {
+                    const test = subtask.tests[j];
+
+                    if (!test || typeof test !== 'object' ||
+                        Array.isArray(test) ||
+                        typeof test.input !== 'string' ||
+                        typeof test.output !== 'string') {
+                        showContestTestMessage(
+                            `Test ${j + 1} của subtask ${id} phải có input và output dạng chuỗi.`,
+                            true
+                        );
+                        return;
+                    }
+                }
+            }
+
+            const expectedScore = Number(
+                contestTestCurrentProblem.total_score
+            );
+
+            if (Number.isFinite(expectedScore) &&
+                Math.abs(totalScore - expectedScore) > 0.000001) {
+                showContestTestMessage(
+                    `Tổng điểm subtasks là ${totalScore}, nhưng bài có tổng ${expectedScore} điểm.`,
+                    true
+                );
+                return;
+            }
+
+            const savedContestId = contestId;
+            const savedProblemId = problemId;
+
+            contestTestSave.disabled = true;
+            contestTestFormat.disabled = true;
+            contestTestReload.disabled = true;
+            contestTestSave.textContent = 'Đang lưu...';
+
+            try {
+                await api(
+                    `/api/admin/contests/${encodeURIComponent(savedContestId)}/problems/${encodeURIComponent(savedProblemId)}/tests`,
+                    {
+                        method: 'PUT',
+                        body: JSON.stringify({ subtasks })
+                    }
+                );
+
+                await loadContestTestProblems(
+                    savedContestId,
+                    savedProblemId
+                );
+
+                await loadProblems();
+
+                showContestTestMessage(
+                    'Đã lưu test thành công!'
+                );
+            } catch (error) {
+                showContestTestMessage(
+                    'Lưu test thất bại: ' + error.message,
+                    true
+                );
+            } finally {
+                contestTestSave.disabled = !contestTestCurrentProblem;
+                contestTestFormat.disabled = false;
+                contestTestReload.disabled = false;
+                contestTestSave.textContent =
+                    'Lưu test của bài trong Contest';
+            }
+        });
+
+        // Tải lại Contest và dữ liệu bài.
+        contestTestReload.addEventListener('click', async () => {
+            const contestId = contestTestContest.value;
+            const problemId = contestTestProblem.value;
+
+            if (contestId) {
+                await loadContestTestProblems(contestId, problemId);
+            } else {
+                await loadContestTestContests();
+            }
+        });
+
+        // Nạp danh sách Contest khi mở trang quản trị.
+        loadContestTestContests();
+
 
         // QUẢN LÝ BÀI NỘP VÀ XEM MÃ NGUỒN
         const submissionsList = document.getElementById('submissions-list');
