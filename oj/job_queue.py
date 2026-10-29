@@ -52,6 +52,81 @@ def _get_test_scores(st):
     ]
 
 
+def _run_batch_with_retry(
+    judge,
+    code,
+    language,
+    batch_tests,
+    time_limit,
+    memory_limit,
+    max_attempts=3
+):
+    """
+    Thử lại khi Judge0 gặp lỗi tạm thời.
+    Không tự chuyển lỗi của hệ thống chấm thành Wrong Answer.
+    """
+    last_results = []
+
+    for attempt in range(max_attempts):
+        try:
+            results = judge.run_batch(
+                code,
+                language,
+                batch_tests,
+                time_limit,
+                memory_limit
+            )
+
+            if not isinstance(results, list):
+                results = []
+
+            last_results = results
+
+            has_temporary_error = (
+                len(results) != len(batch_tests)
+                or any(
+                    _is_judge_error(
+                        (item or {}).get('status', 'Unknown')
+                    )
+                    for item in results
+                )
+            )
+
+            if not has_temporary_error:
+                return results
+
+            print(
+                f'[OJ RETRY] Judge0 returned temporary error; '
+                f'attempt={attempt + 1}/{max_attempts}',
+                flush=True
+            )
+
+        except Exception as exc:
+            print(
+                f'[OJ RETRY] Judge0 exception; '
+                f'attempt={attempt + 1}/{max_attempts}: {exc}',
+                flush=True
+            )
+
+        if attempt < max_attempts - 1:
+            time.sleep(attempt + 1)
+
+    # Nếu kết quả cuối cùng vẫn thiếu, tạo trạng thái lỗi
+    # cho những test chưa có kết quả.
+    if len(last_results) < len(batch_tests):
+        last_results = list(last_results)
+
+        while len(last_results) < len(batch_tests):
+            last_results.append({
+                'status': 'Judge Unavailable',
+                'message': (
+                    'Judge0 không trả đủ kết quả sau nhiều lần thử.'
+                )
+            })
+
+    return last_results
+
+
 def enqueue(app, user_id, problem, code, language, contest_id=None):
     job_id = uuid.uuid4().hex
 
@@ -91,6 +166,7 @@ def enqueue(app, user_id, problem, code, language, contest_id=None):
             code,
             language
         )
+
     except Exception as exc:
         message = 'Không thể khởi chạy worker: ' + str(exc)
 
@@ -111,7 +187,8 @@ def enqueue(app, user_id, problem, code, language, contest_id=None):
             )
 
         with _lock:
-            _jobs[job_id]['status'] = 'Finished'
+            if job_id in _jobs:
+                _jobs[job_id]['status'] = 'Finished'
 
         print(
             f'[OJ ERROR] Cannot start submission={submission_id}: {exc}',
@@ -141,16 +218,28 @@ def get_job(app, job_id, user_id):
         return None
 
     result = dict(row)
-    result['details'] = json.loads(
-        result.pop('details_json') or '[]'
-    )
+
+    try:
+        result['details'] = json.loads(
+            result.pop('details_json') or '[]'
+        )
+    except (TypeError, ValueError):
+        result['details'] = []
+
     result['status'] = result.get('verdict', job['status'])
 
     return result
 
 
-def _save_result(app, submission_id, user_id, problem,
-                 verdict, score, details):
+def _save_result(
+    app,
+    submission_id,
+    user_id,
+    problem,
+    verdict,
+    score,
+    details
+):
     with connect(app.config['DATABASE_PATH']) as db:
         db.execute(
             '''UPDATE submissions
@@ -174,7 +263,8 @@ def _save_result(app, submission_id, user_id, problem,
 
         contest_id = row['contest_id'] if row else None
 
-        if contest_id is None:
+        # Chỉ cập nhật bảng solves cho bài ngoài contest.
+        if row and contest_id is None:
             db.execute(
                 '''INSERT INTO solves
                    (user_id, problem_id, best_score)
@@ -190,8 +280,15 @@ def _save_result(app, submission_id, user_id, problem,
             )
 
 
-def _run_job(app, job_id, submission_id,
-             user_id, problem, code, language):
+def _run_job(
+    app,
+    job_id,
+    submission_id,
+    user_id,
+    problem,
+    code,
+    language
+):
     started = time.perf_counter()
 
     with _lock:
@@ -218,7 +315,9 @@ def _run_job(app, job_id, submission_id,
             app.config.get('JUDGE0_API_KEY', '')
         )
 
-        for st in problem.get('subtasks', []):
+        subtasks = problem.get('subtasks', [])
+
+        for st in subtasks:
             subtask_started = time.perf_counter()
             tests = st.get('tests', [])
             test_scores = _get_test_scores(st)
@@ -231,7 +330,8 @@ def _run_job(app, job_id, submission_id,
                 for test in tests
             ]
 
-            results = judge.run_batch(
+            results = _run_batch_with_retry(
+                judge,
                 code,
                 language,
                 batch_tests,
@@ -302,6 +402,7 @@ def _run_job(app, job_id, submission_id,
                 flush=True
             )
 
+            # Dừng khi có lỗi biên dịch hoặc lỗi hệ thống chấm.
             if compile_error or judge_error:
                 break
 
@@ -310,24 +411,32 @@ def _run_job(app, job_id, submission_id,
         if compile_error:
             verdict = 'Error'
             score = 0
+
         elif judge_error:
             verdict = 'Judge Unavailable'
+
         elif score >= total_score:
             verdict = 'Accepted'
             score = total_score
+
         elif score > 0:
             verdict = 'Partially Accepted'
+
         elif 'Wrong Answer' in statuses:
             verdict = 'Wrong Answer'
+
         elif 'Time Limit Exceeded' in statuses:
             verdict = 'Time Limit Exceeded'
+
         elif 'Memory Limit Exceeded' in statuses:
             verdict = 'Memory Limit Exceeded'
+
         elif any(
             isinstance(s, str) and s.startswith('Runtime Error')
             for s in statuses
         ):
             verdict = 'Runtime Error'
+
         else:
             verdict = 'Wrong Answer'
 
@@ -341,8 +450,13 @@ def _run_job(app, job_id, submission_id,
         )
 
         _save_result(
-            app, submission_id, user_id, problem,
-            verdict, score, details
+            app,
+            submission_id,
+            user_id,
+            problem,
+            verdict,
+            score,
+            details
         )
 
     except Exception as exc:
@@ -359,9 +473,15 @@ def _run_job(app, job_id, submission_id,
 
         try:
             _save_result(
-                app, submission_id, user_id, problem,
-                'Judge Unavailable', 0, error_details
+                app,
+                submission_id,
+                user_id,
+                problem,
+                'Judge Unavailable',
+                0,
+                error_details
             )
+
         except Exception as save_exc:
             print(
                 f'[OJ ERROR] Cannot save failure '
