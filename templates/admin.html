@@ -274,51 +274,282 @@ hr {
         <div id="problem-list">Đang tải danh sách bài...</div>
     </section>
     
-<!-- TRÌNH SỬA TEST -->
-<section class="panel" id="test-editor-panel">
-    <h2>🧪 Sửa test chấm bài</h2>
-    <p class="muted">
-        Chọn bài, subtask và test để sửa riêng Input/Output.
-        Những test khác sẽ được giữ nguyên.
-    </p>
 
-    <label for="test-problem">Bài tập</label>
-    <select id="test-problem">
-        <option value="">Đang tải danh sách bài...</option>
-    </select>
+        // TRÌNH SỬA TEST CHẤM BÀI - CHỈNH TOÀN BỘ JSON
+        const testProblemSelect =
+            document.getElementById('test-problem');
+        const testSubtaskSelect =
+            document.getElementById('test-subtask');
+        const testJson = document.getElementById('test-json');
+        const testMessage = document.getElementById('test-message');
+        const testFormatButton = document.getElementById('test-format');
+        const testSaveButton = document.getElementById('test-save');
 
-    <label for="test-subtask">Subtask</label>
-    <select id="test-subtask" disabled>
-        <option value="">Chọn bài trước</option>
-    </select>
+        let testProblems = [];
+        let testEditingProblem = null;
 
-    <label for="test-index">Test cần sửa</label>
-    <select id="test-index" disabled>
-        <option value="">Chọn subtask trước</option>
-    </select>
+        function showTestMessage(text, isError = false) {
+            testMessage.textContent = text;
+            testMessage.className = 'message ' +
+                (isError ? 'error-message' : 'success-message');
+        }
 
-    <label for="test-input">Input</label>
-    <textarea id="test-input" rows="7"
-        placeholder="Nhập dữ liệu đầu vào..."></textarea>
+        function getSelectedSubtask() {
+            const si = Number(testSubtaskSelect.value);
 
-    <label for="test-output">Output chuẩn</label>
-    <textarea id="test-output" rows="7"
-        placeholder="Nhập kết quả đúng..."></textarea>
+            if (!testEditingProblem ||
+                testSubtaskSelect.value === '' ||
+                !Number.isInteger(si)) {
+                return null;
+            }
 
-    <div class="toolbar">
-        <button type="button" id="test-add" class="success">
-            + Thêm test
-        </button>
-        <button type="button" id="test-delete" class="danger">
-            Xóa test này
-        </button>
-        <button type="button" id="test-save">
-            Lưu test lên GitHub
-        </button>
-    </div>
+            return testEditingProblem.subtasks?.[si] ?? null;
+        }
 
-    <div id="test-message" class="message"></div>
-</section>
+        function renderTestSubtasks(preferredIndex = 0) {
+            testSubtaskSelect.replaceChildren();
+
+            const subtasks = testEditingProblem?.subtasks;
+
+            if (!Array.isArray(subtasks) || subtasks.length === 0) {
+                testSubtaskSelect.add(
+                    new Option('Bài chưa có subtask', '')
+                );
+                testSubtaskSelect.disabled = true;
+                testJson.value = '';
+                testJson.disabled = true;
+                testSaveButton.disabled = true;
+                return;
+            }
+
+            subtasks.forEach((subtask, index) => {
+                testSubtaskSelect.add(
+                    new Option(
+                        `${subtask.id ?? index + 1} — ` +
+                        `${subtask.name ?? 'Subtask ' + (index + 1)}`,
+                        String(index)
+                    )
+                );
+            });
+
+            testSubtaskSelect.disabled = false;
+
+            const index = Math.max(
+                0,
+                Math.min(preferredIndex, subtasks.length - 1)
+            );
+
+            testSubtaskSelect.value = String(index);
+            renderTestJson();
+        }
+
+        function renderTestJson() {
+            const subtask = getSelectedSubtask();
+
+            if (!subtask) {
+                testJson.value = '';
+                testJson.disabled = true;
+                testSaveButton.disabled = true;
+                return;
+            }
+
+            if (!Array.isArray(subtask.tests)) {
+                subtask.tests = [];
+            }
+
+            testJson.value = JSON.stringify(subtask.tests, null, 2);
+            testJson.disabled = false;
+            testSaveButton.disabled = false;
+            showTestMessage('');
+        }
+
+        async function loadTestProblemOptions(selectedId = '') {
+            try {
+                testProblemSelect.disabled = true;
+                testProblems = await api('/api/admin/problems');
+
+                testProblemSelect.replaceChildren();
+                testProblemSelect.add(
+                    new Option('— Chọn bài tập —', '')
+                );
+
+                for (const problem of testProblems) {
+                    testProblemSelect.add(
+                        new Option(
+                            `${problem.id} — ${problem.title}`,
+                            String(problem.id)
+                        )
+                    );
+                }
+
+                testEditingProblem = null;
+
+                if (selectedId && testProblems.some(
+                    p => String(p.id) === String(selectedId)
+                )) {
+                    testProblemSelect.value = String(selectedId);
+                    await loadTestProblem(selectedId);
+                } else {
+                    testSubtaskSelect.replaceChildren(
+                        new Option('Chọn bài trước', '')
+                    );
+                    testSubtaskSelect.disabled = true;
+                    testJson.value = '';
+                    testJson.disabled = true;
+                    testSaveButton.disabled = true;
+                }
+            } catch (error) {
+                showTestMessage(
+                    'Không tải được danh sách bài: ' + error.message,
+                    true
+                );
+            } finally {
+                testProblemSelect.disabled = false;
+            }
+        }
+
+        async function loadTestProblem(problemId) {
+            const problem = testProblems.find(
+                p => String(p.id) === String(problemId)
+            );
+
+            if (!problem) {
+                testEditingProblem = null;
+                renderTestSubtasks();
+                return;
+            }
+
+            // Sửa trên bản sao, chỉ cập nhật server khi bấm Lưu.
+            testEditingProblem = JSON.parse(JSON.stringify(problem));
+            renderTestSubtasks(0);
+        }
+
+        testProblemSelect.addEventListener('change', async () => {
+            const problemId = testProblemSelect.value;
+
+            if (!problemId) {
+                testEditingProblem = null;
+                renderTestSubtasks();
+                return;
+            }
+
+            await loadTestProblem(problemId);
+        });
+
+        testSubtaskSelect.addEventListener('change', () => {
+            renderTestJson();
+        });
+
+        // Định dạng JSON, giúp đọc và sửa dễ hơn.
+        testFormatButton.addEventListener('click', () => {
+            try {
+                const tests = JSON.parse(testJson.value);
+
+                if (!Array.isArray(tests)) {
+                    throw new Error('Dữ liệu phải là một mảng JSON.');
+                }
+
+                testJson.value = JSON.stringify(tests, null, 2);
+                showTestMessage('Đã định dạng JSON.');
+            } catch (error) {
+                showTestMessage(
+                    'JSON không hợp lệ: ' + error.message,
+                    true
+                );
+            }
+        });
+
+        // Lưu toàn bộ tests của subtask đang chọn.
+        testSaveButton.addEventListener('click', async () => {
+            if (!testEditingProblem) {
+                showTestMessage('Hãy chọn bài tập trước.', true);
+                return;
+            }
+
+            const subtask = getSelectedSubtask();
+
+            if (!subtask) {
+                showTestMessage('Hãy chọn subtask trước.', true);
+                return;
+            }
+
+            let tests;
+
+            try {
+                tests = JSON.parse(testJson.value);
+            } catch (error) {
+                showTestMessage(
+                    'JSON không hợp lệ: ' + error.message,
+                    true
+                );
+                return;
+            }
+
+            if (!Array.isArray(tests)) {
+                showTestMessage(
+                    'Dữ liệu phải là mảng JSON bắt đầu bằng [ và kết thúc bằng ].',
+                    true
+                );
+                return;
+            }
+
+            for (let i = 0; i < tests.length; i++) {
+                if (!tests[i] ||
+                    typeof tests[i].input !== 'string' ||
+                    typeof tests[i].output !== 'string') {
+                    showTestMessage(
+                        `Test ${i + 1} phải có input và output dạng chuỗi.`,
+                        true
+                    );
+                    return;
+                }
+            }
+
+            if (tests.length === 0) {
+                showTestMessage(
+                    'Subtask phải có ít nhất một test.',
+                    true
+                );
+                return;
+            }
+
+            // Chỉ thay tests của subtask đang chọn.
+            subtask.tests = tests;
+
+            testSaveButton.disabled = true;
+            testSaveButton.textContent = 'Đang lưu...';
+
+            try {
+                await api(
+                    `/api/admin/problems/${encodeURIComponent(testEditingProblem.id)}`,
+                    {
+                        method: 'PUT',
+                        body: JSON.stringify(testEditingProblem)
+                    }
+                );
+
+                const savedId = String(testEditingProblem.id);
+
+                await loadProblems();
+                await loadContestProblems();
+                await loadTestProblemOptions(savedId);
+
+                showTestMessage(
+                    `Đã lưu ${tests.length} test của subtask lên server.`
+                );
+            } catch (error) {
+                showTestMessage(
+                    'Lưu test thất bại: ' + error.message,
+                    true
+                );
+            } finally {
+                testSaveButton.disabled = false;
+                testSaveButton.textContent = 'Lưu test lên GitHub';
+            }
+        });
+
+        // Tải danh sách bài cho trình sửa test.
+        loadTestProblemOptions();
 
 
     <!-- THÊM / SỬA BÀI TẬP -->
