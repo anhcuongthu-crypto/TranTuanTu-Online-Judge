@@ -41,13 +41,30 @@ def load_problems(path):
             raise ValueError('Trùng problem id: ' + str(p.get('id')))
         ids.add(p.get('id'))
 
-        if abs(
-    sum(float(s['score']) for s in p['subtasks'])
-    - float(p['total_score'])
-) > 1e-9:
-    raise ValueError('Điểm subtasks không khớp ' + str(p.get('id')))
+        try:
+            total_score = float(p['total_score'])
+            subtask_scores = [
+                float(s['score']) for s in p['subtasks']
+            ]
+        except (KeyError, TypeError, ValueError, OverflowError):
+            raise ValueError('Điểm không hợp lệ: ' + str(p.get('id')))
+
+        import math
+
+        if (
+            not math.isfinite(total_score)
+            or total_score <= 0
+            or any(
+                not math.isfinite(s) or s <= 0
+                for s in subtask_scores
+            )
+            or abs(sum(subtask_scores) - total_score) > 1e-9
+        ):
+            raise ValueError('Điểm subtasks không khớp ' + str(p.get('id')))
+
         if not p['subtasks'] or any(not s.get('tests') for s in p['subtasks']):
             raise ValueError('Subtask thiếu test ' + str(p.get('id')))
+
     return data
 
 
