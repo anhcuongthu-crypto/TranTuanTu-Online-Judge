@@ -1040,10 +1040,10 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             if not contest:
                 return jsonify(error='Không tìm thấy cuộc thi.'), 404
             member = db.execute(
-                '''SELECT 1 FROM contest_problems
-                   WHERE contest_id=? AND problem_id=?''',
-                (contest_id, pid)
-            ).fetchone()
+    '''SELECT total_score FROM contest_problems
+       WHERE contest_id=? AND problem_id=?''',
+    (contest_id, pid)
+).fetchone()
         now = datetime.now()
         start = parse_contest_time(contest['start_time'])
         end = parse_contest_time(contest['end_time'])
