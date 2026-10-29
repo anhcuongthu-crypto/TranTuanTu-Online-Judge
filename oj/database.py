@@ -342,8 +342,8 @@ def _init_postgres(path):
             language_id INTEGER NOT NULL,
             source_code TEXT NOT NULL,
             verdict TEXT NOT NULL,
-            score INTEGER NOT NULL DEFAULT 0,
-            max_score INTEGER NOT NULL DEFAULT 100,
+            score DOUBLE NOT NULL DEFAULT 0,
+            max_score DOUBLE NOT NULL DEFAULT 100,
             details_json TEXT NOT NULL DEFAULT '[]',
             contest_id BIGINT REFERENCES contests(id) ON DELETE SET NULL,
             created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::text)
