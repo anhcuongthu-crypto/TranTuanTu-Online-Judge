@@ -1236,8 +1236,15 @@ sampleOutput.value = firstTest?.output ?? '';
                     'Lưu test thất bại: ' + error.message,
                     true
                 );
-            } finally {
-                testSaveButton.disabled = false;
+                        } finally {
+                testSaveButton.disabled = !(
+                    testEditingProblem &&
+                    Array.isArray(testEditingProblem.subtasks) &&
+                    testEditingProblem.subtasks[
+                        Number(testSubtaskSelect.value)
+                    ]
+                );
+
                 testFormatButton.disabled = false;
                 testSaveButton.textContent = 'Lưu test lên GitHub';
             }
