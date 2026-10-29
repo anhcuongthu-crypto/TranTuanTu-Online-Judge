@@ -1648,7 +1648,7 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             return jsonify(error='Chỉ admin.'), 403
         d = request.get_json(silent=True) or {}
         try:
-            old = problems()
+            old = problems(refresh=True)
             if not d.get('id') or any(p['id'] == d['id'] for p in old):
                 return jsonify(error='ID thiếu hoặc đã tồn tại.'), 400
             validate_problem(d)
