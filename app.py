@@ -361,14 +361,16 @@ DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
     (contest_id,)
 ).fetchall()
             
-custom_rows = db.execute(
-    '''SELECT problem_id, title, statement,
-              input_desc, output_desc, total_score,
-              sample_input, sample_output, subtasks_json
-       FROM contest_custom_problems
-       WHERE contest_id=?''',
-    (contest_id,)
-).fetchall()
+
+            custom_rows = db.execute(
+                '''SELECT problem_id, title, statement,
+                          input_desc, output_desc, total_score,
+                          sample_input, sample_output, subtasks_json
+                   FROM contest_custom_problems
+                   WHERE contest_id=?''',
+                (contest_id,)
+            ).fetchall()
+
 
 
         item = dict(contest)
