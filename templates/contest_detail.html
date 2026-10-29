@@ -539,26 +539,32 @@ async function loadContest() {
         data.state === 'ended' ? 'Cuộc thi đã kết thúc.' : '';
 }
 
+
 function showProblem(pid) {
     const p = problemList.find(x => String(x.id) === String(pid));
     if (!p) return;
 
+    // Hỗ trợ nhiều tên trường dữ liệu khác nhau
+    const statement = p.statement ?? p.description ?? p.content ?? p.problem_statement ?? '';
+    const inputDesc = p.input_desc ?? p.input_description ?? p.input ?? '';
+    const outputDesc = p.output_desc ?? p.output_description ?? p.output ?? '';
+
     $('problemDetailPanel').hidden = false;
 
     $('problemDetail').innerHTML = `
-        <h2>${esc(p.title)}</h2>
+        <h2>${esc(p.title || 'Bài thi')}</h2>
         <p class="muted">
             ID: ${esc(p.id)} · ${Number(p.total_score) || 0} điểm
         </p>
 
         <h3>Đề bài</h3>
-        <div style="white-space:pre-wrap;line-height:1.8">${esc(p.statement || 'API chưa cung cấp nội dung đề.')}</div>
+        <div style="white-space:pre-wrap;line-height:1.8">${esc(statement || 'Chưa có nội dung đề bài trong dữ liệu API.')}</div>
 
         <h3>Dữ liệu vào</h3>
-<div style="white-space:pre-wrap;line-height:1.8">${esc(p.input_desc || p.input || 'Chưa có mô tả.')}</div>
+        <div style="white-space:pre-wrap;line-height:1.8">${esc(inputDesc || 'Chưa có mô tả dữ liệu vào.')}</div>
 
-<h3>Dữ liệu ra</h3>
-<div style="white-space:pre-wrap;line-height:1.8">${esc(p.output_desc || p.output || 'Chưa có mô tả.')}</div>
+        <h3>Dữ liệu ra</h3>
+        <div style="white-space:pre-wrap;line-height:1.8">${esc(outputDesc || 'Chưa có mô tả dữ liệu ra.')}</div>
 
         <p>
             <button id="chooseProblem">Nộp bài này</button>
@@ -585,6 +591,7 @@ function showProblem(pid) {
         block: 'start'
     });
 }
+
 
 function openProblemFromUrl() {
     const params = new URLSearchParams(window.location.search);
