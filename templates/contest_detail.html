@@ -540,33 +540,72 @@ async function loadContest() {
 }
 
 
+
 function showProblem(pid) {
     const p = problemList.find(x => String(x.id) === String(pid));
     if (!p) return;
 
-    // Hỗ trợ nhiều tên trường dữ liệu khác nhau
     const statement = String(
-    p.statement || p.description || p.content || p.problem_statement || '');
-    const inputDesc = p.input_desc ?? p.input_description ?? p.input ?? '';
-    const outputDesc = p.output_desc ?? p.output_description ?? p.output ?? '';
+        p.statement || p.description || p.content ||
+        p.problem_statement || ''
+    );
+
+    const inputDesc = String(
+        p.input_desc ?? p.input_description ?? ''
+    );
+
+    const outputDesc = String(
+        p.output_desc ?? p.output_description ?? ''
+    );
+
+    const sampleInput = String(
+        p.sample_input ?? p.example_input ?? p.input_example ?? ''
+    );
+
+    const sampleOutput = String(
+        p.sample_output ?? p.example_output ?? p.output_example ?? ''
+    );
 
     $('problemDetailPanel').hidden = false;
     $('problemDetailPanel').style.display = 'block';
 
     $('problemDetail').innerHTML = `
         <h2>${esc(p.title || 'Bài thi')}</h2>
+
         <p class="muted">
             ID: ${esc(p.id)} · ${Number(p.total_score) || 0} điểm
         </p>
 
         <h3>Đề bài</h3>
-        <div style="white-space:pre-wrap;line-height:1.8">${esc(statement || 'Chưa có nội dung đề bài trong dữ liệu API.')}</div>
+        <div style="white-space:pre-wrap;line-height:1.8">${esc(
+            statement || 'Chưa có nội dung đề bài.'
+        )}</div>
 
         <h3>Dữ liệu vào</h3>
-        <div style="white-space:pre-wrap;line-height:1.8">${esc(inputDesc || 'Chưa có mô tả dữ liệu vào.')}</div>
+        <div style="white-space:pre-wrap;line-height:1.8">${esc(
+            inputDesc || 'Xem định dạng dữ liệu trong đề bài và ví dụ.'
+        )}</div>
 
         <h3>Dữ liệu ra</h3>
-        <div style="white-space:pre-wrap;line-height:1.8">${esc(outputDesc || 'Chưa có mô tả dữ liệu ra.')}</div>
+        <div style="white-space:pre-wrap;line-height:1.8">${esc(
+            outputDesc || 'Xem yêu cầu kết quả trong đề bài.'
+        )}</div>
+
+        ${sampleInput !== '' || sampleOutput !== '' ? `
+            <h3>Ví dụ</h3>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div>
+                    <b>Input</b>
+                    <pre style="white-space:pre-wrap;overflow-wrap:anywhere;background:#f1f5f9;padding:12px;border-radius:8px">${esc(sampleInput)}</pre>
+                </div>
+
+                <div>
+                    <b>Output</b>
+                    <pre style="white-space:pre-wrap;overflow-wrap:anywhere;background:#f1f5f9;padding:12px;border-radius:8px">${esc(sampleOutput)}</pre>
+                </div>
+            </div>
+        ` : '<p class="muted">Bài này chưa có ví dụ.</p>'}
 
         <p>
             <button id="chooseProblem">Nộp bài này</button>
@@ -593,6 +632,7 @@ function showProblem(pid) {
         block: 'start'
     });
 }
+
 
 
 function openProblemFromUrl() {
