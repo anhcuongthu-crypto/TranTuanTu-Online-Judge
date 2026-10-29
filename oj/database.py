@@ -409,10 +409,13 @@ def init_db(path):
             ("bio", "TEXT NOT NULL DEFAULT ''"),
         ),
         "submissions": (("contest_id", "BIGINT REFERENCES contests(id) ON DELETE SET NULL" if is_postgres_path(path) else "INTEGER REFERENCES contests(id) ON DELETE SET NULL"),),
-        "contest_custom_problems": (
-            ("sample_input", "TEXT NOT NULL DEFAULT ''"),
-            ("sample_output", "TEXT NOT NULL DEFAULT ''"),
-        ),
+       "contest_problems": (
+    ("total_score", "REAL NOT NULL DEFAULT 10"),
+),
+"contest_custom_problems": (
+    ("sample_input", "TEXT NOT NULL DEFAULT ''"),
+    ("sample_output", "TEXT NOT NULL DEFAULT ''"),
+),
         "problem_history": (
             ("before_count", "INTEGER NOT NULL DEFAULT 0"),
             ("after_count", "INTEGER NOT NULL DEFAULT 0"),
