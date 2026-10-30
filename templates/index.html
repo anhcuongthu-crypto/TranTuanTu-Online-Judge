@@ -1,5 +1,10 @@
 
 {% extends 'base.html' %}
+
+{% block title %}TranTu OJ Studio - Luyện lập trình C++, bài tập Tin học và thi HSG{% endblock %}
+
+{% block meta_description %}TranTu OJ Studio là nền tảng luyện lập trình C++ trực tuyến miễn phí. Làm bài tập thuật toán, luyện thi học sinh giỏi Tin học, nộp code và chấm bài tự động.{% endblock %}
+
 {% block content %}
 
 <section class="hero">
@@ -14,8 +19,9 @@
         </h1>
 
         <p>
-            Nền tảng luyện thuật toán dành cho những người muốn đi xa hơn —
-            từ tư duy cơ bản đến các bài toán HSG Tin học.
+            TranTu OJ Studio là nền tảng luyện lập trình C++ trực tuyến,
+            dành cho những người muốn phát triển tư duy thuật toán —
+            từ kiến thức cơ bản đến các bài toán học sinh giỏi Tin học.
         </p>
 
         <div class="hero-actions">
@@ -148,10 +154,11 @@
     <div class="section-heading">
         <div>
             <span class="eyebrow">PRACTICE LIBRARY</span>
-            <h2>Chọn bài, bắt đầu luyện.</h2>
+            <h2>Kho bài tập lập trình C++</h2>
             <p class="muted">
-                Tìm theo mã bài, tên bài hoặc chủ đề.
-                Bấm tiêu đề cột để sắp xếp.
+                Luyện thuật toán, thực hành Tin học và chuẩn bị cho
+                các kỳ thi học sinh giỏi. Tìm theo mã bài, tên bài
+                hoặc chủ đề. Bấm tiêu đề cột để sắp xếp.
             </p>
         </div>
 
@@ -176,9 +183,10 @@
     <div class="section-heading">
         <div>
             <span class="eyebrow">LEADERBOARD</span>
-            <h2>Bảng xếp hạng</h2>
+            <h2>Bảng xếp hạng thành viên</h2>
             <p class="muted">
-                Theo dõi điểm số và số bài giải được của các thành viên.
+                Theo dõi điểm số và số bài giải được của các thành viên
+                trên TranTu OJ Studio.
             </p>
         </div>
 
@@ -244,6 +252,7 @@
                 const tr = document.createElement('tr');
 
                 const rank = document.createElement('td');
+
                 if (index === 0) {
                     rank.textContent = '🥇 1';
                 } else if (index === 1) {
@@ -253,6 +262,7 @@
                 } else {
                     rank.textContent = String(index + 1);
                 }
+
                 tr.appendChild(rank);
 
                 const username = document.createElement('td');
@@ -272,6 +282,7 @@
 
             table.appendChild(tbody);
             box.replaceChildren(table);
+
         } catch (error) {
             box.textContent =
                 'Không tải được bảng xếp hạng. Hãy thử bấm Làm mới.';
