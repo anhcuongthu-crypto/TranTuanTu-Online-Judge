@@ -474,42 +474,51 @@ def create_app(test_config=None):
     
     @app.get('/robots.txt')
     def robots_txt():
-        return app.response_class(
-            """User-agent: *
+    return app.response_class(
+        """User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /submission/
 
 Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 """,
-            mimetype='text/plain'
-        )
+        mimetype='text/plain'
+    )
 
     @app.get('/sitemap.xml')
-    def sitemap_xml():
-        urls = [
-            'https://trantuantu-online-judge.onrender.com/',
-            'https://trantuantu-online-judge.onrender.com/about',
-            'https://trantuantu-online-judge.onrender.com/contests',
-        ]
+def sitemap_xml():
+    urls = [
+        'https://trantuantu-online-judge.onrender.com/',
+        'https://trantuantu-online-judge.onrender.com/about',
+        'https://trantuantu-online-judge.onrender.com/contests',
+    ]
 
-        for p in problems():
-            pid = quote(str(p['id']), safe='')
-            urls.append(
-                'https://trantuantu-online-judge.onrender.com/problems/' + pid
-            )
-
-        xml_urls = ''.join(
-            '<url><loc>' + url + '</loc></url>'
-            for url in urls
+    for p in problems():
+        pid = quote(str(p['id']), safe='')
+        urls.append(
+            'https://trantuantu-online-judge.onrender.com/problems/' + pid
         )
 
-        xml = (
-            '<?xml version="1.0" encoding="UTF-8"?>'
-            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-            + xml_urls +
-            '</urlset>'
-        )
+    root = ET.Element(
+        'urlset',
+        xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'
+    )
 
-        return app.response_class(xml, mimetype='application/xml')
+    for url in urls:
+        item = ET.SubElement(root, 'url')
+        ET.SubElement(item, 'loc').text = url
+
+    xml = ET.tostring(
+        root,
+        encoding='utf-8',
+        xml_declaration=True
+    )
+
+    return app.response_class(
+        xml,
+        mimetype='application/xml'
+    )
 
     @app.get('/')
     def home():
