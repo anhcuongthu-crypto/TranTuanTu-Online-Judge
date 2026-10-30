@@ -3,6 +3,7 @@ import urllib.request
 import urllib.error
 from urllib.parse import quote
 import json
+import xml.etree.ElementTree as ET
 import os
 import re
 import shutil
@@ -470,9 +471,50 @@ def create_app(test_config=None):
         except Exception as e:
             return jsonify(ok=False, error=str(e)), 500
 
+    
+    @app.get('/robots.txt')
+    def robots_txt():
+        return app.response_class(
+            """User-agent: *
+Allow: /
+
+Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
+""",
+            mimetype='text/plain'
+        )
+
+    @app.get('/sitemap.xml')
+    def sitemap_xml():
+        urls = [
+            'https://trantuantu-online-judge.onrender.com/',
+            'https://trantuantu-online-judge.onrender.com/about',
+            'https://trantuantu-online-judge.onrender.com/contests',
+        ]
+
+        for p in problems():
+            pid = quote(str(p['id']), safe='')
+            urls.append(
+                'https://trantuantu-online-judge.onrender.com/problems/' + pid
+            )
+
+        xml_urls = ''.join(
+            '<url><loc>' + url + '</loc></url>'
+            for url in urls
+        )
+
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            + xml_urls +
+            '</urlset>'
+        )
+
+        return app.response_class(xml, mimetype='application/xml')
+
     @app.get('/')
     def home():
         return render_template('index.html')
+
 
     
     @app.get('/problems/<pid>')
