@@ -1,5 +1,4 @@
-
- // ==================== API ====================
+// ==================== API ====================
 
 const pendingGetRequests = new Map();
 
@@ -512,6 +511,97 @@ document.querySelector('#logout-button')?.addEventListener('click', async () => 
 
 // ==================== NỘP BÀI ====================
 
+// Lưu trạng thái của từng bài nộp riêng biệt.
+const activeSubmissions = new Map();
+
+function renderSubmissionResults(result) {
+    result.textContent = [...activeSubmissions.values()]
+        .map(item =>
+            item.id + '\n' + item.message
+        )
+        .join('\n\n------------------------------\n\n');
+}
+
+// Theo dõi một bài nộp độc lập.
+async function watchSubmission(submissionId, result) {
+    let delay = 500;
+    let consecutiveErrors = 0;
+
+    try {
+        while (true) {
+            await new Promise(resolve => setTimeout(resolve, delay));
+
+            let data;
+
+            try {
+                data = await api(
+                    `/api/submissions/${encodeURIComponent(submissionId)}/status`
+                );
+
+                consecutiveErrors = 0;
+            } catch (err) {
+                consecutiveErrors++;
+
+                activeSubmissions.set(submissionId, {
+                    id: 'Bài nộp #' + submissionId,
+                    message:
+                        `Đang chờ kết quả... (lỗi kết nối ${consecutiveErrors})`
+                });
+
+                renderSubmissionResults(result);
+
+                if (consecutiveErrors >= 5) {
+                    throw err;
+                }
+
+                delay = Math.min(delay * 2, 5000);
+                continue;
+            }
+
+            const verdict = data.verdict;
+
+            if (
+                verdict &&
+                verdict !== 'Queued' &&
+                verdict !== 'Processing'
+            ) {
+                activeSubmissions.set(submissionId, {
+                    id: 'Bài nộp #' + submissionId,
+                    message:
+                        `${verdict}\n` +
+                        `Điểm: ${data.score}/${data.max_score}\n\n` +
+                        JSON.stringify(data.details ?? {}, null, 2)
+                });
+
+                renderSubmissionResults(result);
+
+                await refresh();
+                return;
+            }
+
+            activeSubmissions.set(submissionId, {
+                id: 'Bài nộp #' + submissionId,
+                message: verdict === 'Queued'
+                    ? 'Đang chờ đến lượt chấm...'
+                    : 'Đang chấm bài...'
+            });
+
+            renderSubmissionResults(result);
+
+            delay = Math.min(Math.round(delay * 1.3), 2000);
+        }
+    } catch (err) {
+        activeSubmissions.set(submissionId, {
+            id: 'Bài nộp #' + submissionId,
+            message:
+                'Chưa lấy được kết quả: ' + err.message +
+                '\nBài nộp có thể vẫn đang được xử lý. Hãy kiểm tra lịch sử bài nộp.'
+        });
+
+        renderSubmissionResults(result);
+    }
+}
+
 document.querySelector('#submit')?.addEventListener('click', async e => {
     const button = e.currentTarget;
     const result = document.querySelector('#result');
@@ -525,8 +615,8 @@ document.querySelector('#submit')?.addEventListener('click', async e => {
 
     if (button.disabled) return;
 
+    // Chỉ khóa nút trong lúc gửi yêu cầu.
     button.disabled = true;
-    result.textContent = 'Đang gửi bài...';
 
     try {
         const data = await api('/api/submit', {
@@ -542,63 +632,20 @@ document.querySelector('#submit')?.addEventListener('click', async e => {
             throw Error('Máy chủ chưa trả về mã bài nộp.');
         }
 
-        result.textContent = 'Đã nhận bài. Đang chấm...';
+        activeSubmissions.set(data.submission_id, {
+            id: 'Bài nộp #' + data.submission_id,
+            message: 'Đã nhận bài. Đang chấm...'
+        });
 
-        let finalResult = null;
-        let delay = 500;
-        let consecutiveErrors = 0;
+        renderSubmissionResults(result);
 
-        // Chờ đến khi có kết quả chấm cuối cùng.
-        while (true) {
-            await new Promise(resolve => setTimeout(resolve, delay));
-
-            try {
-                finalResult = await api(
-                    `/api/submissions/${encodeURIComponent(data.submission_id)}/status`
-                );
-
-                consecutiveErrors = 0;
-            } catch (err) {
-                consecutiveErrors++;
-
-                result.textContent =
-                    `Đang chờ kết quả chấm bài... (lỗi kết nối ${consecutiveErrors})`;
-
-                if (consecutiveErrors >= 5) {
-                    throw err;
-                }
-
-                delay = Math.min(delay * 2, 5000);
-                continue;
-            }
-
-            const verdict = finalResult.verdict;
-
-            if (
-                verdict &&
-                verdict !== 'Queued' &&
-                verdict !== 'Processing'
-            ) {
-                break;
-            }
-
-            result.textContent = 'Đang chấm bài...';
-            delay = Math.min(Math.round(delay * 1.3), 2000);
-        }
-
-        result.textContent =
-            `${finalResult.verdict}\n` +
-            `Điểm: ${finalResult.score}/${finalResult.max_score}\n\n` +
-            JSON.stringify(finalResult.details ?? {}, null, 2);
-
-        // Cập nhật lịch sử và bảng xếp hạng.
-        await refresh();
+        // Không đợi bài này chấm xong mới cho nộp bài tiếp.
+        watchSubmission(data.submission_id, result);
 
     } catch (err) {
-        result.textContent =
-            'Chưa lấy được kết quả chấm: ' + err.message +
-            '\nBài nộp có thể vẫn đang được xử lý. Hãy thử tải lại sau.';
+        note('Không gửi được bài: ' + err.message);
     } finally {
+        // Mở nút ngay sau khi máy chủ nhận bài.
         button.disabled = false;
     }
 });
