@@ -1,6 +1,9 @@
+
 {% extends 'base.html' %}
 
-{% block title %}{{ problem.id }} · {{ problem.title }} — OJ Studio{% endblock %}
+{% block title %}{{ problem.id }} · {{ problem.title }} — TranTu OJ Studio{% endblock %}
+
+{% block meta_description %}{{ problem.title }} - Bài tập lập trình {{ problem.category }}, mức độ {{ problem.difficulty }} trên TranTu OJ Studio. Luyện tập C++, xem đề bài, dữ liệu vào, dữ liệu ra và nộp bài chấm tự động.{% endblock %}
 
 {% block content %}
 <div class="breadcrumbs">
@@ -10,7 +13,7 @@
 </div>
 
 <!-- THÔNG TIN VÀ ĐỀ BÀI -->
-<section class="glass-card problem-hero">
+<article class="glass-card problem-hero">
     <div class="problem-meta">
         <span class="pill pill-purple">{{ problem.category }}</span>
         <span class="pill">{{ problem.difficulty }}</span>
@@ -21,7 +24,7 @@
     <h1>{{ problem.title }}</h1>
 
     <div class="statement">{{ problem.statement }}</div>
-</section>
+</article>
 
 <div class="problem-layout" style="display:block;">
 
