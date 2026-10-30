@@ -4,11 +4,13 @@
 <head>
     <meta charset="utf-8">
 
+    <!-- Google Search Console -->
     <meta
         name="google-site-verification"
         content="dDYvsDXTEhI7lf6j2tsKB-t20AV8r0ewxMG_kO3j_7s"
     >
 
+    <!-- Basic SEO -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#6d28d9">
     <meta name="color-scheme" content="dark">
@@ -22,37 +24,23 @@
 
     <meta name="robots" content="index, follow">
 
-    <link
-        rel="canonical"
-        href="https://trantuantu-online-judge.onrender.com/"
-    >
+    <!-- Canonical: URL riêng cho từng trang -->
+    <link rel="canonical" href="{{ request.base_url }}">
 
+    <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:locale" content="vi_VN">
     <meta property="og:site_name" content="TranTu OJ Studio">
-    <meta
-        property="og:title"
-        content="TranTu OJ Studio — Luyện lập trình C++ và Tin học"
-    >
-    <meta
-        property="og:description"
-        content="Luyện lập trình C++, thực hành bài tập Tin học, nộp bài chấm tự động và tham gia các cuộc thi tại TranTu OJ Studio."
-    >
-    <meta
-        property="og:url"
-        content="https://trantuantu-online-judge.onrender.com/"
-    >
+    <meta property="og:title" content="{{ self.title() }}">
+    <meta property="og:description" content="{{ self.meta_description() }}">
+    <meta property="og:url" content="{{ request.base_url }}">
 
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary">
-    <meta
-        name="twitter:title"
-        content="TranTu OJ Studio — Luyện lập trình C++ và Tin học"
-    >
-    <meta
-        name="twitter:description"
-        content="Nền tảng luyện lập trình C++, làm bài tập và thi Tin học trực tuyến."
-    >
+    <meta name="twitter:title" content="{{ self.title() }}">
+    <meta name="twitter:description" content="{{ self.meta_description() }}">
 
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -61,6 +49,7 @@
         rel="stylesheet"
     >
 
+    <!-- CSS -->
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
@@ -111,7 +100,10 @@
             TranTu OJ Studio <span>✦</span>
         </div>
 
-        <p>Nền tảng luyện lập trình C++ · Bài tập Tin học · Chấm bài tự động qua Judge0</p>
+        <p>
+            Nền tảng luyện lập trình C++ · Bài tập Tin học ·
+            Chấm bài tự động qua Judge0
+        </p>
 
         <small>
             Đặt mục tiêu, luyện từng bài, tiến bộ mỗi ngày.
