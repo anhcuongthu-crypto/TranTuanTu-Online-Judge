@@ -461,11 +461,15 @@ def create_app(test_config=None):
                     'sample_output': p.get('sample_output', '')
                 })
 
-        item['state'] = contest_state(item)
+                item['state'] = contest_state(item)
         return item
 
-        @app.get('/health')
+    @app.get('/health')
     def health():
+        try:
+            return jsonify(ok=True, problem_count=len(problems()))
+        except Exception as e:
+            return jsonify(ok=False, error=str(e)), 500
         try:
             return jsonify(ok=True, problem_count=len(problems()))
         except Exception as e:
