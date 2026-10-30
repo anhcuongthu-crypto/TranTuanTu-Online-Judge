@@ -464,15 +464,14 @@ def create_app(test_config=None):
         item['state'] = contest_state(item)
         return item
 
-    @app.get('/health')
+        @app.get('/health')
     def health():
         try:
             return jsonify(ok=True, problem_count=len(problems()))
         except Exception as e:
             return jsonify(ok=False, error=str(e)), 500
 
-    
-        @app.get('/robots.txt')
+    @app.get('/robots.txt')
     def robots_txt():
         return app.response_class(
             """User-agent: *
