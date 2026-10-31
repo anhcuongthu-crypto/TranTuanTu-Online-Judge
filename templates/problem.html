@@ -229,15 +229,17 @@
                 ↑ Gửi bài giải
             </a>
 
-            <div style="margin-top:12px">
-                <a href="/submissions" class="problem-side-link">
-                    Bài nộp của tôi →
-                </a>
+<div style="margin-top:12px">
+    <a href="/submissions?scope=mine&problem_id={{ problem.id|urlencode }}"
+       class="problem-side-link">
+        Bài nộp của tôi →
+    </a>
 
-                <a href="/submissions" class="problem-side-link">
-                    Danh sách bài nộp →
-                </a>
-            </div>
+    <a href="/submissions?scope=all&problem_id={{ problem.id|urlencode }}"
+       class="problem-side-link">
+        Danh sách bài nộp →
+    </a>
+</div>
 
         </section>
 
