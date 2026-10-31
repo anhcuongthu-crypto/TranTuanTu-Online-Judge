@@ -70,7 +70,11 @@
     ],
     "time_limit": 1,
     "title": "Tuyển Sinh Lam Sơn 2024",
-    "total_score": 100
+    "total_score": 100,
+    "author": "admin",
+    "use_freopen": false,
+    "input_file": "",
+    "output_file": ""
   },
   {
     "category": "C++ Cơ Bản",
