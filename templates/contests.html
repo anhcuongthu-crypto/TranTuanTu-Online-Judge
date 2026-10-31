@@ -405,40 +405,41 @@
 }
 </style>
 
+
 <div class="contest-page">
 
   <!-- HERO -->
   <section class="contest-hero">
-    <h1>🏆 Contest</h1>
-    <p>
+    <h1>🏆 <span data-i18n="ct_title">Contest</span></h1>
+    <p data-i18n="ct_intro">
       Thử sức với các cuộc thi lập trình, theo dõi điểm số
       và cạnh tranh trên bảng xếp hạng.
     </p>
   </section>
 
-  <!-- THỐNG KÊ -->
+  <!-- STATS -->
   <section class="contest-stats">
     <div class="contest-stat">
-      <small>Tổng cuộc thi</small>
+      <small data-i18n="ct_total">Tổng cuộc thi</small>
       <strong id="total">—</strong>
     </div>
 
     <div class="contest-stat">
-      <small>Đang diễn ra</small>
+      <small data-i18n="ct_running">Đang diễn ra</small>
       <strong id="running">—</strong>
     </div>
 
     <div class="contest-stat">
-      <small>Sắp diễn ra</small>
+      <small data-i18n="ct_upcoming">Sắp diễn ra</small>
       <strong id="upcoming">—</strong>
     </div>
   </section>
 
-  <!-- DANH SÁCH CONTEST -->
+  <!-- CONTEST LIST -->
   <div class="contest-heading">
     <div>
-      <h2>Danh sách cuộc thi</h2>
-      <p class="contest-muted">
+      <h2 data-i18n="ct_list_title">Danh sách cuộc thi</h2>
+      <p class="contest-muted" data-i18n="ct_list_desc">
         Chọn cuộc thi để xem đề và gửi bài.
       </p>
     </div>
@@ -447,45 +448,59 @@
       type="button"
       class="contest-btn secondary"
       onclick="loadContests()"
+      data-i18n="ct_refresh"
     >
       ↻ Làm mới
     </button>
   </div>
 
   <section id="contestList" class="contest-grid">
-    <div class="contest-empty">Đang tải cuộc thi...</div>
+    <div class="contest-empty" data-i18n="ct_loading">
+      Đang tải cuộc thi...
+    </div>
   </section>
 
-  <!-- ADMIN: TẠO CONTEST -->
+  <!-- ADMIN -->
   <section id="adminPanel" class="contest-admin" hidden>
-    <h2>＋ Tạo cuộc thi mới</h2>
+    <h2 data-i18n="ct_create_title">＋ Tạo cuộc thi mới</h2>
 
-    <p class="contest-muted">
+    <p class="contest-muted" data-i18n="ct_admin_desc">
       Chỉ quản trị viên mới có thể tạo cuộc thi.
     </p>
 
     <form id="createForm">
-      <label for="contest-title">Tên cuộc thi</label>
+      <label for="contest-title" data-i18n="ct_name">
+        Tên cuộc thi
+      </label>
+
       <input
         id="contest-title"
         name="title"
         maxlength="160"
         required
         placeholder="Ví dụ: HSG Tin học vòng 1"
+        data-i18n-placeholder="ct_name_placeholder"
       >
 
-      <label for="contest-description">Mô tả</label>
+      <label for="contest-description" data-i18n="ct_description">
+        Mô tả
+      </label>
+
       <textarea
         id="contest-description"
         name="description"
         maxlength="5000"
         rows="3"
         placeholder="Thông tin về cuộc thi"
+        data-i18n-placeholder="ct_description_placeholder"
       ></textarea>
 
       <div class="contest-formgrid">
         <div>
-          <label for="contest-start">Thời gian bắt đầu</label>
+          <label for="contest-start" data-i18n="ct_start">
+            Thời gian bắt đầu
+          </label>
+
           <input
             id="contest-start"
             type="datetime-local"
@@ -495,7 +510,10 @@
         </div>
 
         <div>
-          <label for="contest-end">Thời gian kết thúc</label>
+          <label for="contest-end" data-i18n="ct_end">
+            Thời gian kết thúc
+          </label>
+
           <input
             id="contest-end"
             type="datetime-local"
@@ -505,18 +523,27 @@
         </div>
       </div>
 
-      <label>Chọn bài thi</label>
+      <label data-i18n="ct_choose_problems">Chọn bài thi</label>
+
       <div id="problemList" class="contest-checklist">
-        Đang tải bài tập...
+        <span data-i18n="ct_loading_problems">
+          Đang tải bài tập...
+        </span>
       </div>
 
       <label class="contest-checkitem">
         <input type="checkbox" name="is_visible" checked>
-        <span>Hiển thị cuộc thi công khai</span>
+        <span data-i18n="ct_public">
+          Hiển thị cuộc thi công khai
+        </span>
       </label>
 
       <p>
-        <button class="contest-btn" type="submit">
+        <button
+          class="contest-btn"
+          type="submit"
+          data-i18n="ct_create_button"
+        >
           ✦ Tạo cuộc thi
         </button>
       </p>
@@ -528,6 +555,102 @@
 
 <script>
 const $ = id => document.getElementById(id);
+
+const contestTranslations = {
+  vi: {
+    ct_title: "Contest",
+    ct_intro: "Thử sức với các cuộc thi lập trình, theo dõi điểm số và cạnh tranh trên bảng xếp hạng.",
+    ct_total: "Tổng cuộc thi",
+    ct_running: "Đang diễn ra",
+    ct_upcoming: "Sắp diễn ra",
+    ct_list_title: "Danh sách cuộc thi",
+    ct_list_desc: "Chọn cuộc thi để xem đề và gửi bài.",
+    ct_refresh: "↻ Làm mới",
+    ct_loading: "Đang tải cuộc thi...",
+    ct_create_title: "＋ Tạo cuộc thi mới",
+    ct_admin_desc: "Chỉ quản trị viên mới có thể tạo cuộc thi.",
+    ct_name: "Tên cuộc thi",
+    ct_name_placeholder: "Ví dụ: HSG Tin học vòng 1",
+    ct_description: "Mô tả",
+    ct_description_placeholder: "Thông tin về cuộc thi",
+    ct_start: "Thời gian bắt đầu",
+    ct_end: "Thời gian kết thúc",
+    ct_choose_problems: "Chọn bài thi",
+    ct_loading_problems: "Đang tải bài tập...",
+    ct_public: "Hiển thị cuộc thi công khai",
+    ct_create_button: "✦ Tạo cuộc thi",
+    ct_running_state: "Đang diễn ra",
+    ct_upcoming_state: "Sắp diễn ra",
+    ct_ended_state: "Đã kết thúc",
+    ct_no_description: "Chưa có mô tả.",
+    ct_start_label: "📅 Bắt đầu:",
+    ct_end_label: "🏁 Kết thúc:",
+    ct_view: "Xem cuộc thi →",
+    ct_empty: "Chưa có cuộc thi nào.",
+    ct_load_error: "Không tải được danh sách cuộc thi.",
+    ct_problem_error: "Không tải được danh sách bài tập.",
+    ct_no_problems: "Chưa có bài tập.",
+    ct_choose_one: "Hãy chọn ít nhất một bài.",
+    ct_time_error: "Thời gian kết thúc phải sau thời gian bắt đầu.",
+    ct_creating: "Đang tạo cuộc thi...",
+    ct_create_failed: "Tạo cuộc thi thất bại.",
+    ct_created: "Đã tạo cuộc thi",
+    ct_id: "ID"
+  },
+
+  en: {
+    ct_title: "Contests",
+    ct_intro: "Challenge yourself with programming contests, track your scores, and compete on the leaderboard.",
+    ct_total: "Total contests",
+    ct_running: "Running",
+    ct_upcoming: "Upcoming",
+    ct_list_title: "Contest list",
+    ct_list_desc: "Choose a contest to view problems and submit solutions.",
+    ct_refresh: "↻ Refresh",
+    ct_loading: "Loading contests...",
+    ct_create_title: "＋ Create a new contest",
+    ct_admin_desc: "Only administrators can create contests.",
+    ct_name: "Contest name",
+    ct_name_placeholder: "Example: Informatics Olympiad - Round 1",
+    ct_description: "Description",
+    ct_description_placeholder: "Contest information",
+    ct_start: "Start time",
+    ct_end: "End time",
+    ct_choose_problems: "Choose problems",
+    ct_loading_problems: "Loading problems...",
+    ct_public: "Make contest publicly visible",
+    ct_create_button: "✦ Create contest",
+    ct_running_state: "Running",
+    ct_upcoming_state: "Upcoming",
+    ct_ended_state: "Ended",
+    ct_no_description: "No description available.",
+    ct_start_label: "📅 Starts:",
+    ct_end_label: "🏁 Ends:",
+    ct_view: "View contest →",
+    ct_empty: "No contests yet.",
+    ct_load_error: "Could not load the contest list.",
+    ct_problem_error: "Could not load the problem list.",
+    ct_no_problems: "No problems available.",
+    ct_choose_one: "Please select at least one problem.",
+    ct_time_error: "The end time must be after the start time.",
+    ct_creating: "Creating contest...",
+    ct_create_failed: "Failed to create contest.",
+    ct_created: "Contest created",
+    ct_id: "ID"
+  }
+};
+
+// Đăng ký từ điển của trang vào hệ thống LMS chung.
+if (window.OJ_I18N) {
+  window.OJ_I18N.addTranslations("vi", contestTranslations.vi);
+  window.OJ_I18N.addTranslations("en", contestTranslations.en);
+}
+
+function t(key) {
+  return window.OJ_I18N
+    ? window.OJ_I18N.t(key, key)
+    : (contestTranslations.vi[key] || key);
+}
 
 function escapeHTML(value) {
   return String(value ?? '').replace(/[&<>"']/g, c => ({
@@ -542,74 +665,87 @@ function escapeHTML(value) {
 function formatDate(value) {
   const d = new Date(value);
 
-  return Number.isNaN(d.getTime())
-    ? value
-    : d.toLocaleString('vi-VN');
+  if (Number.isNaN(d.getTime())) return value;
+
+  const locale = window.OJ_I18N &&
+    window.OJ_I18N.getLanguage() === "en"
+      ? "en-US"
+      : "vi-VN";
+
+  return d.toLocaleString(locale);
 }
 
-const stateNames = {
-  running: 'Đang diễn ra',
-  upcoming: 'Sắp diễn ra',
-  ended: 'Đã kết thúc'
-};
+function getStateName(state) {
+  const names = {
+    running: "ct_running_state",
+    upcoming: "ct_upcoming_state",
+    ended: "ct_ended_state"
+  };
+
+  return names[state] ? t(names[state]) : escapeHTML(state);
+}
 
 async function loadContests() {
   const list = $('contestList');
 
   list.innerHTML =
-    '<div class="contest-empty">Đang tải cuộc thi...</div>';
+    `<div class="contest-empty">${escapeHTML(t("ct_loading"))}</div>`;
 
   try {
     const response = await fetch('/api/contests');
 
     if (!response.ok) {
-      throw new Error('Không tải được danh sách cuộc thi.');
+      throw new Error(t("ct_load_error"));
     }
 
     const data = await response.json();
 
     $('total').textContent = data.length;
+
     $('running').textContent =
       data.filter(x => x.state === 'running').length;
+
     $('upcoming').textContent =
       data.filter(x => x.state === 'upcoming').length;
 
     if (!data.length) {
       list.innerHTML =
-        '<div class="contest-empty">Chưa có cuộc thi nào.</div>';
+        `<div class="contest-empty">${escapeHTML(t("ct_empty"))}</div>`;
       return;
     }
 
     list.innerHTML = data.map(c => `
       <article class="contest-card">
         <span class="contest-badge ${escapeHTML(c.state)}">
-          ${escapeHTML(stateNames[c.state] || c.state)}
+          ${getStateName(c.state)}
         </span>
 
         <h3>${escapeHTML(c.title)}</h3>
 
-        <p>${escapeHTML(c.description || 'Chưa có mô tả.')}</p>
+        <p>
+          ${escapeHTML(c.description || t("ct_no_description"))}
+        </p>
 
         <p>
-          📅 Bắt đầu:
+          ${t("ct_start_label")}
           ${escapeHTML(formatDate(c.start_time))}
         </p>
 
         <p>
-          🏁 Kết thúc:
+          ${t("ct_end_label")}
           ${escapeHTML(formatDate(c.end_time))}
         </p>
 
         <div class="contest-card-foot">
           <span class="contest-muted">
-            ID #${Number(c.id)}
+            ${t("ct_id")} #${Number(c.id)}
           </span>
 
           <a
             class="contest-btn"
             href="/contests/${Number(c.id)}"
           >
-            Xem cuộc thi →
+            ${t("ct_view")}
           </a>
         </div>
       </article>
@@ -636,7 +772,7 @@ async function loadAdmin() {
     const response = await fetch('/api/problems');
 
     if (!response.ok) {
-      throw new Error('Không tải được danh sách bài tập.');
+      throw new Error(t("ct_problem_error"));
     }
 
     const problems = await response.json();
@@ -652,7 +788,7 @@ async function loadAdmin() {
           ${escapeHTML(p.id)} — ${escapeHTML(p.title)}
         </span>
       </label>
-    `).join('') || 'Chưa có bài tập.';
+    `).join('') || escapeHTML(t("ct_no_problems"));
 
   } catch (_) {
     // Không ảnh hưởng đến trang danh sách công khai.
@@ -667,7 +803,7 @@ $('createForm').addEventListener('submit', async e => {
   const problem_ids = fd.getAll('problem_ids');
 
   if (!problem_ids.length) {
-    $('message').textContent = 'Hãy chọn ít nhất một bài.';
+    $('message').textContent = t("ct_choose_one");
     return;
   }
 
@@ -675,8 +811,7 @@ $('createForm').addEventListener('submit', async e => {
     new Date(fd.get('end_time')) <=
     new Date(fd.get('start_time'))
   ) {
-    $('message').textContent =
-      'Thời gian kết thúc phải sau thời gian bắt đầu.';
+    $('message').textContent = t("ct_time_error");
     return;
   }
 
@@ -691,7 +826,7 @@ $('createForm').addEventListener('submit', async e => {
 
   const submitButton = form.querySelector('button[type="submit"]');
   submitButton.disabled = true;
-  $('message').textContent = 'Đang tạo cuộc thi...';
+  $('message').textContent = t("ct_creating");
 
   try {
     const r = await fetch('/api/admin/contests', {
@@ -705,11 +840,11 @@ $('createForm').addEventListener('submit', async e => {
     const data = await r.json();
 
     if (!r.ok) {
-      throw new Error(data.error || 'Tạo cuộc thi thất bại.');
+      throw new Error(data.error || t("ct_create_failed"));
     }
 
     $('message').textContent =
-      `Đã tạo cuộc thi #${data.id}.`;
+      `${t("ct_created")} #${data.id}.`;
 
     form.reset();
 
@@ -723,6 +858,11 @@ $('createForm').addEventListener('submit', async e => {
   }
 });
 
+// Khi đổi ngôn ngữ, tải lại nội dung động.
+document.addEventListener('oj-language-changed', function () {
+  loadContests();
+  loadAdmin();
+});
 loadContests();
 loadAdmin();
 </script>
