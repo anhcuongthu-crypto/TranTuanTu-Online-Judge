@@ -1998,10 +1998,14 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             )
             if idx is None:
                 return jsonify(error='Không tìm thấy bài.'), 404
-            d['id'] = pid
-            set_freopen_settings(d, old[idx])
-            validate_problem(d)
-            old[idx] = d
+        d['id'] = pid
+        d['author'] = str(
+            d.get('author', old[idx].get('author', ''))
+        ).strip()
+
+        set_freopen_settings(d, old[idx])
+        validate_problem(d)
+        old[idx] = d
             save_problems(old, app.config['PROBLEMS_PATH'])
             update_problems_cache(old)
             return jsonify(ok=True, id=pid)
