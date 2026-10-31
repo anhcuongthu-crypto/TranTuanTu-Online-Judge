@@ -689,8 +689,26 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
     
     @app.get('/submissions')
     def submissions_page():
-        return render_template('submissions.html')
+        user = current_user()
+        if not user:
+            return redirect(url_for('home'))
 
+        scope = request.args.get('scope', 'history')
+        problem_id = request.args.get('problem_id', '').strip()
+
+        if scope not in ('all', 'mine', 'history'):
+            scope = 'history'
+
+        if scope in ('all', 'mine') and not problem_id:
+            scope = 'history'
+
+        return render_template(
+            'submissions.html',
+            scope=scope,
+            problem_id=problem_id
+        )
+
+   
     @app.get('/submission/<int:submission_id>')
     def submission_page(submission_id):
         user = current_user()
