@@ -51,6 +51,42 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="/static/style.css">
+
+    <style>
+        .language-switch {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+
+        .lang-btn {
+            border: 1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.05);
+            border-radius: 9px;
+            padding: 7px 10px;
+            font-size: 19px;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .lang-btn:hover {
+            background: rgba(124,58,237,.2);
+            transform: translateY(-2px);
+        }
+
+        .lang-btn.active {
+            border-color: #8b5cf6;
+            background: rgba(124,58,237,.25);
+        }
+
+        @media (max-width: 900px) {
+            .language-switch {
+                margin: 8px 0;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -68,26 +104,45 @@
         </a>
 
         <nav aria-label="Điều hướng chính">
-            <a href="/">Bài tập</a>
-            <a href="/contests">🏆 Contest</a>
-            <a href="/submissions">📝 Các bài nộp</a>
-            <a href="/leaderboard">🏆 Bảng xếp hạng</a>
-            <a href="/about">Giới thiệu</a>
-            <a href="/profile">Hồ sơ</a>
+            <a href="/" data-i18n="nav_problems">Bài tập</a>
+            <a href="/contests" data-i18n="nav_contests">🏆 Contest</a>
+            <a href="/submissions" data-i18n="nav_submissions">📝 Các bài nộp</a>
+            <a href="/leaderboard" data-i18n="nav_leaderboard">🏆 Bảng xếp hạng</a>
+            <a href="/about" data-i18n="nav_about">Giới thiệu</a>
+            <a href="/profile" data-i18n="nav_profile">Hồ sơ</a>
 
             {% if logged_in_user and logged_in_user.is_admin %}
-                <a id="admin-link" href="/admin">Quản trị</a>
+                <a id="admin-link" href="/admin" data-i18n="nav_admin">Quản trị</a>
             {% else %}
-                <a id="admin-link" href="/admin" hidden>Quản trị</a>
+                <a id="admin-link" href="/admin" data-i18n="nav_admin" hidden>Quản trị</a>
             {% endif %}
         </nav>
+
+        <!-- Language switch -->
+        <div class="language-switch" aria-label="Language">
+            <button
+                type="button"
+                class="lang-btn"
+                data-lang="vi"
+                title="Tiếng Việt"
+                aria-label="Tiếng Việt"
+            >🇻🇳</button>
+
+            <button
+                type="button"
+                class="lang-btn"
+                data-lang="en"
+                title="English"
+                aria-label="English"
+            >🇬🇧</button>
+        </div>
 
         <div class="top-user">
             <span id="user-status">
                 {% if logged_in_user %}
-                    Xin chào, {{ logged_in_user.username }}
+                    <span data-i18n="hello">Xin chào</span>, {{ logged_in_user.username }}
                 {% else %}
-                    Chưa đăng nhập
+                    <span data-i18n="not_logged_in">Chưa đăng nhập</span>
                 {% endif %}
             </span>
 
@@ -95,6 +150,7 @@
                 id="logout-button"
                 class="button button-ghost"
                 type="button"
+                data-i18n="logout"
                 {% if not logged_in_user %}hidden{% endif %}
             >
                 Đăng xuất
@@ -111,17 +167,88 @@
             TranTu OJ Studio <span>✦</span>
         </div>
 
-        <p>
+        <p data-i18n="footer_description">
             Nền tảng luyện lập trình C++ · Bài tập Tin học ·
             Chấm bài tự động qua Judge0
         </p>
 
-        <small>
+        <small data-i18n="footer_slogan">
             Đặt mục tiêu, luyện từng bài, tiến bộ mỗi ngày.
         </small>
     </footer>
 
     <script src="/static/app.js"></script>
+
+    <!-- Language system -->
+    <script>
+    (function () {
+        const translations = {
+            vi: {
+                nav_problems: "Bài tập",
+                nav_contests: "🏆 Contest",
+                nav_submissions: "📝 Các bài nộp",
+                nav_leaderboard: "🏆 Bảng xếp hạng",
+                nav_about: "Giới thiệu",
+                nav_profile: "Hồ sơ",
+                nav_admin: "Quản trị",
+                hello: "Xin chào",
+                not_logged_in: "Chưa đăng nhập",
+                logout: "Đăng xuất",
+                footer_description:
+                    "Nền tảng luyện lập trình C++ · Bài tập Tin học · Chấm bài tự động qua Judge0",
+                footer_slogan:
+                    "Đặt mục tiêu, luyện từng bài, tiến bộ mỗi ngày."
+            },
+
+            en: {
+                nav_problems: "Problems",
+                nav_contests: "🏆 Contests",
+                nav_submissions: "📝 Submissions",
+                nav_leaderboard: "🏆 Leaderboard",
+                nav_about: "About",
+                nav_profile: "Profile",
+                nav_admin: "Admin",
+                hello: "Hello",
+                not_logged_in: "Not logged in",
+                logout: "Log out",
+                footer_description:
+                    "C++ Programming Platform · Computer Science Problems · Automatic Judging via Judge0",
+                footer_slogan:
+                    "Set goals, solve problems, improve every day."
+            }
+        };
+
+        function setLanguage(lang) {
+            if (!translations[lang]) return;
+
+            localStorage.setItem("oj_language", lang);
+            document.documentElement.lang = lang;
+
+            document.querySelectorAll("[data-i18n]").forEach(element => {
+                const key = element.dataset.i18n;
+
+                if (translations[lang][key] !== undefined) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+
+            document.querySelectorAll(".lang-btn").forEach(button => {
+                const active = button.dataset.lang === lang;
+
+                button.classList.toggle("active", active);
+                button.setAttribute("aria-pressed", active ? "true" : "false");
+            });
+        }
+
+        document.querySelectorAll(".lang-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                setLanguage(this.dataset.lang);
+            });
+        });
+
+        const savedLanguage = localStorage.getItem("oj_language") || "vi";
+        setLanguage(savedLanguage);
+    })();
+    </script>
 </body>
 </html>
-
