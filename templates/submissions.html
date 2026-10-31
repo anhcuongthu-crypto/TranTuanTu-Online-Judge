@@ -742,11 +742,21 @@ if (problemId != null && String(problemId) !== '') {
         refreshButton.textContent = 'Đang tải...';
 
         try {
-            const response = await fetch('/api/submissions', {
-                headers: { 'Accept': 'application/json' },
-                credentials: 'same-origin'
-            });
+const params = new URLSearchParams();
 
+params.set('scope', {{ scope|tojson }});
+
+{% if problem_id %}
+params.set('problem_id', {{ problem_id|tojson }});
+{% endif %}
+
+const response = await fetch(
+    '/api/submissions?' + params.toString(),
+    {
+        headers: { 'Accept': 'application/json' },
+        credentials: 'same-origin'
+    }
+);
             const text = await response.text();
             let data;
 
