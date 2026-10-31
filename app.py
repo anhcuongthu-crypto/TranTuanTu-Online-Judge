@@ -805,18 +805,41 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         if not user:
             return jsonify(error='Cần đăng nhập.'), 401
 
+        scope = request.args.get('scope', 'history')
+        problem_id = request.args.get('problem_id', '').strip()
+
+        if scope not in ('all', 'mine', 'history'):
+            scope = 'history'
+
+        sql = '''
+            SELECT s.id, s.user_id, u.username,
+                   s.problem_id, s.language_id, s.verdict,
+                   s.score, s.max_score,
+                   s.created_at, s.contest_id
+            FROM submissions s
+            JOIN users u ON u.id = s.user_id
+            WHERE u.approved = 1
+        '''
+        params = []
+
+        if scope == 'all' and problem_id:
+            sql += ' AND s.problem_id = ? AND s.contest_id IS NULL'
+            params.append(problem_id)
+
+        elif scope == 'mine' and problem_id:
+            sql += ''' AND s.problem_id = ?
+                       AND s.user_id = ?
+                       AND s.contest_id IS NULL'''
+            params.extend([problem_id, user['id']])
+
+        else:
+            sql += ' AND s.user_id = ?'
+            params.append(user['id'])
+
+        sql += ' ORDER BY s.id DESC LIMIT 500'
+
         with connect(app.config['DATABASE_PATH']) as db:
-            rows = db.execute(
-                '''SELECT s.id, s.user_id, u.username,
-                          s.problem_id, s.language_id, s.verdict,
-                          s.score, s.max_score,
-                          s.created_at, s.contest_id
-                   FROM submissions s
-                   JOIN users u ON u.id = s.user_id
-                   WHERE u.approved=1
-                   ORDER BY s.id DESC
-                   LIMIT 500'''
-            ).fetchall()
+            rows = db.execute(sql, params).fetchall()
 
         result = []
         for row in rows:
