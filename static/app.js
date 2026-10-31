@@ -269,6 +269,7 @@ function renderSubmissionTable(items) {
 
 // ==================== TẢI DỮ LIỆU ====================
 
+
 async function refresh() {
     const authSection = document.querySelector('#auth-section');
     const status = document.querySelector('#user-status');
@@ -289,93 +290,96 @@ async function refresh() {
         history || submissionTable
     ) {
         tasks.push((async () => {
-            const me = await api('/api/me');
-            const user = me.user;
+            try {
+                const me = await api('/api/me');
+                const user = me.user;
 
-            if (authSection) {
-                authSection.style.display = user ? 'none' : 'grid';
-            }
+                if (authSection) {
+                    authSection.style.display = user ? 'none' : 'grid';
+                }
 
-            if (status) {
-                status.textContent = user
-                    ? `Xin chào, ${user.username}`
-                    : 'Chưa đăng nhập';
-            }
+                if (status) {
+                    status.textContent = user
+                        ? `Xin chào, ${user.username}`
+                        : 'Chưa đăng nhập';
+                }
 
-            if (logout) logout.hidden = !user;
-            if (admin) admin.hidden = !(user && user.is_admin);
+                if (logout) logout.hidden = !user;
+                if (admin) admin.hidden = !(user && user.is_admin);
 
-            if (!history && !submissionTable) return;
+                if (!history && !submissionTable) return;
 
-            if (!user) {
+                if (!user) {
+                    if (history) {
+                        history.textContent =
+                            'Vui lòng đăng nhập để xem lịch sử.';
+                    }
+
+                    if (submissionTable) {
+                        submissionTable.textContent =
+                            'Vui lòng đăng nhập để xem bài nộp.';
+                    }
+
+                    return;
+                }
+
+                const data = await api('/api/submissions');
+                const items = Array.isArray(data)
+                    ? data
+                    : (data.submissions || []);
+
+                renderSubmissionTable(items);
+
                 if (history) {
-                    history.textContent =
-                        'Vui lòng đăng nhập để xem lịch sử.';
-                }
-
-                if (submissionTable) {
-                    submissionTable.textContent =
-                        'Vui lòng đăng nhập để xem bài nộp.';
-                }
-
-                return;
-            }
-
-            const data = await api('/api/submissions');
-            const items = Array.isArray(data)
-                ? data
-                : (data.submissions || []);
-
-            // Bảng bài nộp.
-            renderSubmissionTable(items);
-
-            // Lịch sử bài nộp.
-            if (history) {
-                history.innerHTML = items.length
-                    ? `
-                        <div style="overflow-x:auto">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Bài</th>
-                                        <th>Kết quả</th>
-                                        <th>Điểm</th>
-                                        <th>Thời gian</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    ${items.map(x => `
+                    history.innerHTML = items.length
+                        ? `
+                            <div style="overflow-x:auto">
+                                <table>
+                                    <thead>
                                         <tr>
-                                            <td>
-                                                <a
-                                                    class="text-link"
-                                                    href="/problems/${encodeURIComponent(x.problem_id ?? '')}"
-                                                >
-                                                    ${escapeHtml(x.problem_id ?? '—')}
-                                                </a>
-                                            </td>
-
-                                            <td>
-                                                ${escapeHtml(x.verdict ?? '—')}
-                                            </td>
-
-                                            <td>
-                                                ${formatScore(x.score)}/${formatScore(x.max_score)}
-                                            </td>
-
-                                            <td>
-                                                ${escapeHtml(x.created_at ?? '—')}
-                                            </td>
+                                            <th>Bài</th>
+                                            <th>Kết quả</th>
+                                            <th>Điểm</th>
+                                            <th>Thời gian</th>
                                         </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    `
-                    : 'Chưa có bài nộp.';
+                                    </thead>
+
+                                    <tbody>
+                                        ${items.map(x => `
+                                            <tr>
+                                                <td>
+                                                    <a
+                                                        class="text-link"
+                                                        href="/problems/${encodeURIComponent(x.problem_id ?? '')}"
+                                                    >
+                                                        ${escapeHtml(x.problem_id ?? '—')}
+                                                    </a>
+                                                </td>
+
+                                                <td>
+                                                    ${escapeHtml(x.verdict ?? '—')}
+                                                </td>
+
+                                                <td>
+                                                    ${formatScore(x.score)}/${formatScore(x.max_score)}
+                                                </td>
+
+                                                <td>
+                                                    ${escapeHtml(x.created_at ?? '—')}
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `
+                        : 'Chưa có bài nộp.';
+                }
+            } catch (e) {
+                // Giữ nguyên trạng thái đăng nhập do Flask render.
+                console.error('Lỗi tải tài khoản:', e);
             }
-        })().catch(e => console.error('Lỗi tải tài khoản:', e)));
+        })());
     }
 
     // Danh sách bài tập.
@@ -387,10 +391,7 @@ async function refresh() {
                 }
 
                 if (problems) {
-                    // Lưu dữ liệu gốc để tìm kiếm và sắp xếp.
                     problems.dataset.items = JSON.stringify(items);
-
-                    // Dùng cả bộ lọc tìm kiếm hiện tại.
                     renderProblems(getFilteredProblems());
                 }
 
@@ -447,13 +448,15 @@ async function refresh() {
                             </table>
                         </div>
                     `
-                    : 'Chưa có thành tích. Hãy là người đầu tiên!';
+                    : 'Chưa có thành tích.';
+
             }).catch(e => console.error('Lỗi tải bảng xếp hạng:', e))
         );
     }
 
     await Promise.allSettled(tasks);
 }
+
 
 // ==================== TÌM KIẾM BÀI ====================
 
