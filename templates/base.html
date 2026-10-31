@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="vi">
 <head>
@@ -22,7 +23,6 @@
     >
 
     <meta name="robots" content="index, follow">
-
     <link rel="canonical" href="{{ request.base_url }}">
 
     <!-- Open Graph -->
@@ -82,6 +82,25 @@
             .language-switch {
                 margin: 8px 0;
             }
+        }
+
+        /* LOGIN PAGE: ẨN TOÀN BỘ GIAO DIỆN CHUNG */
+        body.login-page .topbar,
+        body.login-page footer,
+        body.login-page .ambient {
+            display: none !important;
+        }
+
+        body.login-page {
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        body.login-page #main-content {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            max-width: none;
         }
     </style>
 
@@ -292,9 +311,9 @@
     </script>
 </head>
 
-<body>
+<body class="{% if request.path == '/login' or request.path == '/login/' %}login-page{% endif %}">
 
-    {% if request.endpoint != 'login_page' %}
+    {% if request.path != '/login' and request.path != '/login/' %}
 
         <div class="ambient ambient-a"></div>
         <div class="ambient ambient-b"></div>
@@ -383,7 +402,7 @@
         {% block content %}{% endblock %}
     </main>
 
-    {% if request.endpoint != 'login_page' %}
+    {% if request.path != '/login' and request.path != '/login/' %}
         <footer>
             <div class="footer-brand">
                 TranTu OJ Studio <span>✦</span>
