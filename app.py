@@ -646,6 +646,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             'https://trantuantu-online-judge.onrender.com/',
             'https://trantuantu-online-judge.onrender.com/about',
             'https://trantuantu-online-judge.onrender.com/contests',
+            'https://trantuantu-online-judge.onrender.com/leaderboard',
         ]
 
         for p in problems():
