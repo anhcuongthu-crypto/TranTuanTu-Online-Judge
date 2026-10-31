@@ -237,6 +237,40 @@ def initialize_problem_file(app):
             shutil.copy2(source, target)
     else:
         target.write_text('[]', encoding='utf-8')
+def set_freopen_settings(p, old=None):
+    old = old or {}
+
+    use_freopen = p.get(
+        'use_freopen',
+        old.get('use_freopen', False)
+    )
+
+    if not isinstance(use_freopen, bool):
+        raise ValueError('Thiết lập freopen không hợp lệ.')
+
+    input_file = str(
+        p.get('input_file', old.get('input_file', ''))
+    ).strip()
+
+    output_file = str(
+        p.get('output_file', old.get('output_file', ''))
+    ).strip()
+
+    if use_freopen:
+        if (
+            not re.fullmatch(r'[A-Za-z0-9_-]+\.INP', input_file)
+            or not re.fullmatch(r'[A-Za-z0-9_-]+\.OUT', output_file)
+        ):
+            raise ValueError(
+                'Tên file phải có dạng TEN.INP và TEN.OUT.'
+            )
+    else:
+        input_file = ''
+        output_file = ''
+
+    p['use_freopen'] = use_freopen
+    p['input_file'] = input_file
+    p['output_file'] = output_file
 
 
 def create_app(test_config=None):
@@ -1901,6 +1935,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             old = problems(refresh=True)
             if not d.get('id') or any(p['id'] == d['id'] for p in old):
                 return jsonify(error='ID thiếu hoặc đã tồn tại.'), 400
+            set_freopen_settings(d)
             validate_problem(d)
             old.append(d)
             save_problems(old, app.config['PROBLEMS_PATH'])
@@ -1923,6 +1958,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             if idx is None:
                 return jsonify(error='Không tìm thấy bài.'), 404
             d['id'] = pid
+            set_freopen_settings(d, old[idx])
             validate_problem(d)
             old[idx] = d
             save_problems(old, app.config['PROBLEMS_PATH'])
