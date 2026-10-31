@@ -395,6 +395,9 @@ def create_app(test_config=None):
     def admin_required():
         user = current_user()
         return user if user and user['is_admin'] else None
+    @app.context_processor
+    def inject_current_user():
+        return {'logged_in_user': current_user()}
 
     def parse_contest_time(value):
         if not isinstance(value, str) or not value.strip():
