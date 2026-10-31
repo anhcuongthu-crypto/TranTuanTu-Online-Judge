@@ -24,7 +24,6 @@
 
     <meta name="robots" content="index, follow">
 
-    <!-- Canonical -->
     <link rel="canonical" href="{{ request.base_url }}">
 
     <!-- Open Graph -->
@@ -49,7 +48,6 @@
         rel="stylesheet"
     >
 
-    <!-- CSS -->
     <link rel="stylesheet" href="/static/style.css">
 
     <style>
@@ -87,6 +85,216 @@
             }
         }
     </style>
+
+    <!-- GLOBAL LANGUAGE SYSTEM -->
+    <script>
+    (function () {
+        const translations = {
+            vi: {
+                nav_problems: "Bài tập",
+                nav_contests: "🏆 Contest",
+                nav_submissions: "📝 Các bài nộp",
+                nav_leaderboard: "🏆 Bảng xếp hạng",
+                nav_about: "Giới thiệu",
+                nav_profile: "Hồ sơ",
+                nav_admin: "Quản trị",
+
+                hello: "Xin chào",
+                not_logged_in: "Chưa đăng nhập",
+                logout: "Đăng xuất",
+
+                footer_description:
+                    "Nền tảng luyện lập trình C++ · Bài tập Tin học · Chấm bài tự động qua Judge0",
+
+                footer_slogan:
+                    "Đặt mục tiêu, luyện từng bài, tiến bộ mỗi ngày.",
+
+                common_loading: "Đang tải...",
+                common_error: "Đã xảy ra lỗi.",
+                common_retry: "Thử lại",
+                common_refresh: "Làm mới",
+                common_save: "Lưu",
+                common_cancel: "Hủy",
+                common_delete: "Xóa",
+                common_edit: "Chỉnh sửa",
+                common_search: "Tìm kiếm",
+                common_back: "Quay lại",
+                common_submit: "Nộp bài",
+                common_detail: "Chi tiết",
+                common_close: "Đóng",
+                common_yes: "Có",
+                common_no: "Không",
+                common_success: "Thành công",
+                common_failed: "Thất bại"
+            },
+
+            en: {
+                nav_problems: "Problems",
+                nav_contests: "🏆 Contests",
+                nav_submissions: "📝 Submissions",
+                nav_leaderboard: "🏆 Leaderboard",
+                nav_about: "About",
+                nav_profile: "Profile",
+                nav_admin: "Admin",
+
+                hello: "Hello",
+                not_logged_in: "Not logged in",
+                logout: "Log out",
+
+                footer_description:
+                    "C++ Programming Platform · Computer Science Problems · Automatic Judging via Judge0",
+
+                footer_slogan:
+                    "Set goals, solve problems, improve every day.",
+
+                common_loading: "Loading...",
+                common_error: "An error occurred.",
+                common_retry: "Retry",
+                common_refresh: "Refresh",
+                common_save: "Save",
+                common_cancel: "Cancel",
+                common_delete: "Delete",
+                common_edit: "Edit",
+                common_search: "Search",
+                common_back: "Back",
+                common_submit: "Submit",
+                common_detail: "Details",
+                common_close: "Close",
+                common_yes: "Yes",
+                common_no: "No",
+                common_success: "Success",
+                common_failed: "Failed"
+            }
+        };
+
+        let currentLanguage = "vi";
+
+        function getLanguage() {
+            return currentLanguage;
+        }
+
+        function t(key, fallback) {
+            const value = translations[currentLanguage][key];
+
+            if (value !== undefined) {
+                return value;
+            }
+
+            return fallback !== undefined ? fallback : key;
+        }
+
+        function translatePage() {
+            const lang = currentLanguage;
+
+            // Translate text
+            document.querySelectorAll("[data-i18n]").forEach(element => {
+                const key = element.dataset.i18n;
+                const value = translations[lang][key];
+
+                if (value !== undefined) {
+                    element.textContent = value;
+                }
+            });
+
+            // Translate placeholders
+            document.querySelectorAll("[data-i18n-placeholder]").forEach(element => {
+                const key = element.dataset.i18nPlaceholder;
+                const value = translations[lang][key];
+
+                if (value !== undefined) {
+                    element.setAttribute("placeholder", value);
+                }
+            });
+
+            // Translate title attributes
+            document.querySelectorAll("[data-i18n-title]").forEach(element => {
+                const key = element.dataset.i18nTitle;
+                const value = translations[lang][key];
+
+                if (value !== undefined) {
+                    element.setAttribute("title", value);
+                }
+            });
+
+            // Translate aria-label
+            document.querySelectorAll("[data-i18n-aria-label]").forEach(element => {
+                const key = element.dataset.i18nAriaLabel;
+                const value = translations[lang][key];
+
+                if (value !== undefined) {
+                    element.setAttribute("aria-label", value);
+                }
+            });
+
+            // Update language buttons
+            document.querySelectorAll(".lang-btn").forEach(button => {
+                const active = button.dataset.lang === lang;
+
+                button.classList.toggle("active", active);
+                button.setAttribute(
+                    "aria-pressed",
+                    active ? "true" : "false"
+                );
+            });
+        }
+
+        function setLanguage(lang) {
+            if (!translations[lang]) return;
+
+            currentLanguage = lang;
+
+            try {
+                localStorage.setItem("oj_language", lang);
+            } catch (error) {
+                // Continue even if localStorage is unavailable.
+            }
+
+            document.documentElement.lang = lang;
+
+            translatePage();
+
+            // Notify page scripts to rerender dynamic content.
+            document.dispatchEvent(
+                new CustomEvent("oj-language-changed", {
+                    detail: { language: lang }
+                })
+            );
+        }
+
+        function addTranslations(lang, dictionary) {
+            if (!translations[lang] || !dictionary) return;
+
+            Object.assign(translations[lang], dictionary);
+            translatePage();
+        }
+
+        window.OJ_I18N = {
+            t: t,
+            getLanguage: getLanguage,
+            setLanguage: setLanguage,
+            addTranslations: addTranslations,
+            translatePage: translatePage
+        };
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".lang-btn").forEach(button => {
+                button.addEventListener("click", function () {
+                    setLanguage(this.dataset.lang);
+                });
+            });
+
+            let savedLanguage = "vi";
+
+            try {
+                savedLanguage = localStorage.getItem("oj_language") || "vi";
+            } catch (error) {
+                savedLanguage = "vi";
+            }
+
+            setLanguage(savedLanguage);
+        });
+    })();
+    </script>
 </head>
 
 <body>
@@ -94,7 +302,11 @@
     <div class="ambient ambient-b"></div>
 
     <header class="topbar">
-        <a href="/" class="brand" aria-label="TranTu OJ Studio - Trang chủ">
+        <a
+            href="/"
+            class="brand"
+            aria-label="TranTu OJ Studio - Trang chủ"
+        >
             <span class="brand-mark">λ</span>
 
             <span>
@@ -118,7 +330,6 @@
             {% endif %}
         </nav>
 
-        <!-- Language switch -->
         <div class="language-switch" aria-label="Language">
             <button
                 type="button"
@@ -178,77 +389,5 @@
     </footer>
 
     <script src="/static/app.js"></script>
-
-    <!-- Language system -->
-    <script>
-    (function () {
-        const translations = {
-            vi: {
-                nav_problems: "Bài tập",
-                nav_contests: "🏆 Contest",
-                nav_submissions: "📝 Các bài nộp",
-                nav_leaderboard: "🏆 Bảng xếp hạng",
-                nav_about: "Giới thiệu",
-                nav_profile: "Hồ sơ",
-                nav_admin: "Quản trị",
-                hello: "Xin chào",
-                not_logged_in: "Chưa đăng nhập",
-                logout: "Đăng xuất",
-                footer_description:
-                    "Nền tảng luyện lập trình C++ · Bài tập Tin học · Chấm bài tự động qua Judge0",
-                footer_slogan:
-                    "Đặt mục tiêu, luyện từng bài, tiến bộ mỗi ngày."
-            },
-
-            en: {
-                nav_problems: "Problems",
-                nav_contests: "🏆 Contests",
-                nav_submissions: "📝 Submissions",
-                nav_leaderboard: "🏆 Leaderboard",
-                nav_about: "About",
-                nav_profile: "Profile",
-                nav_admin: "Admin",
-                hello: "Hello",
-                not_logged_in: "Not logged in",
-                logout: "Log out",
-                footer_description:
-                    "C++ Programming Platform · Computer Science Problems · Automatic Judging via Judge0",
-                footer_slogan:
-                    "Set goals, solve problems, improve every day."
-            }
-        };
-
-        function setLanguage(lang) {
-            if (!translations[lang]) return;
-
-            localStorage.setItem("oj_language", lang);
-            document.documentElement.lang = lang;
-
-            document.querySelectorAll("[data-i18n]").forEach(element => {
-                const key = element.dataset.i18n;
-
-                if (translations[lang][key] !== undefined) {
-                    element.textContent = translations[lang][key];
-                }
-            });
-
-            document.querySelectorAll(".lang-btn").forEach(button => {
-                const active = button.dataset.lang === lang;
-
-                button.classList.toggle("active", active);
-                button.setAttribute("aria-pressed", active ? "true" : "false");
-            });
-        }
-
-        document.querySelectorAll(".lang-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                setLanguage(this.dataset.lang);
-            });
-        });
-
-        const savedLanguage = localStorage.getItem("oj_language") || "vi";
-        setLanguage(savedLanguage);
-    })();
-    </script>
 </body>
 </html>
