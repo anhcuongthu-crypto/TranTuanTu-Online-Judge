@@ -1051,7 +1051,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
     @app.get('/leaderboard')
     def leaderboard_page():
-        return redirect(url_for('leaderboard.html'))
+        return render_template('leaderboard.html')
 
 
     @app.get('/about')
