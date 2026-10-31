@@ -1401,9 +1401,16 @@ a:hover {
 }
 
 .topbar nav a {
+    font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: normal;
+    line-height: 1.5;
+    color: #b4cce8;
     white-space: nowrap;
     flex-shrink: 0;
-    font-size: 11px;
+    text-transform: none;
+    transition: color .2s ease;
 }
 
 .language-switch {
