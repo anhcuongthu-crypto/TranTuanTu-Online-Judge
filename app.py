@@ -1,7 +1,7 @@
 import base64
 import urllib.request
 import urllib.error
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 import json
 import xml.etree.ElementTree as ET
 import os
@@ -354,6 +354,87 @@ def create_app(test_config=None):
     def update_problems_cache(data):
         nonlocal problems_cache
         problems_cache = data
+        # ==================== AUTO TRANSLATE PROBLEM ====================
+
+    problem_translation_cache = {}
+
+    def translate_problem_text(text):
+        text = str(text or "")
+
+        if not text.strip():
+            return ""
+
+        if text in problem_translation_cache:
+            return problem_translation_cache[text]
+
+        try:
+            # Giữ nguyên các đoạn code nằm trong dấu `...`
+            code_parts = []
+
+            def protect_code(match):
+                code_parts.append(match.group(0))
+                return f" OJCODE{len(code_parts) - 1}END "
+
+            protected = re.sub(r"`[^`]*`", protect_code, text)
+
+            # Chia văn bản thành các đoạn nhỏ, giữ nguyên xuống dòng.
+            words = re.findall(r"\S+\s*", protected)
+            chunks = []
+            current = ""
+
+            for word in words:
+                if current and len(
+                    (current + word).encode("utf-8")
+                ) > 450:
+                    chunks.append(current)
+                    current = ""
+
+                current += word
+
+            if current:
+                chunks.append(current)
+
+            translated_chunks = []
+
+            for chunk in chunks:
+                url = "https://api.mymemory.translated.net/get?" + urlencode({
+                    "q": chunk,
+                    "langpair": "vi|en"
+                })
+
+                req = urllib.request.Request(
+                    url,
+                    headers={
+                        "User-Agent": "TranTu-OJ-Studio/1.0"
+                    }
+                )
+
+                with urllib.request.urlopen(req, timeout=15) as response:
+                    data = json.loads(
+                        response.read().decode("utf-8")
+                    )
+
+                if data.get("responseStatus") != 200:
+                    return text
+
+                translated_chunks.append(
+                    data["responseData"]["translatedText"]
+                )
+
+            translated = "".join(translated_chunks)
+
+            # Khôi phục các đoạn code ban đầu.
+            for i, code in enumerate(code_parts):
+                translated = translated.replace(
+                    f"OJCODE{i}END", code
+                )
+
+            problem_translation_cache[text] = translated
+            return translated
+
+        except Exception:
+            app.logger.exception("Lỗi dịch đề bài")
+            return text    
 
     admin2_username = os.getenv('ADMIN2_USERNAME', '').strip()
     admin2_password = os.getenv('ADMIN2_PASSWORD', '')
