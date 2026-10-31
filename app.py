@@ -1989,26 +1989,34 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
     def admin_update(pid):
         if not admin_required():
             return jsonify(error='Chỉ admin.'), 403
+
         d = request.get_json(silent=True) or {}
+
         try:
             old = problems()
             idx = next(
-                (i for i, p in enumerate(old) if p['id'] == pid),
+                (i for i, p in enumerate(old) if str(p['id']) == pid),
                 None
             )
+
             if idx is None:
                 return jsonify(error='Không tìm thấy bài.'), 404
-        d['id'] = pid
-        d['author'] = str(
-            d.get('author', old[idx].get('author', ''))
-        ).strip()
 
-        set_freopen_settings(d, old[idx])
-        validate_problem(d)
-        old[idx] = d
+            d['id'] = pid
+            d['author'] = str(
+                d.get('author', old[idx].get('author', ''))
+            ).strip()
+
+            set_freopen_settings(d, old[idx])
+            validate_problem(d)
+
+            old[idx] = d
+
             save_problems(old, app.config['PROBLEMS_PATH'])
             update_problems_cache(old)
+
             return jsonify(ok=True, id=pid)
+
         except Exception as e:
             return jsonify(error=str(e)), 400
     # XÓA CÁC BÀI TRÙNG NỘI DUNG
