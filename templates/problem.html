@@ -47,7 +47,6 @@
     padding: 11px 0;
     border-bottom: 1px solid var(--border-color, rgba(128,128,128,.15));
 }
-.problem-info-row:last-child { border-bottom: none; }
 .problem-info-row span { opacity: .7; font-size: 13px; }
 .problem-info-row strong { text-align: right; font-size: 13px; }
 .problem-hero { margin-bottom: 20px; }
@@ -76,7 +75,7 @@
 </style>
 
 <div class="breadcrumbs">
-    <a href="/" data-i18n="problem_back">← Tất cả bài tập</a>
+    <a href="/" id="problem-back">← Tất cả bài tập</a>
     <span>/</span>
     <span>{{ problem.id }}</span>
 </div>
@@ -86,10 +85,10 @@
 
         <article class="glass-card problem-hero">
             <div class="problem-meta">
-                <span class="pill pill-purple">{{ problem.category }}</span>
+                <span class="pill pill-purple" id="problem-category-badge">{{ problem.category }}</span>
                 <span class="pill">{{ problem.difficulty }}</span>
                 <span class="pill pill-green">
-                    <span data-i18n="problem_score">{{ problem.total_score }} điểm</span>
+                    <span id="problem-score-badge">{{ problem.total_score }} điểm</span>
                 </span>
             </div>
 
@@ -149,14 +148,14 @@
                 {% for s in problem.subtasks %}
                     <div class="subtask-row">
                         <span>
-                            <b>{{ s.name }}</b>
+                            <b class="subtask-name">{{ s.name }}</b>
                             {% if s.constraints %}
-                                <small>{{ s.constraints }}</small>
+                                <small class="subtask-constraints">{{ s.constraints }}</small>
                             {% endif %}
                         </span>
                         <strong>
                             {{ s.score }}
-                            <span data-i18n="problem_points">điểm</span>
+                            <span class="subtask-points">điểm</span>
                         </strong>
                     </div>
                 {% endfor %}
@@ -175,27 +174,25 @@
                    target="_blank"
                    class="button problem-action"
                    id="pdf-button">
-                    ▤ <span data-i18n="problem_pdf">Xem dạng PDF</span>
+                    ▤ <span id="pdf-button-text">Xem dạng PDF</span>
                 </a>
             {% endif %}
 
             <a href="/problems/{{ problem.id }}/submit"
                class="button button-primary problem-action"
                id="submit-button">
-                ↑ <span data-i18n="problem_submit">Gửi bài giải</span>
+                ↑ <span id="submit-button-text">Gửi bài giải</span>
             </a>
 
             <div style="margin-top:12px">
                 <a href="/submissions?scope=mine&problem_id={{ problem.id|urlencode }}"
-                   class="problem-side-link"
-                   id="my-submissions-link">
-                    <span data-i18n="problem_my_submissions">Bài nộp của tôi</span> →
+                   class="problem-side-link">
+                    <span id="my-submissions-text">Bài nộp của tôi</span> →
                 </a>
 
                 <a href="/submissions?scope=all&problem_id={{ problem.id|urlencode }}"
-                   class="problem-side-link"
-                   id="all-submissions-link">
-                    <span data-i18n="problem_all_submissions">Danh sách bài nộp</span> →
+                   class="problem-side-link">
+                    <span id="all-submissions-text">Danh sách bài nộp</span> →
                 </a>
             </div>
         </section>
@@ -219,12 +216,12 @@
             </div>
 
             <div class="problem-info-row">
-                <span>Input</span>
+                <span id="info-input">Input</span>
                 <strong>stdin</strong>
             </div>
 
             <div class="problem-info-row">
-                <span>Output</span>
+                <span id="info-output">Output</span>
                 <strong>stdout</strong>
             </div>
         </section>
@@ -234,17 +231,17 @@
 
             <div class="problem-info-row">
                 <span id="info-author">Tác giả</span>
-                <strong>{{ problem.author|default('Chưa cập nhật', true) }}</strong>
+                <strong id="info-author-value">{{ problem.author|default('Chưa cập nhật', true) }}</strong>
             </div>
 
             <div class="problem-info-row">
                 <span id="info-created">Người đăng</span>
-                <strong>{{ problem.created_by|default('Admin', true) }}</strong>
+                <strong id="info-created-value">{{ problem.created_by|default('Admin', true) }}</strong>
             </div>
 
             <div class="problem-info-row">
                 <span id="info-category">Dạng bài</span>
-                <strong>{{ problem.category }}</strong>
+                <strong id="info-category-value">{{ problem.category }}</strong>
             </div>
 
             <div class="problem-info-row">
@@ -263,8 +260,14 @@
         statement: {{ problem.statement|tojson }},
         input_format: {{ problem.input_format|tojson }},
         output_format: {{ problem.output_format|tojson }},
-        explanation: {{ problem.explanation|default('', true)|tojson }}
+        explanation: {{ problem.explanation|default('', true)|tojson }},
+        author: {{ problem.author|default('Chưa cập nhật', true)|tojson }},
+        created_by: {{ problem.created_by|default('Admin', true)|tojson }},
+        category: {{ problem.category|tojson }},
+        total_score: {{ problem.total_score|tojson }}
     };
+
+    const originalSubtasks = {{ problem.subtasks|default([], true)|tojson }};
 
     const translatedIds = {
         title: "problem-title",
@@ -291,12 +294,15 @@
         score: "Score",
         time: "Time limit",
         memory: "Memory limit",
-        other: "Other information",
+        other: "Additional information",
         author: "Author",
-        created: "Uploaded by",
-        category: "Category",
+        created: "Added by",
+        category: "Problem type",
         language: "Language",
-        points: "points"
+        points: "points",
+        notUpdated: "Not updated",
+        inputInfo: "Input",
+        outputInfo: "Output"
     };
 
     const interfaceVietnamese = {
@@ -321,18 +327,66 @@
         created: "Người đăng",
         category: "Dạng bài",
         language: "Ngôn ngữ",
-        points: "điểm"
+        points: "điểm",
+        notUpdated: "Chưa cập nhật",
+        inputInfo: "Input",
+        outputInfo: "Output"
     };
 
     let translated = null;
-    let loading = false;
+    let loadingPromise = null;
     let requestVersion = 0;
 
     const status = document.getElementById("translation-status");
 
     function setText(id, value) {
         const element = document.getElementById(id);
-        if (element) element.textContent = value;
+        if (element) element.textContent = value ?? "";
+    }
+
+    function currentLanguage() {
+        return window.OJ_I18N &&
+               typeof window.OJ_I18N.getLanguage === "function"
+            ? window.OJ_I18N.getLanguage()
+            : "vi";
+    }
+
+    function translateSubtasks(data) {
+        const rows = document.querySelectorAll(".subtask-row");
+
+        rows.forEach((row, index) => {
+            const subtask = data.subtasks?.[index];
+            if (!subtask) return;
+
+            const name = row.querySelector(".subtask-name");
+            const constraints = row.querySelector(".subtask-constraints");
+
+            if (name && subtask.name !== undefined) {
+                name.textContent = subtask.name;
+            }
+
+            if (constraints && subtask.constraints !== undefined) {
+                constraints.textContent = subtask.constraints;
+            }
+        });
+    }
+
+    function restoreSubtasks() {
+        const rows = document.querySelectorAll(".subtask-row");
+
+        rows.forEach((row, index) => {
+            const subtask = originalSubtasks[index];
+            if (!subtask) return;
+
+            const name = row.querySelector(".subtask-name");
+            const constraints = row.querySelector(".subtask-constraints");
+
+            if (name) name.textContent = subtask.name || "";
+
+            if (constraints) {
+                constraints.textContent = subtask.constraints || "";
+            }
+        });
     }
 
     function setInterface(lang) {
@@ -340,6 +394,7 @@
             ? interfaceEnglish
             : interfaceVietnamese;
 
+        setText("problem-back", labels.back);
         setText("problem-data-heading", labels.data);
         setText("input-heading", labels.input);
         setText("output-heading", labels.output);
@@ -347,25 +402,33 @@
         setText("explanation-heading", labels.explanation);
         setText("problem-subtasks-heading", labels.subtasks);
         setText("actions-heading", labels.actions);
-        setText("pdf-button", "▤ " + labels.pdf);
-        setText("submit-button", "↑ " + labels.submit);
-        setText("my-submissions-link", labels.mySubmissions + " →");
-        setText("all-submissions-link", labels.allSubmissions + " →");
+
+        setText("pdf-button-text", labels.pdf);
+        setText("submit-button-text", labels.submit);
+        setText("my-submissions-text", labels.mySubmissions);
+        setText("all-submissions-text", labels.allSubmissions);
+
         setText("info-heading", labels.info);
         setText("info-score", labels.score);
         setText("info-time", labels.time);
         setText("info-memory", labels.memory);
+        setText("info-input", labels.inputInfo);
+        setText("info-output", labels.outputInfo);
+
         setText("other-heading", labels.other);
         setText("info-author", labels.author);
         setText("info-created", labels.created);
         setText("info-category", labels.category);
         setText("info-language", labels.language);
 
-        document.querySelectorAll("[data-i18n='problem_points']")
-            .forEach(el => el.textContent = labels.points);
+        document.querySelectorAll(".subtask-points").forEach(el => {
+            el.textContent = labels.points;
+        });
 
-        document.querySelectorAll("[data-i18n='problem_back']")
-            .forEach(el => el.textContent = labels.back);
+        setText(
+            "problem-score-badge",
+            original.total_score + " " + labels.points
+        );
     }
 
     function showVietnamese() {
@@ -373,11 +436,20 @@
             const element = document.getElementById(translatedIds[key]);
 
             if (element) {
-                element.textContent = original[key];
+                element.textContent = original[key] || "";
             }
         }
 
+        setText("info-author-value", original.author);
+        setText("info-created-value", original.created_by);
+        setText("info-category-value", original.category);
+
+        const badge = document.getElementById("problem-category-badge");
+        if (badge) badge.textContent = original.category;
+
+        restoreSubtasks();
         setInterface("vi");
+
         status.classList.remove("show");
     }
 
@@ -390,8 +462,48 @@
             }
         }
 
+        if (data.author !== undefined) {
+            setText("info-author-value", data.author);
+        }
+
+        if (data.created_by !== undefined) {
+            setText("info-created-value", data.created_by);
+        }
+
+        if (data.category !== undefined) {
+            setText("info-category-value", data.category);
+            setText("problem-category-badge", data.category);
+        }
+
+        translateSubtasks(data);
         setInterface("en");
+
         status.classList.remove("show");
+    }
+
+    async function fetchTranslation() {
+        if (translated) return translated;
+
+        if (!loadingPromise) {
+            loadingPromise = (async function () {
+                const response = await fetch(
+                    "/api/problems/{{ problem.id|urlencode }}/translation"
+                );
+
+                if (!response.ok) {
+                    throw new Error("Translation API error");
+                }
+
+                const data = await response.json();
+
+                translated = data;
+                return data;
+            })().finally(() => {
+                loadingPromise = null;
+            });
+        }
+
+        return await loadingPromise;
     }
 
     async function showEnglish() {
@@ -402,41 +514,27 @@
             return;
         }
 
-        if (loading) return;
-
-        loading = true;
         const currentRequest = ++requestVersion;
 
         status.textContent = "Translating problem...";
         status.classList.add("show");
 
         try {
-            const response = await fetch(
-                "/api/problems/{{ problem.id|urlencode }}/translation"
-            );
+            const data = await fetchTranslation();
 
-            if (!response.ok) {
-                throw new Error("Translation API error");
-            }
+            if (currentRequest !== requestVersion) return;
+            if (currentLanguage() !== "en") return;
 
-            const data = await response.json();
+            showTranslated(data);
+
+        } catch (error) {
+            console.error("Translation error:", error);
 
             if (currentRequest !== requestVersion) return;
 
-            translated = data;
-
-            if (window.OJ_I18N.getLanguage() === "en") {
-                showTranslated(data);
-            }
-
-        } catch (error) {
-            console.error(error);
             status.textContent =
                 "Translation unavailable. Please try again later.";
             status.classList.add("show");
-
-        } finally {
-            loading = false;
         }
     }
 
@@ -449,7 +547,7 @@
         }
     });
 
-    if (window.OJ_I18N.getLanguage() === "en") {
+    if (currentLanguage() === "en") {
         showEnglish();
     } else {
         showVietnamese();
