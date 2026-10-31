@@ -684,6 +684,32 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         ]
         return jsonify(public)
 
+    # API tự động dịch đề sang tiếng Anh
+    @app.get('/api/problems/<pid>/translation')
+    def translate_problem_page(pid):
+        p = next(
+            (x for x in problems() if str(x.get('id')) == str(pid)),
+            None
+        )
+
+        if not p:
+            return jsonify(error='Không tìm thấy bài'), 404
+
+        fields = [
+            'title',
+            'statement',
+            'input_format',
+            'output_format',
+            'explanation'
+        ]
+
+        result = {}
+
+        for field in fields:
+            result[field] = translate_problem_text(p.get(field, ''))
+
+        return jsonify(result)
+
     @app.post('/api/register')
     def register():
         d = request.get_json(silent=True) or {}
