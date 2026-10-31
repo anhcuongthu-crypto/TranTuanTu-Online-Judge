@@ -466,40 +466,84 @@ document.querySelector('#search')?.addEventListener('input', () => {
 
 // ==================== ĐĂNG NHẬP / ĐĂNG KÝ ====================
 
-for (const [id, path] of [
-    ['login-form', '/api/login'],
-    ['register-form', '/api/register']
-]) {
-    document.querySelector('#' + id)?.addEventListener('submit', async e => {
-        e.preventDefault();
+const loginForm = document.querySelector('#login-form');
+const registerForm = document.querySelector('#register-form');
 
-        const form = e.currentTarget;
-        const button = form.querySelector('button');
+const loginBox = document.querySelector('#login-box');
+const registerBox = document.querySelector('#register-box');
 
-        if (button) button.disabled = true;
+const loginTab = document.querySelector('#login-tab');
+const registerTab = document.querySelector('#register-tab');
 
-        try {
-            const data = await api(path, {
-                method: 'POST',
-                body: JSON.stringify(
-                    Object.fromEntries(new FormData(form))
-                )
-            });
+function showAuth(type) {
+    const isLogin = type === 'login';
 
-            note(data.message || 'Thao tác thành công.');
-            form.reset();
+    if (loginBox) loginBox.hidden = !isLogin;
+    if (registerBox) registerBox.hidden = isLogin;
 
-            await Promise.allSettled([
-                refresh(),
-                loadProfile()
-            ]);
-        } catch (err) {
-            note(err.message);
-        } finally {
-            if (button) button.disabled = false;
-        }
-    });
+    if (loginTab) loginTab.classList.toggle('active', isLogin);
+    if (registerTab) registerTab.classList.toggle('active', !isLogin);
+
+    const notice = document.querySelector('#notice');
+    if (notice) notice.textContent = '';
 }
+
+loginTab?.addEventListener('click', () => showAuth('login'));
+registerTab?.addEventListener('click', () => showAuth('register'));
+
+loginForm?.addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const button = loginForm.querySelector('button[type="submit"]');
+    if (button) button.disabled = true;
+
+    try {
+        const data = await api('/api/login', {
+            method: 'POST',
+            body: JSON.stringify(
+                Object.fromEntries(new FormData(loginForm))
+            )
+        });
+
+        note(data.message || 'Đăng nhập thành công.');
+
+        const next = document.querySelector('#login-next')?.value;
+
+        // Chuyển đến trang người dùng muốn truy cập.
+        location.href = next || '/';
+
+    } catch (err) {
+        note(err.message);
+    } finally {
+        if (button) button.disabled = false;
+    }
+});
+
+registerForm?.addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const button = registerForm.querySelector('button[type="submit"]');
+    if (button) button.disabled = true;
+
+    try {
+        const data = await api('/api/register', {
+            method: 'POST',
+            body: JSON.stringify(
+                Object.fromEntries(new FormData(registerForm))
+            )
+        });
+
+        note(data.message || 'Đăng ký thành công.');
+
+        registerForm.reset();
+        showAuth('login');
+
+    } catch (err) {
+        note(err.message);
+    } finally {
+        if (button) button.disabled = false;
+    }
+});
 
 // ==================== ĐĂNG XUẤT ====================
 
