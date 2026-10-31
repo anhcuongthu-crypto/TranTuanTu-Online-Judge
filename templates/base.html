@@ -1,4 +1,4 @@
-
+```html
 <!doctype html>
 <html lang="vi">
 <head>
@@ -24,7 +24,7 @@
 
     <meta name="robots" content="index, follow">
 
-    <!-- Canonical: URL riêng cho từng trang -->
+    <!-- Canonical -->
     <link rel="canonical" href="{{ request.base_url }}">
 
     <!-- Open Graph -->
@@ -74,17 +74,28 @@
             <a href="/leaderboard">🏆 Bảng xếp hạng</a>
             <a href="/about">Giới thiệu</a>
             <a href="/profile">Hồ sơ</a>
-            <a id="admin-link" href="/admin" hidden>Quản trị</a>
+
+            {% if logged_in_user and logged_in_user.is_admin %}
+                <a id="admin-link" href="/admin">Quản trị</a>
+            {% else %}
+                <a id="admin-link" href="/admin" hidden>Quản trị</a>
+            {% endif %}
         </nav>
 
         <div class="top-user">
-            <span id="user-status">Chưa đăng nhập</span>
+            <span id="user-status">
+                {% if logged_in_user %}
+                    Xin chào, {{ logged_in_user.username }}
+                {% else %}
+                    Chưa đăng nhập
+                {% endif %}
+            </span>
 
             <button
                 id="logout-button"
                 class="button button-ghost"
                 type="button"
-                hidden
+                {% if not logged_in_user %}hidden{% endif %}
             >
                 Đăng xuất
             </button>
@@ -113,3 +124,4 @@
     <script src="/static/app.js"></script>
 </body>
 </html>
+```
