@@ -296,6 +296,26 @@ def create_app(test_config=None):
 
     if test_config:
         app.config.update(test_config)
+    # ==================== GOOGLE OAUTH ====================
+
+    oauth = OAuth(app)
+    google = None
+
+    google_client_id = os.getenv('GOOGLE_CLIENT_ID')
+    google_client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
+
+    if google_client_id and google_client_secret:
+        google = oauth.register(
+            name='google',
+            client_id=google_client_id,
+            client_secret=google_client_secret,
+            server_metadata_url=(
+                'https://accounts.google.com/.well-known/openid-configuration'
+            ),
+            client_kwargs={
+                'scope': 'openid email profile'
+            }
+        )
 
     if not is_postgres_path(app.config['DATABASE_PATH']):
         Path(app.config['DATABASE_PATH']).parent.mkdir(
@@ -639,6 +659,113 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             xml,
             mimetype='application/xml'
         )
+        # ==================== GOOGLE LOGIN ====================
+
+    @app.get('/auth/google')
+    def google_login():
+        if not google:
+            return 'Google Login chưa được cấu hình.', 503
+
+        redirect_uri = os.getenv('GOOGLE_REDIRECT_URI') or url_for(
+            'google_callback',
+            _external=True
+        )
+
+        return google.authorize_redirect(redirect_uri)
+
+    @app.get('/auth/google/callback')
+    def google_callback():
+        if not google:
+            return 'Google Login chưa được cấu hình.', 503
+
+        try:
+            token = google.authorize_access_token()
+
+            info = token.get('userinfo')
+
+            if not info:
+                info = google.userinfo()
+
+            google_sub = str(info.get('sub', '')).strip()
+            email = str(info.get('email', '')).strip().lower()
+            email_verified = info.get('email_verified', False)
+
+            if not google_sub or not email or email_verified not in (
+                True, 'true', 'True', 1
+            ):
+                return 'Không xác minh được tài khoản Google.', 400
+
+            with connect(app.config['DATABASE_PATH']) as db:
+
+                # Tìm tài khoản đã liên kết Google.
+                row = db.execute(
+                    'SELECT id FROM users WHERE google_sub=?',
+                    (google_sub,)
+                ).fetchone()
+
+                # Nếu chưa có, tìm tài khoản cùng email để liên kết.
+                if not row:
+                    row = db.execute(
+                        'SELECT id FROM users WHERE LOWER(email)=?',
+                        (email,)
+                    ).fetchone()
+
+                    if row:
+                        db.execute(
+                            'UPDATE users SET google_sub=?, email=? WHERE id=?',
+                            (google_sub, email, row['id'])
+                        )
+
+                # Nếu chưa tồn tại thì tạo tài khoản mới.
+                if not row:
+                    base = email.split('@')[0]
+                    base = re.sub(r'[^A-Za-z0-9_]', '', base)
+                    base = base[:24]
+
+                    if len(base) < 3:
+                        base = 'googleuser'
+
+                    username = base
+                    count = 1
+
+                    while db.execute(
+                        'SELECT id FROM users WHERE username=?',
+                        (username,)
+                    ).fetchone():
+                        suffix = str(count)
+                        username = base[:24 - len(suffix)] + suffix
+                        count += 1
+
+                    db.execute(
+                        '''INSERT INTO users
+                           (username, email, google_sub,
+                            password_hash, is_admin, approved)
+                           VALUES (?, ?, ?, ?, 0, 1)''',
+                        (
+                            username,
+                            email,
+                            google_sub,
+                            generate_password_hash(os.urandom(32).hex())
+                        )
+                    )
+
+                    row = db.execute(
+                        'SELECT id FROM users WHERE google_sub=?',
+                        (google_sub,)
+                    ).fetchone()
+
+            if not row:
+                return 'Không thể tạo tài khoản Google.', 500
+
+            session.clear()
+            session.permanent = True
+            session['user_id'] = row['id']
+
+            return redirect(url_for('home'))
+
+        except Exception:
+            app.logger.exception('Lỗi đăng nhập Google')
+            return 'Đăng nhập Google thất bại. Vui lòng thử lại.', 500
 
     @app.get('/')
     def home():
