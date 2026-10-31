@@ -2,11 +2,9 @@
 {% extends 'base.html' %}
 
 {% block title %}{{ problem.id }} · {{ problem.title }} — TranTu OJ Studio{% endblock %}
-
 {% block meta_description %}{{ problem.title }} - Bài tập lập trình {{ problem.category }} trên TranTu OJ Studio.{% endblock %}
 
 {% block content %}
-
 <style>
 .problem-detail-layout {
     display: grid;
@@ -14,11 +12,7 @@
     gap: 22px;
     align-items: start;
 }
-
-.problem-main {
-    min-width: 0;
-}
-
+.problem-main { min-width: 0; }
 .problem-sidebar {
     position: sticky;
     top: 85px;
@@ -26,16 +20,8 @@
     flex-direction: column;
     gap: 16px;
 }
-
-.problem-sidebar .glass-card {
-    padding: 20px;
-}
-
-.problem-sidebar h3 {
-    margin: 0 0 15px;
-    font-size: 16px;
-}
-
+.problem-sidebar .glass-card { padding: 20px; }
+.problem-sidebar h3 { margin: 0 0 15px; font-size: 16px; }
 .problem-action {
     width: 100%;
     box-sizing: border-box;
@@ -46,18 +32,13 @@
     text-decoration: none;
     margin-bottom: 10px;
 }
-
 .problem-side-link {
     display: block;
     padding: 10px 0;
     text-decoration: none;
     border-bottom: 1px solid var(--border-color, rgba(128,128,128,.15));
 }
-
-.problem-side-link:last-child {
-    border-bottom: none;
-}
-
+.problem-side-link:last-child { border-bottom: none; }
 .problem-info-row {
     display: flex;
     justify-content: space-between;
@@ -66,77 +47,62 @@
     padding: 11px 0;
     border-bottom: 1px solid var(--border-color, rgba(128,128,128,.15));
 }
+.problem-info-row:last-child { border-bottom: none; }
+.problem-info-row span { opacity: .7; font-size: 13px; }
+.problem-info-row strong { text-align: right; font-size: 13px; }
+.problem-hero { margin-bottom: 20px; }
+.problem-content { padding: 24px; }
 
-.problem-info-row:last-child {
-    border-bottom: none;
-}
-
-.problem-info-row span {
+.translation-status {
+    display: none;
+    font-size: 12px;
     opacity: .7;
-    font-size: 13px;
+    margin-top: 12px;
 }
-
-.problem-info-row strong {
-    text-align: right;
-    font-size: 13px;
-}
-
-.problem-hero {
-    margin-bottom: 20px;
-}
-
-.problem-content {
-    padding: 24px;
-}
+.translation-status.show { display: block; }
 
 @media(max-width: 900px) {
-    .problem-detail-layout {
-        grid-template-columns: 1fr;
-    }
-
+    .problem-detail-layout { grid-template-columns: 1fr; }
     .problem-sidebar {
         position: static;
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
-
 @media(max-width: 560px) {
-    .problem-sidebar {
-        grid-template-columns: 1fr;
-    }
-
-    .problem-content {
-        padding: 17px;
-    }
+    .problem-sidebar { grid-template-columns: 1fr; }
+    .problem-content { padding: 17px; }
 }
 </style>
 
 <div class="breadcrumbs">
-    <a href="/">← Tất cả bài tập</a>
+    <a href="/" data-i18n="problem_back">← Tất cả bài tập</a>
     <span>/</span>
     <span>{{ problem.id }}</span>
 </div>
 
 <div class="problem-detail-layout">
-
-    <!-- CỘT TRÁI: NỘI DUNG ĐỀ -->
-
     <main class="problem-main">
 
         <article class="glass-card problem-hero">
             <div class="problem-meta">
                 <span class="pill pill-purple">{{ problem.category }}</span>
                 <span class="pill">{{ problem.difficulty }}</span>
-                <span class="pill pill-green">{{ problem.total_score }} điểm</span>
+                <span class="pill pill-green">
+                    <span data-i18n="problem_score">{{ problem.total_score }} điểm</span>
+                </span>
             </div>
 
             <span class="eyebrow">PROBLEM {{ problem.id }}</span>
 
-            <h1>{{ problem.title }}</h1>
+            <h1 id="problem-title">{{ problem.title }}</h1>
 
-            <div class="statement">
+            <div class="statement" id="problem-statement">
                 {{ problem.statement }}
+            </div>
+
+            <div id="translation-status" class="translation-status">
+                Translating...
             </div>
         </article>
 
@@ -144,18 +110,17 @@
 
             <h2>
                 <span class="heading-symbol">▤</span>
-                Mô tả dữ liệu
+                <span id="problem-data-heading">Mô tả dữ liệu</span>
             </h2>
 
-            <h3>Input</h3>
-            <p>{{ problem.input_format }}</p>
+            <h3 id="input-heading">Input</h3>
+            <p id="problem-input">{{ problem.input_format }}</p>
 
-            <h3>Output</h3>
-            <p>{{ problem.output_format }}</p>
+            <h3 id="output-heading">Output</h3>
+            <p id="problem-output">{{ problem.output_format }}</p>
 
             {% if problem.sample_input is defined and problem.sample_output is defined %}
-
-                <h3>Ví dụ</h3>
+                <h3 id="sample-heading">Ví dụ</h3>
 
                 <div class="sample-grid">
                     <div>
@@ -170,21 +135,14 @@
                 </div>
 
                 {% if problem.explanation %}
-                    <h3>Giải thích ví dụ</h3>
-                    <p>{{ problem.explanation }}</p>
+                    <h3 id="explanation-heading">Giải thích ví dụ</h3>
+                    <p id="problem-explanation">{{ problem.explanation }}</p>
                 {% endif %}
-
-            {% else %}
-
-                <div class="callout">
-                    Bài này chưa có ví dụ mẫu.
-                </div>
-
             {% endif %}
 
             <h2>
                 <span class="heading-symbol">◈</span>
-                Giới hạn và thang điểm
+                <span id="problem-subtasks-heading">Giới hạn và thang điểm</span>
             </h2>
 
             <div class="subtask-list">
@@ -196,71 +154,67 @@
                                 <small>{{ s.constraints }}</small>
                             {% endif %}
                         </span>
-
-                        <strong>{{ s.score }} điểm</strong>
+                        <strong>
+                            {{ s.score }}
+                            <span data-i18n="problem_points">điểm</span>
+                        </strong>
                     </div>
                 {% endfor %}
             </div>
 
         </section>
-
     </main>
-
-    <!-- CỘT PHẢI: THAO TÁC VÀ THÔNG TIN -->
 
     <aside class="problem-sidebar">
 
-        <!-- NÚT THAO TÁC -->
-
         <section class="glass-card">
-
-            <h3>Thao tác</h3>
+            <h3 id="actions-heading">Thao tác</h3>
 
             {% if problem.pdf_url %}
                 <a href="{{ problem.pdf_url }}"
                    target="_blank"
-                   class="button problem-action">
-                    ▤ Xem dạng PDF
+                   class="button problem-action"
+                   id="pdf-button">
+                    ▤ <span data-i18n="problem_pdf">Xem dạng PDF</span>
                 </a>
             {% endif %}
 
             <a href="/problems/{{ problem.id }}/submit"
-               class="button button-primary problem-action">
-                ↑ Gửi bài giải
+               class="button button-primary problem-action"
+               id="submit-button">
+                ↑ <span data-i18n="problem_submit">Gửi bài giải</span>
             </a>
 
-<div style="margin-top:12px">
-    <a href="/submissions?scope=mine&problem_id={{ problem.id|urlencode }}"
-       class="problem-side-link">
-        Bài nộp của tôi →
-    </a>
+            <div style="margin-top:12px">
+                <a href="/submissions?scope=mine&problem_id={{ problem.id|urlencode }}"
+                   class="problem-side-link"
+                   id="my-submissions-link">
+                    <span data-i18n="problem_my_submissions">Bài nộp của tôi</span> →
+                </a>
 
-    <a href="/submissions?scope=all&problem_id={{ problem.id|urlencode }}"
-       class="problem-side-link">
-        Danh sách bài nộp →
-    </a>
-</div>
-
+                <a href="/submissions?scope=all&problem_id={{ problem.id|urlencode }}"
+                   class="problem-side-link"
+                   id="all-submissions-link">
+                    <span data-i18n="problem_all_submissions">Danh sách bài nộp</span> →
+                </a>
+            </div>
         </section>
 
-        <!-- THÔNG TIN BÀI TẬP -->
-
         <section class="glass-card">
-
-            <h3>Thông tin bài tập</h3>
+            <h3 id="info-heading">Thông tin bài tập</h3>
 
             <div class="problem-info-row">
-                <span>Điểm</span>
+                <span id="info-score">Điểm</span>
                 <strong>{{ problem.total_score }} (OI)</strong>
             </div>
 
             <div class="problem-info-row">
-                <span>Giới hạn thời gian</span>
+                <span id="info-time">Giới hạn thời gian</span>
                 <strong>{{ problem.time_limit }}s</strong>
             </div>
 
             <div class="problem-info-row">
-                <span>Giới hạn bộ nhớ</span>
+                <span id="info-memory">Giới hạn bộ nhớ</span>
                 <strong>{{ problem.memory_limit }} KB</strong>
             </div>
 
@@ -273,39 +227,234 @@
                 <span>Output</span>
                 <strong>stdout</strong>
             </div>
-
         </section>
 
-        <!-- THÔNG TIN KHÁC -->
-
         <section class="glass-card">
-
-            <h3>Thông tin khác</h3>
+            <h3 id="other-heading">Thông tin khác</h3>
 
             <div class="problem-info-row">
-                <span>Tác giả</span>
+                <span id="info-author">Tác giả</span>
                 <strong>{{ problem.author|default('Chưa cập nhật', true) }}</strong>
             </div>
 
             <div class="problem-info-row">
-                <span>Người đăng</span>
+                <span id="info-created">Người đăng</span>
                 <strong>{{ problem.created_by|default('Admin', true) }}</strong>
             </div>
 
             <div class="problem-info-row">
-                <span>Dạng bài</span>
+                <span id="info-category">Dạng bài</span>
                 <strong>{{ problem.category }}</strong>
             </div>
 
             <div class="problem-info-row">
-                <span>Ngôn ngữ</span>
+                <span id="info-language">Ngôn ngữ</span>
                 <strong>C++</strong>
             </div>
-
         </section>
 
     </aside>
-
 </div>
+
+<script>
+(function () {
+    const original = {
+        title: {{ problem.title|tojson }},
+        statement: {{ problem.statement|tojson }},
+        input_format: {{ problem.input_format|tojson }},
+        output_format: {{ problem.output_format|tojson }},
+        explanation: {{ problem.explanation|default('', true)|tojson }}
+    };
+
+    const translatedIds = {
+        title: "problem-title",
+        statement: "problem-statement",
+        input_format: "problem-input",
+        output_format: "problem-output",
+        explanation: "problem-explanation"
+    };
+
+    const interfaceEnglish = {
+        back: "← All problems",
+        data: "Input and Output",
+        input: "Input",
+        output: "Output",
+        sample: "Example",
+        explanation: "Explanation",
+        subtasks: "Constraints and Scoring",
+        actions: "Actions",
+        pdf: "View PDF",
+        submit: "Submit solution",
+        mySubmissions: "My submissions",
+        allSubmissions: "All submissions",
+        info: "Problem information",
+        score: "Score",
+        time: "Time limit",
+        memory: "Memory limit",
+        other: "Other information",
+        author: "Author",
+        created: "Uploaded by",
+        category: "Category",
+        language: "Language",
+        points: "points"
+    };
+
+    const interfaceVietnamese = {
+        back: "← Tất cả bài tập",
+        data: "Mô tả dữ liệu",
+        input: "Input",
+        output: "Output",
+        sample: "Ví dụ",
+        explanation: "Giải thích ví dụ",
+        subtasks: "Giới hạn và thang điểm",
+        actions: "Thao tác",
+        pdf: "Xem dạng PDF",
+        submit: "Gửi bài giải",
+        mySubmissions: "Bài nộp của tôi",
+        allSubmissions: "Danh sách bài nộp",
+        info: "Thông tin bài tập",
+        score: "Điểm",
+        time: "Giới hạn thời gian",
+        memory: "Giới hạn bộ nhớ",
+        other: "Thông tin khác",
+        author: "Tác giả",
+        created: "Người đăng",
+        category: "Dạng bài",
+        language: "Ngôn ngữ",
+        points: "điểm"
+    };
+
+    let translated = null;
+    let loading = false;
+    let requestVersion = 0;
+
+    const status = document.getElementById("translation-status");
+
+    function setText(id, value) {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+    }
+
+    function setInterface(lang) {
+        const labels = lang === "en"
+            ? interfaceEnglish
+            : interfaceVietnamese;
+
+        setText("problem-data-heading", labels.data);
+        setText("input-heading", labels.input);
+        setText("output-heading", labels.output);
+        setText("sample-heading", labels.sample);
+        setText("explanation-heading", labels.explanation);
+        setText("problem-subtasks-heading", labels.subtasks);
+        setText("actions-heading", labels.actions);
+        setText("pdf-button", "▤ " + labels.pdf);
+        setText("submit-button", "↑ " + labels.submit);
+        setText("my-submissions-link", labels.mySubmissions + " →");
+        setText("all-submissions-link", labels.allSubmissions + " →");
+        setText("info-heading", labels.info);
+        setText("info-score", labels.score);
+        setText("info-time", labels.time);
+        setText("info-memory", labels.memory);
+        setText("other-heading", labels.other);
+        setText("info-author", labels.author);
+        setText("info-created", labels.created);
+        setText("info-category", labels.category);
+        setText("info-language", labels.language);
+
+        document.querySelectorAll("[data-i18n='problem_points']")
+            .forEach(el => el.textContent = labels.points);
+
+        document.querySelectorAll("[data-i18n='problem_back']")
+            .forEach(el => el.textContent = labels.back);
+    }
+
+    function showVietnamese() {
+        for (const key in translatedIds) {
+            const element = document.getElementById(translatedIds[key]);
+
+            if (element) {
+                element.textContent = original[key];
+            }
+        }
+
+        setInterface("vi");
+        status.classList.remove("show");
+    }
+
+    function showTranslated(data) {
+        for (const key in translatedIds) {
+            const element = document.getElementById(translatedIds[key]);
+
+            if (element && data[key] !== undefined) {
+                element.textContent = data[key];
+            }
+        }
+
+        setInterface("en");
+        status.classList.remove("show");
+    }
+
+    async function showEnglish() {
+        setInterface("en");
+
+        if (translated) {
+            showTranslated(translated);
+            return;
+        }
+
+        if (loading) return;
+
+        loading = true;
+        const currentRequest = ++requestVersion;
+
+        status.textContent = "Translating problem...";
+        status.classList.add("show");
+
+        try {
+            const response = await fetch(
+                "/api/problems/{{ problem.id|urlencode }}/translation"
+            );
+
+            if (!response.ok) {
+                throw new Error("Translation API error");
+            }
+
+            const data = await response.json();
+
+            if (currentRequest !== requestVersion) return;
+
+            translated = data;
+
+            if (window.OJ_I18N.getLanguage() === "en") {
+                showTranslated(data);
+            }
+
+        } catch (error) {
+            console.error(error);
+            status.textContent =
+                "Translation unavailable. Please try again later.";
+            status.classList.add("show");
+
+        } finally {
+            loading = false;
+        }
+    }
+
+    document.addEventListener("oj-language-changed", function (event) {
+        if (event.detail.language === "en") {
+            showEnglish();
+        } else {
+            requestVersion++;
+            showVietnamese();
+        }
+    });
+
+    if (window.OJ_I18N.getLanguage() === "en") {
+        showEnglish();
+    } else {
+        showVietnamese();
+    }
+})();
+</script>
 
 {% endblock %}
