@@ -16,6 +16,7 @@ from flask import (
     session, redirect, url_for
 )
 from werkzeug.security import generate_password_hash, check_password_hash
+from authlib.integrations.flask_client import OAuth
 
 from oj.database import connect, init_db, is_postgres_path, DB_INTEGRITY_ERRORS
 from oj.job_queue import enqueue
