@@ -431,11 +431,24 @@
 <div class="submissions-page">
     <div class="submissions-header">
         <div>
-            <span class="eyebrow">GLOBAL ACTIVITY</span>
-            <h1>Lịch sử <span class="gradient-text">bài nộp.</span></h1>
-            <p class="muted">
-                Theo dõi bài nộp của toàn bộ học sinh và xem mã nguồn theo quyền của bạn.
-            </p>
+<span class="eyebrow">SUBMISSION CENTER</span>
+
+{% if scope == 'all' %}
+    <h1>Bài nộp <span class="gradient-text">của mọi người.</span></h1>
+    <p class="muted">
+        Danh sách bài nộp của tất cả học sinh cho bài {{ problem_id }}.
+    </p>
+{% elif scope == 'mine' %}
+    <h1>Bài nộp <span class="gradient-text">của tôi.</span></h1>
+    <p class="muted">
+        Theo dõi các lần nộp của bạn cho bài {{ problem_id }}.
+    </p>
+{% else %}
+    <h1>Lịch sử <span class="gradient-text">bài nộp.</span></h1>
+    <p class="muted">
+        Toàn bộ lịch sử nộp bài của tài khoản bạn trên hệ thống.
+    </p>
+{% endif %}
         </div>
 
         <button class="action-button" id="refresh-btn" type="button">
