@@ -8,7 +8,7 @@ import os
 import re
 import shutil
 import unicodedata
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from flask import (
@@ -277,6 +277,8 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY=os.getenv('SECRET_KEY', 'dev-change-me'),
+        PERMANENT_SESSION_LIFETIME=timedelta(days=365),
+        SESSION_REFRESH_EACH_REQUEST=True,
         DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             'DATABASE_PATH',
             str(Path(app.instance_path) / 'online_judge.sqlite3')
@@ -651,6 +653,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 error='Tài khoản đang chờ quản trị viên duyệt.'
             ), 403
         session.clear()
+        session.permanent = True
         session['user_id'] = row['id']
         return jsonify(
             id=row['id'],
