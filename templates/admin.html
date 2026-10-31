@@ -567,6 +567,7 @@ hr {
         function resetEditor() {
     editingId = null;
     editor.value = '';
+    authorInput.value = '';
     sampleInput.value = '';
     sampleOutput.value = '';
 
@@ -792,28 +793,29 @@ hr {
                     const actions = document.createElement('div');
 
                     actions.append(
-                        makeButton('Sửa', 'secondary', () => {
-                            editingId = String(problem.id);
-                            editor.value =
-                                authorInput.value = problem.author || '';
-                                JSON.stringify(problem, null, 2);
-                            const firstTest = problem.subtasks?.[0]?.tests?.[0];
+    makeButton('Sửa', 'secondary', () => {
+        editingId = String(problem.id);
 
-sampleInput.value = firstTest?.input ?? '';
-sampleOutput.value = firstTest?.output ?? '';
+        editor.value = JSON.stringify(problem, null, 2);
+        authorInput.value = problem.author || '';
 
-                            title.textContent = `Sửa bài ${problem.id}`;
-                            saveButton.textContent = 'Lưu thay đổi';
-                            cancelButton.hidden = false;
-                            showMessage('');
+        const firstTest = problem.subtasks?.[0]?.tests?.[0];
 
-                            editor.focus();
+        sampleInput.value = firstTest?.input ?? '';
+        sampleOutput.value = firstTest?.output ?? '';
 
-                            window.scrollTo({
-                                top: document.body.scrollHeight,
-                                behavior: 'smooth'
-                            });
-                        }),
+        title.textContent = `Sửa bài ${problem.id}`;
+        saveButton.textContent = 'Lưu thay đổi';
+        cancelButton.hidden = false;
+        showMessage('');
+
+        editor.focus();
+
+        window.scrollTo({
+            top: document.body.scrollHeight,
+            behavior: 'smooth'
+        });
+    }),
 
                         makeButton('Xóa', 'danger', async () => {
                             if (!confirm(
@@ -957,6 +959,7 @@ sampleOutput.value = firstTest?.output ?? '';
                 showMessage('Dữ liệu phải là một object JSON.', true);
                 return;
             }
+            problem.author = authorInput.value.trim();
 
             if (sampleInput.value !== '' || sampleOutput.value !== '') {
                 if (!Array.isArray(problem.subtasks) ||
