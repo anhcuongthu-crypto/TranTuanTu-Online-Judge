@@ -1475,7 +1475,8 @@ a:hover {
     }
 
     .topbar nav a {
-        font-size: 10px;
+        font-size: 12px;
+        font-weight: 500;
     }
 
     .brand {
