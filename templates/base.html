@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="vi">
 <head>
@@ -294,105 +293,112 @@
 </head>
 
 <body>
-    <div class="ambient ambient-a"></div>
-    <div class="ambient ambient-b"></div>
 
-    <header class="topbar">
-        <a
-            href="/"
-            class="brand"
-            aria-label="TranTu OJ Studio - Trang chủ"
-        >
-            <span class="brand-mark">λ</span>
+    {% if request.endpoint != 'login_page' %}
 
-            <span>
-                TranTu<span class="brand-gradient"> OJ Studio</span>
-                <small>THINK · CODE · GROW</small>
-            </span>
-        </a>
+        <div class="ambient ambient-a"></div>
+        <div class="ambient ambient-b"></div>
 
-        <nav aria-label="Điều hướng chính">
-            <a href="/" data-i18n="nav_problems">Bài tập</a>
-            <a href="/contests" data-i18n="nav_contests">🏆 Contest</a>
-            <a href="/submissions" data-i18n="nav_submissions">📝 Các bài nộp</a>
-            <a href="/leaderboard" data-i18n="nav_leaderboard">🏆 Bảng xếp hạng</a>
-            <a href="/about" data-i18n="nav_about">Giới thiệu</a>
-            <a href="/profile" data-i18n="nav_profile">Hồ sơ</a>
-
-            {% if logged_in_user and logged_in_user.is_admin %}
-                <a id="admin-link" href="/admin" data-i18n="nav_admin">Quản trị</a>
-            {% else %}
-                <a id="admin-link" href="/admin" data-i18n="nav_admin" hidden>Quản trị</a>
-            {% endif %}
-        </nav>
-
-        <div class="language-switch" aria-label="Language">
-            <button
-                type="button"
-                class="lang-btn"
-                data-lang="vi"
-                title="Tiếng Việt"
-                aria-label="Tiếng Việt"
-            >🇻🇳</button>
-
-            <button
-                type="button"
-                class="lang-btn"
-                data-lang="en"
-                title="English"
-                aria-label="English"
-            >🇬🇧</button>
-        </div>
-
-        <div class="top-user">
-            <span id="user-status">
-                {% if logged_in_user %}
-                    <span data-i18n="hello">Xin chào</span>, {{ logged_in_user.username }}
-                {% else %}
-                    <span data-i18n="not_logged_in">Chưa đăng nhập</span>
-                {% endif %}
-            </span>
-
-            {% if not logged_in_user %}
-                <a
-                    href="{{ url_for('login_page', next=request.path) }}"
-                    class="button button-primary"
-                    data-i18n="login"
-                >
-                    Đăng nhập
-                </a>
-            {% endif %}
-
-            <button
-                id="logout-button"
-                class="button button-ghost"
-                type="button"
-                data-i18n="logout"
-                {% if not logged_in_user %}hidden{% endif %}
+        <header class="topbar">
+            <a
+                href="/"
+                class="brand"
+                aria-label="TranTu OJ Studio - Trang chủ"
             >
-                Đăng xuất
-            </button>
-        </div>
-    </header>
+                <span class="brand-mark">λ</span>
+
+                <span>
+                    TranTu<span class="brand-gradient"> OJ Studio</span>
+                    <small>THINK · CODE · GROW</small>
+                </span>
+            </a>
+
+            <nav aria-label="Điều hướng chính">
+                <a href="/" data-i18n="nav_problems">Bài tập</a>
+                <a href="/contests" data-i18n="nav_contests">🏆 Contest</a>
+                <a href="/submissions" data-i18n="nav_submissions">📝 Các bài nộp</a>
+                <a href="/leaderboard" data-i18n="nav_leaderboard">🏆 Bảng xếp hạng</a>
+                <a href="/about" data-i18n="nav_about">Giới thiệu</a>
+                <a href="/profile" data-i18n="nav_profile">Hồ sơ</a>
+
+                {% if logged_in_user and logged_in_user.is_admin %}
+                    <a id="admin-link" href="/admin" data-i18n="nav_admin">Quản trị</a>
+                {% else %}
+                    <a id="admin-link" href="/admin" data-i18n="nav_admin" hidden>Quản trị</a>
+                {% endif %}
+            </nav>
+
+            <div class="language-switch" aria-label="Language">
+                <button
+                    type="button"
+                    class="lang-btn"
+                    data-lang="vi"
+                    title="Tiếng Việt"
+                    aria-label="Tiếng Việt"
+                >🇻🇳</button>
+
+                <button
+                    type="button"
+                    class="lang-btn"
+                    data-lang="en"
+                    title="English"
+                    aria-label="English"
+                >🇬🇧</button>
+            </div>
+
+            <div class="top-user">
+                <span id="user-status">
+                    {% if logged_in_user %}
+                        <span data-i18n="hello">Xin chào</span>, {{ logged_in_user.username }}
+                    {% else %}
+                        <span data-i18n="not_logged_in">Chưa đăng nhập</span>
+                    {% endif %}
+                </span>
+
+                {% if not logged_in_user %}
+                    <a
+                        href="{{ url_for('login_page', next=request.path) }}"
+                        class="button button-primary"
+                        data-i18n="login"
+                    >
+                        Đăng nhập
+                    </a>
+                {% endif %}
+
+                <button
+                    id="logout-button"
+                    class="button button-ghost"
+                    type="button"
+                    data-i18n="logout"
+                    {% if not logged_in_user %}hidden{% endif %}
+                >
+                    Đăng xuất
+                </button>
+            </div>
+        </header>
+
+    {% endif %}
 
     <main id="main-content">
         {% block content %}{% endblock %}
     </main>
 
-    <footer>
-        <div class="footer-brand">
-            TranTu OJ Studio <span>✦</span>
-        </div>
+    {% if request.endpoint != 'login_page' %}
+        <footer>
+            <div class="footer-brand">
+                TranTu OJ Studio <span>✦</span>
+            </div>
 
-        <p data-i18n="footer_description">
-            Nền tảng luyện lập trình C++ · Bài tập Tin học ·
-            Chấm bài tự động qua Judge0
-        </p>
+            <p data-i18n="footer_description">
+                Nền tảng luyện lập trình C++ · Bài tập Tin học ·
+                Chấm bài tự động qua Judge0
+            </p>
 
-        <small data-i18n="footer_slogan">
-            Đặt mục tiêu, luyện từng bài, tiến bộ mỗi ngày.
-        </small>
-    </footer>
+            <small data-i18n="footer_slogan">
+                Đặt mục tiêu, luyện từng bài, tiến bộ mỗi ngày.
+            </small>
+        </footer>
+    {% endif %}
 
     <script src="/static/app.js"></script>
 </body>
