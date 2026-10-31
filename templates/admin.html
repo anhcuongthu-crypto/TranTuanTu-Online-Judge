@@ -447,9 +447,16 @@ hr {
         <h2 id="editor-title">Thêm bài tập</h2>
 
         <form id="problem-form">
-            <label for="problem-json">
-                Nội dung bài tập dạng JSON
-            </label>
+            <label for="problem-author">Tác giả bài tập</label>
+<input
+    id="problem-author"
+    type="text"
+    placeholder="Nhập tên tác giả (có thể để trống)"
+>
+
+<label for="problem-json">
+    Nội dung bài tập dạng JSON
+</label>
 
             <p class="muted">
                 Dán toàn bộ JSON của một bài tập vào ô dưới đây.
@@ -492,6 +499,7 @@ hr {
         const count = document.getElementById('admin-problem-count');
         const form = document.getElementById('problem-form');
         const editor = document.getElementById('problem-json');
+        const authorInput = document.getElementById('problem-author');
         const sampleInput = document.getElementById('sample-input');
         const sampleOutput = document.getElementById('sample-output');
         const message = document.getElementById('problem-message');
@@ -787,6 +795,7 @@ hr {
                         makeButton('Sửa', 'secondary', () => {
                             editingId = String(problem.id);
                             editor.value =
+                                authorInput.value = problem.author || '';
                                 JSON.stringify(problem, null, 2);
                             const firstTest = problem.subtasks?.[0]?.tests?.[0];
 
