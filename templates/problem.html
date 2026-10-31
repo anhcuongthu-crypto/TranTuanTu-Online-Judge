@@ -3,110 +3,307 @@
 
 {% block title %}{{ problem.id }} · {{ problem.title }} — TranTu OJ Studio{% endblock %}
 
-{% block meta_description %}{{ problem.title }} - Bài tập lập trình {{ problem.category }}, mức độ {{ problem.difficulty }} trên TranTu OJ Studio. Luyện tập C++, xem đề bài, dữ liệu vào, dữ liệu ra và nộp bài chấm tự động.{% endblock %}
+{% block meta_description %}{{ problem.title }} - Bài tập lập trình {{ problem.category }} trên TranTu OJ Studio.{% endblock %}
 
 {% block content %}
+
+<style>
+.problem-detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 310px;
+    gap: 22px;
+    align-items: start;
+}
+
+.problem-main {
+    min-width: 0;
+}
+
+.problem-sidebar {
+    position: sticky;
+    top: 85px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.problem-sidebar .glass-card {
+    padding: 20px;
+}
+
+.problem-sidebar h3 {
+    margin: 0 0 15px;
+    font-size: 16px;
+}
+
+.problem-action {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    margin-bottom: 10px;
+}
+
+.problem-side-link {
+    display: block;
+    padding: 10px 0;
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-color, rgba(128,128,128,.15));
+}
+
+.problem-side-link:last-child {
+    border-bottom: none;
+}
+
+.problem-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border-color, rgba(128,128,128,.15));
+}
+
+.problem-info-row:last-child {
+    border-bottom: none;
+}
+
+.problem-info-row span {
+    opacity: .7;
+    font-size: 13px;
+}
+
+.problem-info-row strong {
+    text-align: right;
+    font-size: 13px;
+}
+
+.problem-hero {
+    margin-bottom: 20px;
+}
+
+.problem-content {
+    padding: 24px;
+}
+
+@media(max-width: 900px) {
+    .problem-detail-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .problem-sidebar {
+        position: static;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media(max-width: 560px) {
+    .problem-sidebar {
+        grid-template-columns: 1fr;
+    }
+
+    .problem-content {
+        padding: 17px;
+    }
+}
+</style>
+
 <div class="breadcrumbs">
     <a href="/">← Tất cả bài tập</a>
     <span>/</span>
     <span>{{ problem.id }}</span>
 </div>
 
-<!-- THÔNG TIN VÀ ĐỀ BÀI -->
-<article class="glass-card problem-hero">
-    <div class="problem-meta">
-        <span class="pill pill-purple">{{ problem.category }}</span>
-        <span class="pill">{{ problem.difficulty }}</span>
-        <span class="pill pill-green">{{ problem.total_score }} điểm</span>
-    </div>
+<div class="problem-detail-layout">
 
-    <span class="eyebrow">PROBLEM {{ problem.id }}</span>
-    <h1>{{ problem.title }}</h1>
+    <!-- CỘT TRÁI: NỘI DUNG ĐỀ -->
 
-    <div class="statement">{{ problem.statement }}</div>
-</article>
+    <main class="problem-main">
 
-<div class="problem-layout" style="display:block;">
-
-    <!-- MÔ TẢ ĐỀ BÀI -->
-    <section
-        class="problem-content glass-card"
-        style="width:100%;box-sizing:border-box;margin-bottom:24px;"
-    >
-        <h2>
-            <span class="heading-symbol">▤</span>
-            Mô tả dữ liệu
-        </h2>
-
-        <h3>Input</h3>
-        <p>{{ problem.input_format }}</p>
-
-        <h3>Output</h3>
-        <p>{{ problem.output_format }}</p>
-
-        {% if problem.sample_input is defined and problem.sample_output is defined %}
-            <h3>Ví dụ</h3>
-
-            <div class="sample-grid">
-                <div>
-                    <label>Sample Input</label>
-                    <pre>{{ problem.sample_input }}</pre>
-                </div>
-
-                <div>
-                    <label>Sample Output</label>
-                    <pre>{{ problem.sample_output }}</pre>
-                </div>
+        <article class="glass-card problem-hero">
+            <div class="problem-meta">
+                <span class="pill pill-purple">{{ problem.category }}</span>
+                <span class="pill">{{ problem.difficulty }}</span>
+                <span class="pill pill-green">{{ problem.total_score }} điểm</span>
             </div>
 
-            {% if problem.explanation %}
-                <h3>Giải thích ví dụ</h3>
-                <p>{{ problem.explanation }}</p>
+            <span class="eyebrow">PROBLEM {{ problem.id }}</span>
+
+            <h1>{{ problem.title }}</h1>
+
+            <div class="statement">
+                {{ problem.statement }}
+            </div>
+        </article>
+
+        <section class="glass-card problem-content">
+
+            <h2>
+                <span class="heading-symbol">▤</span>
+                Mô tả dữ liệu
+            </h2>
+
+            <h3>Input</h3>
+            <p>{{ problem.input_format }}</p>
+
+            <h3>Output</h3>
+            <p>{{ problem.output_format }}</p>
+
+            {% if problem.sample_input is defined and problem.sample_output is defined %}
+
+                <h3>Ví dụ</h3>
+
+                <div class="sample-grid">
+                    <div>
+                        <label>Sample Input</label>
+                        <pre>{{ problem.sample_input }}</pre>
+                    </div>
+
+                    <div>
+                        <label>Sample Output</label>
+                        <pre>{{ problem.sample_output }}</pre>
+                    </div>
+                </div>
+
+                {% if problem.explanation %}
+                    <h3>Giải thích ví dụ</h3>
+                    <p>{{ problem.explanation }}</p>
+                {% endif %}
+
+            {% else %}
+
+                <div class="callout">
+                    Bài này chưa có ví dụ mẫu.
+                </div>
+
             {% endif %}
-        {% else %}
-            <div class="callout">
-                Bài này chưa có ví dụ mẫu được biên soạn.
-                Cần bổ sung trước khi dùng làm đề chính thức.
+
+            <h2>
+                <span class="heading-symbol">◈</span>
+                Giới hạn và thang điểm
+            </h2>
+
+            <div class="subtask-list">
+                {% for s in problem.subtasks %}
+                    <div class="subtask-row">
+                        <span>
+                            <b>{{ s.name }}</b>
+                            {% if s.constraints %}
+                                <small>{{ s.constraints }}</small>
+                            {% endif %}
+                        </span>
+
+                        <strong>{{ s.score }} điểm</strong>
+                    </div>
+                {% endfor %}
             </div>
-        {% endif %}
 
-        <h2>
-            <span class="heading-symbol">◈</span>
-            Giới hạn và thang điểm
-        </h2>
+        </section>
 
-        <div class="subtask-list">
-            {% for s in problem.subtasks %}
-                <div class="subtask-row">
-                    <span>
-                        <b>{{ s.name }}</b>
+    </main>
 
-                        {% if s.constraints %}
-                            <small>{{ s.constraints }}</small>
-                        {% endif %}
-                    </span>
+    <!-- CỘT PHẢI: THAO TÁC VÀ THÔNG TIN -->
 
-                    <strong>{{ s.score }} điểm</strong>
-                </div>
-            {% endfor %}
-        </div>
+    <aside class="problem-sidebar">
 
-        <p class="muted tiny">
-            Giới hạn thời gian: {{ problem.time_limit }} giây
-            · Bộ nhớ: {{ problem.memory_limit }} KB
-        </p>
-    </section>
+        <!-- NÚT THAO TÁC -->
 
-    <!-- NÚT CHUYỂN SANG TRANG NỘP BÀI RIÊNG -->
-    <div style="display:flex;justify-content:flex-end;margin:20px 0;">
-        <a
-            href="/problems/{{ problem.id }}/submit"
-            class="button button-primary"
-            style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;"
-        >
-            Nộp bài <span>↗</span>
-        </a>
-    </div>
+        <section class="glass-card">
+
+            <h3>Thao tác</h3>
+
+            {% if problem.pdf_url %}
+                <a href="{{ problem.pdf_url }}"
+                   target="_blank"
+                   class="button problem-action">
+                    ▤ Xem dạng PDF
+                </a>
+            {% endif %}
+
+            <a href="/problems/{{ problem.id }}/submit"
+               class="button button-primary problem-action">
+                ↑ Gửi bài giải
+            </a>
+
+            <div style="margin-top:12px">
+                <a href="/submissions" class="problem-side-link">
+                    Bài nộp của tôi →
+                </a>
+
+                <a href="/submissions" class="problem-side-link">
+                    Danh sách bài nộp →
+                </a>
+            </div>
+
+        </section>
+
+        <!-- THÔNG TIN BÀI TẬP -->
+
+        <section class="glass-card">
+
+            <h3>Thông tin bài tập</h3>
+
+            <div class="problem-info-row">
+                <span>Điểm</span>
+                <strong>{{ problem.total_score }} (OI)</strong>
+            </div>
+
+            <div class="problem-info-row">
+                <span>Giới hạn thời gian</span>
+                <strong>{{ problem.time_limit }}s</strong>
+            </div>
+
+            <div class="problem-info-row">
+                <span>Giới hạn bộ nhớ</span>
+                <strong>{{ problem.memory_limit }} KB</strong>
+            </div>
+
+            <div class="problem-info-row">
+                <span>Input</span>
+                <strong>stdin</strong>
+            </div>
+
+            <div class="problem-info-row">
+                <span>Output</span>
+                <strong>stdout</strong>
+            </div>
+
+        </section>
+
+        <!-- THÔNG TIN KHÁC -->
+
+        <section class="glass-card">
+
+            <h3>Thông tin khác</h3>
+
+            <div class="problem-info-row">
+                <span>Tác giả</span>
+                <strong>{{ problem.author|default('Chưa cập nhật', true) }}</strong>
+            </div>
+
+            <div class="problem-info-row">
+                <span>Người đăng</span>
+                <strong>{{ problem.created_by|default('Admin', true) }}</strong>
+            </div>
+
+            <div class="problem-info-row">
+                <span>Dạng bài</span>
+                <strong>{{ problem.category }}</strong>
+            </div>
+
+            <div class="problem-info-row">
+                <span>Ngôn ngữ</span>
+                <strong>C++</strong>
+            </div>
+
+        </section>
+
+    </aside>
 
 </div>
+
 {% endblock %}
