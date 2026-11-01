@@ -367,6 +367,14 @@ hr {
     <label for="customProblemMemory">Giới hạn bộ nhớ (KB)</label>
     <input id="customProblemMemory" type="number" min="1" value="256000">
 
+    <label for="customProblemSubtaskConstraints">
+        Ràng buộc từng Subtask (mỗi dòng tương ứng một Subtask)
+    </label>
+    <p class="muted">Dòng 1 ứng với Subtask 1, dòng 2 ứng với Subtask 2...</p>
+    <textarea id="customProblemSubtaskConstraints"
+        rows="5"
+        placeholder="1 <= n <= 100&#10;1 <= n <= 1000000"></textarea>
+
     <label for="customProblemSubtasks">Subtasks và test (JSON)</label>
     <label for="contestSampleInput">Input mẫu</label>
     <textarea id="contestSampleInput"
@@ -1368,6 +1376,7 @@ hr {
         const customProblemTime = document.getElementById('customProblemTime');
         const customProblemMemory = document.getElementById('customProblemMemory');
         const customProblemSubtasks = document.getElementById('customProblemSubtasks');
+        const customProblemSubtaskConstraints = document.getElementById('customProblemSubtaskConstraints');
         const contestSampleInput =document.getElementById('contestSampleInput');
 
         const contestSampleOutput = document.getElementById('contestSampleOutput');
@@ -1434,6 +1443,13 @@ hr {
                 return;
             }
 
+            const customConstraintLines =
+                customProblemSubtaskConstraints.value.split(/\\r?\\n/);
+            for (let i = 0; i < subtasks.length; i++) {
+                subtasks[i].constraints =
+                    (customConstraintLines[i] || '').trim();
+            }
+
             for (const s of subtasks) {
                 if (!s.id || !s.name || !(Number(s.score) > 0) ||
                     !Array.isArray(s.tests) || s.tests.length === 0) {
@@ -1488,6 +1504,7 @@ hr {
             customProblemInput.value = '';
             customProblemOutput.value = '';
             customProblemSubtasks.value = '';
+            customProblemSubtaskConstraints.value = '';
             contestSampleInput.value = '';
             contestSampleOutput.value = '';
         });
