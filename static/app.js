@@ -791,9 +791,77 @@ document.querySelector('#submit')?.addEventListener('click', async e => {
     }
 });
 
+// ==================== THỐNG KÊ CÁ NHÂN ====================
+
+async function loadMyAnalytics() {
+    const root = document.querySelector('#profile-analytics');
+    if (!root) return;
+
+    const noteEl = document.querySelector('#analytics-note');
+    try {
+        const data = await api('/api/my-analytics');
+        const setText = (id, value) => {
+            const el = document.querySelector('#' + id);
+            if (el) el.textContent = value;
+        };
+        setText('analytics-solved', data.total_solved ?? 0);
+        setText('analytics-attempted', data.total_attempted ?? 0);
+        setText('analytics-submissions', data.total_submissions ?? 0);
+        setText('analytics-rate', (data.full_rate ?? 0) + '%');
+
+        const daily = document.querySelector('#analytics-daily');
+        if (daily) {
+            const values = data.daily || [];
+            const max = Math.max(1, ...values.map(item => Number(item.count) || 0));
+            daily.innerHTML = values.map(item => {
+                const count = Number(item.count) || 0;
+                const height = Math.max(4, count / max * 100);
+                return `<div class="daily-column" title="${escapeHtml(item.date)}: ${count} lượt nộp">
+                    <span class="daily-value">${count || ''}</span>
+                    <i style="height:${height}%"></i>
+                    <small>${escapeHtml(item.date.slice(5))}</small>
+                </div>`;
+            }).join('');
+        }
+
+        const categories = document.querySelector('#analytics-categories');
+        if (categories) {
+            const rows = data.categories || [];
+            categories.innerHTML = rows.length ? rows.map(item => {
+                const ratio = item.attempted ? item.solved / item.attempted * 100 : 0;
+                return `<div class="category-row">
+                    <div><b>${escapeHtml(item.category)}</b><span>${item.solved}/${item.attempted} FULL</span></div>
+                    <div class="category-track"><i style="width:${ratio}%"></i></div>
+                </div>`;
+            }).join('') : '<p class="muted">Chưa có dữ liệu. Hãy thử giải một bài nhé!</p>';
+        }
+
+        const tags = document.querySelector('#analytics-tags');
+        if (tags) {
+            const rows = data.tags || [];
+            tags.innerHTML = rows.length ? rows.map(item =>
+                `<span class="analytics-tag">${escapeHtml(item.tag)} <b>${item.solved}</b></span>`
+            ).join('') : '<p class="muted">Chưa có tags nào được chinh phục.</p>';
+        }
+
+        const verdicts = document.querySelector('#analytics-verdicts');
+        if (verdicts) {
+            const rows = data.verdicts || [];
+            verdicts.innerHTML = rows.length ? rows.map(item =>
+                `<div class="verdict-row"><span>${escapeHtml(item.verdict)}</span><b>${item.count}</b></div>`
+            ).join('') : '<p class="muted">Chưa có lượt nộp nào.</p>';
+        }
+
+        if (noteEl) noteEl.textContent = 'Thống kê chỉ tính các bài luyện tập ngoài cuộc thi và tối đa 500 lượt nộp gần nhất.';
+    } catch (err) {
+        if (noteEl) noteEl.textContent = 'Không tải được thống kê: ' + err.message;
+    }
+}
+
 // ==================== HỒ SƠ ====================
 
 async function loadProfile() {
+    loadMyAnalytics();
     const form = document.querySelector('#profile-form');
     if (!form) return;
 
