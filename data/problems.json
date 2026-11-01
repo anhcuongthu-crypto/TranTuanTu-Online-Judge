@@ -83,7 +83,7 @@
   },
   {
     "category": "C++ Cơ Bản",
-    "difficulty": "Rất Dễ",
+    "difficulty": "Dễ",
     "explanation": "Chu vi = (4 + 5) * 2 = 18\nDiện tích = 4 * 5 = 20",
     "id": "chu-vi-dien-tich-hcn",
     "input_format": "Một dòng chứa hai số nguyên dương d và r cách nhau bởi khoảng trắng.",
@@ -125,8 +125,8 @@
   {
     "title": "Chia bánh - Phép chia lấy nguyên và dư",
     "id": "chia-banh-32bit",
-    "category": "C++ Cơ Bản",
-    "difficulty": "Rất Dễ",
+    "category": "Cơ bản",
+    "difficulty": "Dễ",
     "statement": "Có n cái bánh chia đều cho k bạn. Hãy tính xem mỗi bạn nhận được bao nhiêu cái bánh và còn thừa lại bao nhiêu cái.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 32-bit (kiểu `int` trong C++).",
     "input_format": "Một dòng chứa hai số nguyên dương n và k cách nhau bởi khoảng trắng.",
     "output_format": "Dòng 1 ghi số bánh mỗi bạn nhận được.\nDòng 2 ghi số bánh còn thừa.",
@@ -166,8 +166,8 @@
   {
     "title": "Mua vở học tập",
     "id": "mua-vo-32bit",
-    "category": "C++ Cơ Bản",
-    "difficulty": "Rất Dễ",
+    "category": "Cơ bản",
+    "difficulty": "Dễ",
     "statement": "Nhập vào số lượng quyển vở và đơn giá của một quyển. In ra tổng số tiền phải trả.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 32-bit (kiểu `int` trong C++).",
     "input_format": "Một dòng chứa hai số nguyên dương n và gia cách nhau bởi khoảng trắng.",
     "output_format": "In ra tổng số tiền.",
@@ -207,7 +207,7 @@
   {
     "title": "Kiểm tra số chẵn lẻ số lớn",
     "id": "kiem-tra-chan-le-32bit",
-    "category": "C++ Cơ Bản",
+    "category": "Cơ bản",
     "difficulty": "Trung bình",
     "statement": "Nhập vào một số nguyên n. Hãy kiểm tra xem n là số chẵn hay số lẻ. In ra CHAN nếu là số chẵn và LE nếu là số lẻ.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 64-bit (kiểu `long long` trong C++).",
     "input_format": "Một dòng chứa số nguyên n (-10^18 <= n <= 10^18).",
@@ -248,8 +248,8 @@
   {
     "title": "Tổng số thí sinh thi Tmath",
     "id": "tong-thi-sinh-18-10-32bit",
-    "category": "C++ Cơ Bản",
-    "difficulty": "Rất Dễ",
+    "category": "Cơ bản",
+    "difficulty": "Dễ",
     "statement": "Trung tâm Toán - Tin Tmath tổ chức kì thi vào 18/10[cite: 2]. Cho số lượng học sinh các cấp A, B và C[cite: 2]. Hãy tính tổng số lượng thí sinh tham gia.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 32-bit (kiểu `int` trong C++).",
     "input_format": "Dòng 1 ghi số nguyên A[cite: 2].\nDòng 2 ghi số nguyên B[cite: 2].\nDòng 3 ghi số nguyên C[cite: 2].",
     "output_format": "In ra tổng số lượng thí sinh.",
@@ -289,7 +289,7 @@
   {
     "title": "So sánh hai số lớn",
     "id": "so-sanh-hai-so-64bit",
-    "category": "C++ Cơ Bản",
+    "category": "Cơ bản",
     "difficulty": "Trung bình",
     "statement": "Cho hai số nguyên a và b. Hãy tìm và in ra số lớn hơn. Nếu hai số bằng nhau, in ra số đó.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 64-bit (kiểu `long long` trong C++).",
     "input_format": "Một dòng chứa hai số nguyên a và b (-10^18 <= a, b <= 10^18).",
@@ -329,7 +329,7 @@
   },
   {
     "category": "C++ Cơ Bản",
-    "difficulty": "Rất Dễ",
+    "difficulty": "Dễ",
     "explanation": "Tổng: 3 + 5 = 8\nTích: 3 * 5 = 15",
     "id": "tổng-tích",
     "input_format": "Một dòng chứa hai số nguyên a và b (-1000 <= a, b <= 1000).",
@@ -371,8 +371,8 @@
   {
     "title": "Vé xem phim",
     "id": "ve-phim-64",
-    "category": "C++ Cơ Bản",
-    "difficulty": "Rất Dễ",
+    "category": "Cơ bản",
+    "difficulty": "Dễ",
     "statement": "Một rạp chiếu phim có chương trình khuyến mãi: Nếu tuổi của khách hàng dưới 12 tuổi thì giá vé là 50000 VNĐ, ngược lại giá vé là 80000 VNĐ. Cho biết tuổi của khách hàng, hãy tính số tiền vé phải trả.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 64-bit (kiểu `long long` trong C++).",
     "input_format": "Một dòng chứa số nguyên t là tuổi của khách hàng.",
     "output_format": "In ra số tiền vé phải trả.",
@@ -412,8 +412,8 @@
   {
     "title": "Gửi xe",
     "id": "xe-32",
-    "category": "C++ Cơ Bản",
-    "difficulty": "Rất Dễ",
+    "category": "Cơ bản",
+    "difficulty": "Dễ",
     "statement": "Nhập vào số giờ gửi xe. Nếu số giờ gửi từ 2 giờ trở xuống thì phí là 5000 đồng, ngược lại phí là 10000 đồng. In ra số tiền phải trả.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 32-bit (kiểu `int` trong C++).",
     "input_format": "Một dòng chứa số nguyên n là số giờ gửi xe.",
     "output_format": "In ra số tiền phí gửi xe.",
@@ -453,8 +453,8 @@
   {
     "title": "Tính tổng 1 đến n",
     "id": "for cơ bản",
-    "category": "C++ Cơ Bản",
-    "difficulty": "Rất Dễ",
+    "category": "Cơ bản",
+    "difficulty": "Dễ",
     "statement": "Nhập vào một số nguyên dương n. Hãy tính và in ra tổng S = 1 + 2 + ... + n.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 64-bit (kiểu `long long` trong C++).",
     "input_format": "Một dòng chứa số nguyên dương n.",
     "output_format": "In ra tổng các số từ 1 đến n.",
@@ -998,7 +998,7 @@
   {
     "id": "Ninh Binh-Câu 4",
     "title": "HSG9 Ninh Bình 2026 - Chia dãy",
-    "category": "Dãy số",
+    "category": "Mảng",
     "difficulty": "Khó",
     "time_limit": 1,
     "memory_limit": 256000,
