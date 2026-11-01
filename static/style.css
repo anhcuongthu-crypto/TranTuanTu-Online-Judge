@@ -2813,3 +2813,90 @@ footer { margin-top: 52px !important; }
 @media (prefers-reduced-motion: reduce) {
     .workflow-step, .home-shortcut-card, .button { transition: none !important; }
 }
+
+
+/* Modern problemset experience */
+.page-heading {
+    min-height: 138px;
+    align-items: center !important;
+    position: relative;
+    overflow: hidden;
+}
+.page-heading::after {
+    content: "</>";
+    position: absolute;
+    right: 34px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-8deg);
+    color: rgba(54,119,190,.075);
+    font: 800 clamp(58px,8vw,104px) 'JetBrains Mono', monospace;
+    pointer-events: none;
+}
+#problem-section .section-heading {
+    align-items: stretch !important;
+    gap: 22px !important;
+}
+#problem-section .section-heading > div:first-child {
+    max-width: 340px;
+    flex: 0 0 300px;
+}
+#problem-section .section-heading > div:first-child h2 {
+    font-size: 20px !important;
+    margin: 5px 0 8px;
+}
+#problem-section .section-heading > div:first-child p {
+    font-size: 12px;
+    line-height: 1.75;
+}
+.problem-toolbar {
+    flex: 1 1 620px;
+    align-content: center;
+    grid-template-columns: minmax(200px,1.6fr) minmax(135px,1fr) minmax(125px,.9fr) auto auto !important;
+    padding: 16px;
+    border: 1px solid #e3eaf2;
+    border-radius: 15px;
+    background: rgba(255,255,255,.82);
+    box-shadow: 0 5px 18px rgba(31,58,90,.035);
+}
+.problem-toolbar .search-wrap {
+    position: relative;
+}
+.problem-toolbar .search-wrap > span {
+    color: #7890a9 !important;
+    left: 12px;
+}
+.problem-toolbar .search-wrap input { padding-left: 36px !important; }
+.problem-list-meta {
+    margin: 16px 3px 9px !important;
+    font-size: 11px !important;
+}
+#problems {
+    border-radius: 15px !important;
+    border: 1px solid #e1e8f0 !important;
+    box-shadow: 0 8px 26px rgba(31,58,90,.045) !important;
+}
+#problems table { border-collapse: separate !important; border-spacing: 0 !important; }
+#problems thead th:first-child { border-radius: 12px 0 0 0; }
+#problems thead th:last-child { border-radius: 0 12px 0 0; }
+#problems tbody tr:last-child td:first-child { border-radius: 0 0 0 12px; }
+#problems tbody tr:last-child td:last-child { border-radius: 0 0 12px 0; }
+#problems td:first-child {
+    color: #4777ad !important;
+    font-family: 'JetBrains Mono',monospace;
+    font-weight: 700;
+}
+#problems tbody tr { transition: background .16s ease; }
+#problems tbody tr:hover { background: #edf5ff !important; }
+@media(max-width:1000px) {
+    #problem-section .section-heading { flex-direction: column !important; }
+    #problem-section .section-heading > div:first-child { max-width: none; flex-basis: auto; }
+    .problem-toolbar { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+    .problem-toolbar .search-wrap { grid-column: 1 / -1; }
+}
+@media(max-width:560px) {
+    .page-heading { min-height: 0; }
+    .page-heading::after { right: 15px; font-size: 54px; }
+    .problem-toolbar { grid-template-columns: 1fr !important; padding: 12px; }
+    .problem-toolbar .search-wrap { grid-column: auto; }
+    .problem-list-meta { flex-direction: column; gap: 3px !important; }
+}
