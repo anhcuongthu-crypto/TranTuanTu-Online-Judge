@@ -182,6 +182,20 @@ def github_read_problems():
     if not isinstance(data, list):
         raise ValueError('Problems JSON phải là danh sách.')
 
+    ids = set()
+    for problem in data:
+        if not isinstance(problem, dict):
+            raise ValueError('Mỗi bài trong GitHub phải là một object.')
+
+        pid = str(problem.get('id', '')).strip()
+        if not pid:
+            raise ValueError('Có bài trong GitHub bị thiếu ID.')
+        if pid in ids:
+            raise ValueError('Trùng problem id trên GitHub: ' + pid)
+        ids.add(pid)
+
+        validate_problem(problem)
+
     return data, result['sha']
 
 
@@ -670,8 +684,9 @@ def create_app(test_config=None):
     def health():
         try:
             return jsonify(ok=True, problem_count=len(problems()))
-        except Exception as e:
-            return jsonify(ok=False, error=str(e)), 500
+        except Exception:
+            app.logger.exception('Health check failed')
+            return jsonify(ok=False, error='Problem bank unavailable'), 503
 
     @app.get('/robots.txt')
     def robots_txt():
