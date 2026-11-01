@@ -15,11 +15,11 @@
     <meta name="theme-color" content="#6d28d9">
     <meta name="color-scheme" content="dark">
 
-    <title>{% block title %}TranTu OJ Studio — Luyện lập trình C++ và Tin học{% endblock %}</title>
+    <title>{% block title %}TranTu OJ — Nền tảng luyện lập trình{% endblock %}</title>
 
     <meta
         name="description"
-        content="{% block meta_description %}TranTu OJ Studio là nền tảng luyện lập trình C++, thực hành bài tập Tin học, nộp bài chấm tự động và tham gia các cuộc thi lập trình.{% endblock %}"
+        content="{% block meta_description %}TranTu OJ là nền tảng luyện lập trình C++, thực hành thuật toán, nộp bài chấm tự động và tham gia các cuộc thi Tin học.{% endblock %}"
     >
 
     <meta name="robots" content="index, follow">
@@ -28,7 +28,7 @@
     <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:locale" content="vi_VN">
-    <meta property="og:site_name" content="TranTu OJ Studio">
+    <meta property="og:site_name" content="TranTu OJ">
     <meta property="og:title" content="{{ self.title() }}">
     <meta property="og:description" content="{{ self.meta_description() }}">
     <meta property="og:url" content="{{ request.base_url }}">
@@ -45,7 +45,12 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
         rel="stylesheet"
+        media="print"
+        onload="this.media='all'"
     >
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+    </noscript>
 
     <link rel="stylesheet" href="/static/style.css">
 
@@ -322,12 +327,12 @@
             <a
                 href="/"
                 class="brand"
-                aria-label="TranTu OJ Studio - Trang chủ"
+                aria-label="TranTu OJ - Trang chủ"
             >
                 <span class="brand-mark">λ</span>
 
                 <span>
-                    TranTu<span class="brand-gradient"> OJ Studio</span>
+                    TranTu<span class="brand-gradient"> OJ</span>
                     <small>THINK · CODE · GROW</small>
                 </span>
             </a>
@@ -405,7 +410,7 @@
     {% if request.path != '/login' and request.path != '/login/' %}
         <footer>
             <div class="footer-brand">
-                TranTu OJ Studio <span>✦</span>
+                TranTu OJ <span>✦</span>
             </div>
 
             <p data-i18n="footer_description">
