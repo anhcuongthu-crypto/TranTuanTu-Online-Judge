@@ -1,4 +1,4 @@
-# OJ Studio — Online Judge (bản đang phát triển)
+# TranTu OJ — Nền tảng luyện lập trình
 
 Giao diện luyện lập trình bằng tiếng Việt, Flask + SQLite, chấm qua Judge0, có lịch sử nộp bài, bảng xếp hạng, hồ sơ học sinh và module admin riêng.
 
