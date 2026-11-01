@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -176,9 +177,7 @@ tbody tr:hover { background: var(--hover-bg); }
     text-align: right;
     width: 110px;
 }
-.subtask-table td {
-    padding: 11px 12px;
-}
+.subtask-table td { padding: 11px 12px; }
 
 @media (max-width: 720px) {
     .grid { grid-template-columns: 1fr; }
@@ -268,10 +267,6 @@ tbody tr:hover { background: var(--hover-bg); }
 <script>
 const $ = id => document.getElementById(id);
 
-/* =========================
-   HỆ THỐNG NGÔN NGỮ
-========================= */
-
 const translations = {
     vi: {
         backContest: "← Danh sách contest",
@@ -349,8 +344,7 @@ const translations = {
         noProblemList: "Không tải được danh sách bài.",
         notSpecified: "Chưa xác định",
         subtasks: "Các subtask",
-        subtask: "Subtask",
-        noSubtasks: "Bài này không có thông tin subtask."
+        subtask: "Subtask"
     },
     en: {
         backContest: "← Contest list",
@@ -428,8 +422,7 @@ const translations = {
         noProblemList: "Could not load the problem list.",
         notSpecified: "Not specified",
         subtasks: "Subtasks",
-        subtask: "Subtask",
-        noSubtasks: "No subtask information available."
+        subtask: "Subtask"
     }
 };
 
@@ -720,8 +713,8 @@ function showProblem(pid, scroll = true) {
         p.sample_output ?? p.example_output ?? p.output_example ?? ''
     );
 
-    // Chỉ lấy tên và điểm, không lấy số lượng hoặc nội dung test.
     const subtasks = Array.isArray(p.subtasks) ? p.subtasks : [];
+    const totalScore = Number(p.total_score) || 0;
 
     const subtaskHtml = subtasks.length ? `
         <h3>${t("subtasks")}</h3>
@@ -734,12 +727,19 @@ function showProblem(pid, scroll = true) {
                     </tr>
                 </thead>
                 <tbody>
-                    ${subtasks.map((s, i) => `
-                        <tr>
-                            <td>${esc(s.name || (t("subtask") + " " + (i + 1)))}</td>
-                            <td class="score">${Number(s.score) || 0} ${t("points")}</td>
-                        </tr>
-                    `).join('')}
+                    ${subtasks.map((s, i) => {
+                        const subtaskScore = Number(s.score) || 0;
+                        const percent = totalScore > 0
+                            ? subtaskScore / totalScore * 100
+                            : 0;
+
+                        return `
+                            <tr>
+                                <td>${esc(s.name || (t("subtask") + " " + (i + 1)))}</td>
+                                <td class="score">${Number(percent.toFixed(2))}%</td>
+                            </tr>
+                        `;
+                    }).join('')}
                 </tbody>
             </table>
         </div>
@@ -752,10 +752,8 @@ function showProblem(pid, scroll = true) {
         <h2>${esc(p.title || t("problem"))}</h2>
 
         <p class="muted">
-            ID: ${esc(p.id)} · ${Number(p.total_score) || 0} ${t("points")}
+            ID: ${esc(p.id)} · ${totalScore} ${t("points")}
         </p>
-
-        ${subtaskHtml}
 
         <h3>${t("statement")}</h3>
         <div style="white-space:pre-wrap;line-height:1.8">${esc(
@@ -771,6 +769,8 @@ function showProblem(pid, scroll = true) {
             <h3>${t("output")}</h3>
             <div style="white-space:pre-wrap;line-height:1.8">${esc(outputDesc)}</div>
         ` : ''}
+
+        ${subtaskHtml}
 
         ${sampleInput !== '' || sampleOutput !== '' ? `
             <h3>${t("example")}</h3>
