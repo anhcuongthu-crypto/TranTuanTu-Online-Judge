@@ -943,6 +943,10 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
     def home():
         return render_template('index.html')
 
+    @app.get('/problems')
+    def problems_page():
+        return render_template('problems.html')
+
     @app.get('/library')
     def library_page():
         return render_template('library.html')
