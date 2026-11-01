@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 import os
 import re
 import shutil
+import threading
 import unicodedata
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -400,23 +401,80 @@ def create_app(test_config=None):
 
    
     problems_cache = None
+    problems_cache_lock = threading.Lock()
+    problems_refreshing = False
+
+    def _refresh_problem_bank_in_background():
+        nonlocal problems_cache, problems_refreshing
+
+        try:
+            data, _ = github_read_problems()
+            with problems_cache_lock:
+                problems_cache = data
+            app.logger.info(
+                'Problem bank refreshed from GitHub: %s problems',
+                len(data)
+            )
+        except Exception:
+            app.logger.exception(
+                'Không thể làm mới ngân hàng đề từ GitHub; '
+                'tiếp tục dùng bản cache cục bộ.'
+            )
+        finally:
+            with problems_cache_lock:
+                problems_refreshing = False
 
     def problems(refresh=False):
-        nonlocal problems_cache
+        nonlocal problems_cache, problems_refreshing
 
-        if problems_cache is not None and not refresh:
-            return problems_cache
+        # Các thao tác quản trị cần dữ liệu mới nhất nên vẫn tải đồng bộ.
+        if refresh:
+            if os.getenv('GITHUB_TOKEN'):
+                data, _ = github_read_problems()
+            else:
+                data = load_problems(app.config['PROBLEMS_PATH'])
 
+            with problems_cache_lock:
+                problems_cache = data
+            return data
+
+        with problems_cache_lock:
+            if problems_cache is not None:
+                return problems_cache
+
+            # Ưu tiên đọc file đã có ngay trên máy chủ, tránh để người dùng
+            # phải chờ GitHub API mỗi lần Render vừa khởi động.
+            try:
+                data = load_problems(app.config['PROBLEMS_PATH'])
+            except Exception:
+                data = None
+
+            if data is not None:
+                problems_cache = data
+
+                if os.getenv('GITHUB_TOKEN') and not problems_refreshing:
+                    problems_refreshing = True
+                    threading.Thread(
+                        target=_refresh_problem_bank_in_background,
+                        daemon=True
+                    ).start()
+
+                return problems_cache
+
+        # Chỉ gọi GitHub đồng bộ nếu không có bản cache cục bộ hợp lệ.
         if os.getenv('GITHUB_TOKEN'):
             data, _ = github_read_problems()
         else:
             data = load_problems(app.config['PROBLEMS_PATH'])
 
-        problems_cache = data
-        return problems_cache
+        with problems_cache_lock:
+            problems_cache = data
+        return data
+
     def update_problems_cache(data):
         nonlocal problems_cache
-        problems_cache = data
+        with problems_cache_lock:
+            problems_cache = data
         # ==================== AUTO TRANSLATE PROBLEM ====================
 
     problem_translation_cache = {}
