@@ -107,6 +107,9 @@ async function loadMyProgress() {
     }
 }
 
+// Bộ lọc nhiều tags: chỉ cần khớp ít nhất một tag đã chọn.
+let selectedProblemTags = [];
+
 // ==================== DANH SÁCH BÀI TẬP ====================
 
 // Cột mặc định: mã bài, tăng dần.
@@ -133,12 +136,15 @@ function getFilteredProblems() {
     const difficulty = document.querySelector('#filter-difficulty')?.value || '';
 
     return items.filter(p => {
-        const matchesQuery = `${p.id ?? ''} ${p.title ?? ''} ${p.category ?? ''} ${p.difficulty ?? ''}`
+        const problemTags = Array.isArray(p.tags) ? p.tags : [];
+        const matchesQuery = `${p.id ?? ''} ${p.title ?? ''} ${p.category ?? ''} ${p.difficulty ?? ''} ${problemTags.join(' ')}`
             .toLocaleLowerCase('vi')
             .includes(query);
         const matchesCategory = !category || String(p.category ?? '') === category;
         const matchesDifficulty = !difficulty || String(p.difficulty ?? '') === difficulty;
-        return matchesQuery && matchesCategory && matchesDifficulty;
+        const matchesTags = !selectedProblemTags.length ||
+            selectedProblemTags.some(tag => problemTags.includes(tag));
+        return matchesQuery && matchesCategory && matchesDifficulty && matchesTags;
     });
 }
 
@@ -151,6 +157,7 @@ function renderProblems(items) {
         ['title', 'Tên bài'],
         ['category', 'Chủ đề'],
         ['difficulty', 'Độ khó'],
+        ['tags', 'Tags thuật toán'],
         ['total_score', 'Điểm'],
         ['status', 'Trạng thái']
     ];
@@ -241,6 +248,7 @@ function renderProblems(items) {
 
                             <td>${escapeHtml(p.category)}</td>
                             <td>${escapeHtml(p.difficulty)}</td>
+                            <td><div class="problem-tags">${(Array.isArray(p.tags) ? p.tags : []).map(tag => `<span class="problem-tag">${escapeHtml(tag)}</span>`).join('')}</div></td>
                             <td>${formatScore(p.total_score)}</td>
                             <td>
                                 ${mySolvedProblems[String(p.id)]?.solved
@@ -456,6 +464,13 @@ async function refresh() {
 
                     const categories = [...new Set(items.map(p => String(p.category ?? '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi'));
                     const difficulties = [...new Set(items.map(p => String(p.difficulty ?? '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi', { numeric: true }));
+                    const allTags = [...new Set(items.flatMap(p => Array.isArray(p.tags) ? p.tags : []))].sort((a, b) => a.localeCompare(b, 'vi'));
+                    const tagContainer = document.querySelector('#filter-tags');
+                    if (tagContainer) {
+                        tagContainer.innerHTML = allTags.map(tag =>
+                            `<button type="button" class="tag-filter-chip${selectedProblemTags.includes(tag) ? ' active' : ''}" data-tag="${escapeHtml(tag)}" aria-pressed="${selectedProblemTags.includes(tag)}">${escapeHtml(tag)}</button>`
+                        ).join('');
+                    }
 
                     const categorySelect = document.querySelector('#filter-category');
                     const difficultySelect = document.querySelector('#filter-difficulty');
@@ -963,6 +978,21 @@ document.querySelector('#refresh-submissions')
     );
 });
 
+document.querySelector('#filter-tags')?.addEventListener('click', event => {
+    const button = event.target.closest('[data-tag]');
+    if (!button) return;
+    const tag = button.dataset.tag;
+    selectedProblemTags = selectedProblemTags.includes(tag)
+        ? selectedProblemTags.filter(item => item !== tag)
+        : [...selectedProblemTags, tag];
+    document.querySelectorAll('#filter-tags [data-tag]').forEach(item => {
+        const active = selectedProblemTags.includes(item.dataset.tag);
+        item.classList.toggle('active', active);
+        item.setAttribute('aria-pressed', String(active));
+    });
+    renderProblems(getFilteredProblems());
+});
+
 document.querySelector('#reset-problem-filters')?.addEventListener('click', () => {
     const search = document.querySelector('#search');
     const category = document.querySelector('#filter-category');
@@ -970,6 +1000,11 @@ document.querySelector('#reset-problem-filters')?.addEventListener('click', () =
     if (search) search.value = '';
     if (category) category.value = '';
     if (difficulty) difficulty.value = '';
+    selectedProblemTags = [];
+    document.querySelectorAll('#filter-tags [data-tag]').forEach(item => {
+        item.classList.remove('active');
+        item.setAttribute('aria-pressed', 'false');
+    });
     renderProblems(getFilteredProblems());
 });
 
