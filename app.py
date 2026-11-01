@@ -970,7 +970,12 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 'title': p['title'],
                 'category': p.get('category', ''),
                 'difficulty': p.get('difficulty', ''),
-                'tags': p.get('tags', []),
+                'tags': sorted({
+                    {'Số học cơ bản': 'Số học', 'Rẽ nhánh': 'Điều kiện',
+                     'Max': 'Tìm giá trị lớn nhất'}.get(tag, tag)
+                    for tag in p.get('tags', [])
+                    if tag not in {'Tính toán', 'Tính tổng', 'Tính tích', 'Duyệt đoạn'}
+                }, key=lambda tag: tag.casefold()),
                 'total_score': p['total_score'],
                 'subtasks_count': len(p.get('subtasks', [])),
                 'time_limit': p.get('time_limit', 1)
@@ -1512,6 +1517,10 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 solved_ids.add(pid)
                 solved_by_category[category] = solved_by_category.get(category, 0) + 1
                 for tag in problem.get('tags', []):
+                    if tag in {'Tính toán', 'Tính tổng', 'Tính tích', 'Duyệt đoạn'}:
+                        continue
+                    tag = {'Số học cơ bản': 'Số học', 'Rẽ nhánh': 'Điều kiện',
+                           'Max': 'Tìm giá trị lớn nhất'}.get(tag, tag)
                     solved_by_tag[tag] = solved_by_tag.get(tag, 0) + 1
 
         today = datetime.now().date()
