@@ -264,7 +264,7 @@
         <article class="glass-card problem-hero">
             <div class="problem-meta">
                 <span class="pill pill-purple" id="problem-category-badge">{{ problem.category }}</span>
-                <span class="pill">{{ problem.difficulty }}</span>
+                <span class="pill" id="problem-difficulty">{{ problem.difficulty }}</span>
                 <span class="pill pill-green">
                     <span id="problem-score-badge">{{ problem.total_score }} điểm</span>
                 </span>
@@ -442,6 +442,7 @@
         author: {{ problem.author|default('Chưa cập nhật', true)|tojson }},
         created_by: {{ problem.created_by|default('Admin', true)|tojson }},
         category: {{ problem.category|tojson }},
+        difficulty: {{ problem.difficulty|tojson }},
         total_score: {{ problem.total_score|tojson }}
     };
 
@@ -449,6 +450,7 @@
 
     const translatedIds = {
         title: "problem-title",
+        difficulty: "problem-difficulty",
         statement: "problem-statement",
         input_format: "problem-input",
         output_format: "problem-output",
