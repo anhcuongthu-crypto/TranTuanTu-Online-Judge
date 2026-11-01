@@ -3028,3 +3028,20 @@ footer { background: #ffffff !important; color: #718091 !important; border-color
 @media(prefers-color-scheme:dark) {
   html, body, main, #main-content { background: #ffffff !important; color: #273746 !important; }
 }
+
+
+/* Light code examples and homepage illustration, matching the white OJ canvas */
+.hero-art .code-window {
+  background: #f7f9fb !important;
+  border: 1px solid #dfe5eb !important;
+  box-shadow: 0 5px 18px rgba(20,40,60,.08) !important;
+}
+.hero-art .window-bar {
+  background: #eef2f6 !important;
+  border-bottom: 1px solid #dfe5eb !important;
+}
+.hero-art .code-window pre,
+.hero-art .code-window code {
+  background: transparent !important;
+  color: #34495d !important;
+}
