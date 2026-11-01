@@ -1,21 +1,24 @@
 {% extends 'base.html' %}
-{% block title %}Thư viện bài tập — TranTu OJ{% endblock %}
-{% block meta_description %}Khám phá thư viện bài tập lập trình C++, Tin học, thuật toán và luyện thi học sinh giỏi trên TranTu OJ.{% endblock %}
+{% block title %}Thư viện đề tuyển sinh và HSG — TranTu OJ{% endblock %}
+{% block meta_description %}Thư viện đề tuyển sinh, đề thi học sinh giỏi Tin học được sắp xếp theo kỳ thi và năm trên TranTu OJ.{% endblock %}
 {% block content %}
-<div class="breadcrumbs"><a href="/">Trang chủ</a><span>/</span><span>Thư viện bài tập</span></div>
-<section class="library-header"><div><span class="eyebrow">PROBLEM ARCHIVE</span><h1>Thư viện bài tập</h1><p>Khám phá đề theo chủ đề, độ khó và thuật toán. Chọn một bài để xem đề, ví dụ và các subtask.</p></div><div class="library-total"><strong id="library-total">—</strong><span>bài trong thư viện</span></div></section>
+<div class="breadcrumbs"><a href="/">Trang chủ</a><span>/</span><span>Thư viện đề thi</span></div>
+<section class="library-header">
+    <div>
+        <span class="eyebrow">EXAM ARCHIVE</span>
+        <h1>Thư viện đề thi</h1>
+        <p>Nơi lưu trữ các câu hỏi thuộc đề tuyển sinh và đề thi học sinh giỏi. Các bài luyện tập C++ hằng ngày nằm riêng tại mục Bài tập.</p>
+    </div>
+    <div class="library-total"><strong id="library-total">—</strong><span>câu hỏi từ đề thi</span></div>
+</section>
 <section class="library-tools glass-card">
-<div class="library-search"><span>⌕</span><input id="library-search" type="search" placeholder="Tìm tên bài, mã bài hoặc thuật toán..."></div>
-<select id="library-category"><option value="">Tất cả chủ đề</option></select>
-<select id="library-difficulty"><option value="">Mọi độ khó</option></select>
-<select id="library-sort"><option value="id">Mã bài: A → Z</option><option value="title">Tên bài: A → Z</option><option value="difficulty">Độ khó</option><option value="score">Điểm tối đa</option></select>
-<button type="button" class="button button-ghost" id="library-reset">Đặt lại</button></section>
-<div class="library-layout">
-<aside class="library-sidebar">
-<section class="glass-card"><h3>Chủ đề</h3><div id="library-categories" class="library-facets"><p class="muted">Đang tải...</p></div></section>
-<section class="glass-card"><h3>Độ khó</h3><div id="library-difficulties" class="library-facets"><p class="muted">Đang tải...</p></div></section>
-<section class="glass-card"><h3>Thuật toán</h3><div id="library-tags" class="library-facets"><p class="muted">Đang tải...</p></div></section>
-</aside>
-<section class="library-results"><div class="library-results-head"><strong id="library-result-count">Đang tải bài tập...</strong><span>Chọn bài để mở đề</span></div><div id="library-grid" class="library-grid"><div class="glass-card library-empty">Đang tải thư viện...</div></div></section>
-</div>
+    <div class="library-search"><span>⌕</span><input id="library-search" type="search" placeholder="Tìm kỳ thi, năm hoặc tên câu hỏi..."></div>
+    <select id="library-exam"><option value="">Tất cả kỳ thi</option></select>
+    <select id="library-sort"><option value="exam">Sắp xếp theo kỳ thi</option><option value="title">Tên câu hỏi: A → Z</option><option value="difficulty">Độ khó</option></select>
+    <button type="button" class="button button-ghost" id="library-reset">Đặt lại</button>
+</section>
+<section class="library-results">
+    <div class="library-results-head"><strong id="library-result-count">Đang tải đề thi...</strong><span>Chọn câu hỏi để mở đề và nộp bài</span></div>
+    <div id="library-grid" class="library-grid"><div class="glass-card library-empty">Đang tải thư viện...</div></div>
+</section>
 {% endblock %}
