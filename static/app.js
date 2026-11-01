@@ -2,70 +2,93 @@
 async function initProblemLibrary() {
     const grid = document.querySelector('#library-grid');
     if (!grid) return;
+
     const search = document.querySelector('#library-search');
-    const category = document.querySelector('#library-category');
-    const difficulty = document.querySelector('#library-difficulty');
+    const examSelect = document.querySelector('#library-exam');
     const sort = document.querySelector('#library-sort');
     const count = document.querySelector('#library-result-count');
     const total = document.querySelector('#library-total');
-    let items = [], activeCategory = '', activeDifficulty = '', activeTag = '';
-
-    function facets(id, values, type) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.innerHTML = values.map(value => {
-            const active = type === 'category' ? activeCategory === value : type === 'difficulty' ? activeDifficulty === value : activeTag === value;
-            const n = items.filter(p => type === 'category' ? p.category === value : type === 'difficulty' ? p.difficulty === value : (p.tags || []).includes(value)).length;
-            return `<button type="button" class="library-facet ${active ? 'active' : ''}" data-value="${escapeHtml(value)}"><span>${escapeHtml(value)}</span><b>${n}</b></button>`;
-        }).join('') || '<p class="muted">Chưa có dữ liệu.</p>';
-        el.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
-            const value = btn.dataset.value;
-            if (type === 'category') { activeCategory = activeCategory === value ? '' : value; category.value = activeCategory; }
-            if (type === 'difficulty') { activeDifficulty = activeDifficulty === value ? '' : value; difficulty.value = activeDifficulty; }
-            if (type === 'tag') activeTag = activeTag === value ? '' : value;
-            render();
-        }));
-    }
+    let items = [];
 
     function render() {
         const q = (search.value || '').trim().toLocaleLowerCase('vi');
+        const selectedExam = examSelect.value;
         const rows = items.filter(p => {
-            const hay = [p.id, p.title, p.category, p.difficulty, ...(p.tags || [])].join(' ').toLocaleLowerCase('vi');
-            return (!q || hay.includes(q)) && (!activeCategory || p.category === activeCategory)
-                && (!activeDifficulty || p.difficulty === activeDifficulty) && (!activeTag || (p.tags || []).includes(activeTag));
+            const hay = [p.exam_set, p.id, p.title, p.category, p.difficulty]
+                .join(' ').toLocaleLowerCase('vi');
+            return (!q || hay.includes(q)) && (!selectedExam || p.exam_set === selectedExam);
         });
-        rows.sort((a,b) => sort.value === 'score' ? (Number(b.total_score)||0)-(Number(a.total_score)||0)
-            : String(a[sort.value] ?? '').localeCompare(String(b[sort.value] ?? ''),'vi',{numeric:true,sensitivity:'base'}));
-        count.textContent = `Hiển thị ${rows.length} / ${items.length} bài`;
-        grid.innerHTML = rows.length ? rows.map(p => `
-            <article class="library-card">
-                <div class="library-card-top"><span class="library-code">${escapeHtml(p.id)}</span><span class="library-difficulty">${escapeHtml(p.difficulty || 'Chưa phân loại')}</span></div>
-                <h2><a href="/problems/${encodeURIComponent(p.id)}">${escapeHtml(p.title)}</a></h2>
-                <div class="library-card-meta"><span>${escapeHtml(p.category || 'Khác')}</span><span>${Number(p.total_score)||0} điểm</span><span>${Number(p.subtasks_count)||0} subtask</span></div>
-                <div class="library-card-tags">${(p.tags||[]).map(tag=>`<span>${escapeHtml(tag)}</span>`).join('')}</div>
-                <a class="library-open" href="/problems/${encodeURIComponent(p.id)}">Mở bài <span>→</span></a>
-            </article>`).join('') : '<div class="glass-card library-empty">Không tìm thấy bài phù hợp. Hãy đổi bộ lọc hoặc từ khóa.</div>';
-        facets('library-categories',[...new Set(items.map(p=>p.category).filter(Boolean))].sort(),'category');
-        facets('library-difficulties',[...new Set(items.map(p=>p.difficulty).filter(Boolean))].sort(),'difficulty');
-        facets('library-tags',[...new Set(items.flatMap(p=>p.tags||[]))].sort(),'tag');
+
+        rows.sort((a, b) => {
+            if (sort.value === 'title') {
+                return String(a.title || '').localeCompare(String(b.title || ''), 'vi', {numeric:true});
+            }
+            if (sort.value === 'difficulty') {
+                return String(a.difficulty || '').localeCompare(String(b.difficulty || ''), 'vi', {numeric:true});
+            }
+            return String(a.exam_set || '').localeCompare(String(b.exam_set || ''), 'vi')
+                || String(a.id || '').localeCompare(String(b.id || ''), 'vi', {numeric:true});
+        });
+
+        count.textContent = `Hiển thị ${rows.length} / ${items.length} câu hỏi thuộc đề thi`;
+        if (!rows.length) {
+            grid.innerHTML = '<div class="glass-card library-empty">Chưa có đề thi phù hợp. Các bài luyện tập thông thường được đặt tại mục Bài tập.</div>';
+            return;
+        }
+
+        const groups = new Map();
+        rows.forEach(p => {
+            const name = p.exam_set || 'Đề thi khác';
+            if (!groups.has(name)) groups.set(name, []);
+            groups.get(name).push(p);
+        });
+
+        grid.innerHTML = [...groups.entries()].map(([exam, questions]) => `
+            <section class="exam-group">
+                <div class="exam-group-heading">
+                    <div><span class="eyebrow">KỲ THI</span><h2>${escapeHtml(exam)}</h2></div>
+                    <span class="exam-question-count">${questions.length} câu hỏi</span>
+                </div>
+                <div class="exam-question-list">
+                    ${questions.map((p, index) => `
+                        <article class="library-card exam-question-card">
+                            <div class="library-card-top">
+                                <span class="library-code">${escapeHtml(p.id)}</span>
+                                <span class="library-difficulty">${escapeHtml(p.difficulty || 'Chưa phân loại')}</span>
+                            </div>
+                            <h3><a href="/problems/${encodeURIComponent(p.id)}">${escapeHtml(p.title || ('Câu hỏi ' + (index + 1)))}</a></h3>
+                            <div class="library-card-meta">
+                                <span>${escapeHtml(p.category || 'Chưa phân loại')}</span>
+                                <span>${Number(p.total_score) || 0} điểm</span>
+                                <span>${Number(p.subtasks_count) || 0} subtask</span>
+                            </div>
+                            <a class="library-open" href="/problems/${encodeURIComponent(p.id)}">Mở câu hỏi <span>→</span></a>
+                        </article>
+                    `).join('')}
+                </div>
+            </section>
+        `).join('');
     }
+
     try {
-        items = await api('/api/problems');
+        const all = await api('/api/problems');
+        items = all.filter(p => String(p.exam_set || '').trim());
         total.textContent = items.length;
-        [...new Set(items.map(p=>p.category).filter(Boolean))].sort().forEach(v=>category.add(new Option(v,v)));
-        [...new Set(items.map(p=>p.difficulty).filter(Boolean))].sort().forEach(v=>difficulty.add(new Option(v,v)));
-        search.addEventListener('input',render);
-        category.addEventListener('change',()=>{activeCategory=category.value;render();});
-        difficulty.addEventListener('change',()=>{activeDifficulty=difficulty.value;render();});
-        sort.addEventListener('change',render);
-        document.querySelector('#library-reset').addEventListener('click',()=>{
-            search.value='';category.value='';difficulty.value='';sort.value='id';
-            activeCategory='';activeDifficulty='';activeTag='';render();
+        [...new Set(items.map(p => p.exam_set))].sort((a,b) => a.localeCompare(b,'vi'))
+            .forEach(v => examSelect.add(new Option(v, v)));
+        search.addEventListener('input', render);
+        examSelect.addEventListener('change', render);
+        sort.addEventListener('change', render);
+        document.querySelector('#library-reset').addEventListener('click', () => {
+            search.value = '';
+            examSelect.value = '';
+            sort.value = 'exam';
+            render();
         });
         render();
-    } catch(e) {
+    } catch (e) {
         grid.innerHTML = `<div class="glass-card library-empty">Không tải được thư viện: ${escapeHtml(e.message)}</div>`;
-        count.textContent='Lỗi tải dữ liệu';
+        count.textContent = 'Lỗi tải dữ liệu';
     }
 }
 document.addEventListener('DOMContentLoaded', initProblemLibrary);
@@ -179,9 +202,6 @@ async function loadMyProgress() {
     }
 }
 
-// Bộ lọc nhiều tags: chỉ cần khớp ít nhất một tag đã chọn.
-let selectedProblemTags = [];
-
 // ==================== DANH SÁCH BÀI TẬP ====================
 
 // Cột mặc định: mã bài, tăng dần.
@@ -208,15 +228,12 @@ function getFilteredProblems() {
     const difficulty = document.querySelector('#filter-difficulty')?.value || '';
 
     return items.filter(p => {
-        const problemTags = Array.isArray(p.tags) ? p.tags : [];
-        const matchesQuery = `${p.id ?? ''} ${p.title ?? ''} ${p.category ?? ''} ${p.difficulty ?? ''} ${problemTags.join(' ')}`
+        const matchesQuery = `${p.id ?? ''} ${p.title ?? ''} ${p.category ?? ''} ${p.difficulty ?? ''}`
             .toLocaleLowerCase('vi')
             .includes(query);
         const matchesCategory = !category || String(p.category ?? '') === category;
         const matchesDifficulty = !difficulty || String(p.difficulty ?? '') === difficulty;
-        const matchesTags = !selectedProblemTags.length ||
-            selectedProblemTags.some(tag => problemTags.includes(tag));
-        return matchesQuery && matchesCategory && matchesDifficulty && matchesTags;
+        return matchesQuery && matchesCategory && matchesDifficulty;
     });
 }
 
@@ -229,7 +246,6 @@ function renderProblems(items) {
         ['title', 'Tên bài'],
         ['category', 'Chủ đề'],
         ['difficulty', 'Độ khó'],
-        ['tags', 'Tags thuật toán'],
         ['total_score', 'Điểm'],
         ['status', 'Trạng thái']
     ];
@@ -536,14 +552,6 @@ async function refresh() {
 
                     const categories = [...new Set(items.map(p => String(p.category ?? '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi'));
                     const difficulties = [...new Set(items.map(p => String(p.difficulty ?? '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi', { numeric: true }));
-                    const allTags = [...new Set(items.flatMap(p => Array.isArray(p.tags) ? p.tags : []))].sort((a, b) => a.localeCompare(b, 'vi'));
-                    const tagContainer = document.querySelector('#filter-tags');
-                    if (tagContainer) {
-                        tagContainer.innerHTML = allTags.map(tag =>
-                            `<button type="button" class="tag-filter-chip${selectedProblemTags.includes(tag) ? ' active' : ''}" data-tag="${escapeHtml(tag)}" aria-pressed="${selectedProblemTags.includes(tag)}">${escapeHtml(tag)}</button>`
-                        ).join('');
-                    }
-
                     const categorySelect = document.querySelector('#filter-category');
                     const difficultySelect = document.querySelector('#filter-difficulty');
                     if (categorySelect) {
@@ -1118,21 +1126,6 @@ document.querySelector('#refresh-submissions')
     );
 });
 
-document.querySelector('#filter-tags')?.addEventListener('click', event => {
-    const button = event.target.closest('[data-tag]');
-    if (!button) return;
-    const tag = button.dataset.tag;
-    selectedProblemTags = selectedProblemTags.includes(tag)
-        ? selectedProblemTags.filter(item => item !== tag)
-        : [...selectedProblemTags, tag];
-    document.querySelectorAll('#filter-tags [data-tag]').forEach(item => {
-        const active = selectedProblemTags.includes(item.dataset.tag);
-        item.classList.toggle('active', active);
-        item.setAttribute('aria-pressed', String(active));
-    });
-    renderProblems(getFilteredProblems());
-});
-
 document.querySelector('#reset-problem-filters')?.addEventListener('click', () => {
     const search = document.querySelector('#search');
     const category = document.querySelector('#filter-category');
@@ -1140,11 +1133,6 @@ document.querySelector('#reset-problem-filters')?.addEventListener('click', () =
     if (search) search.value = '';
     if (category) category.value = '';
     if (difficulty) difficulty.value = '';
-    selectedProblemTags = [];
-    document.querySelectorAll('#filter-tags [data-tag]').forEach(item => {
-        item.classList.remove('active');
-        item.setAttribute('aria-pressed', 'false');
-    });
     renderProblems(getFilteredProblems());
 });
 
