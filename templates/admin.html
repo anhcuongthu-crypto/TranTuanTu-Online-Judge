@@ -467,6 +467,20 @@ hr {
                 required
                 placeholder='{"id":"BAI1","title":"Tên bài", ...}'
             ></textarea>
+
+            <label for="subtask-constraints">
+                Ràng buộc từng Subtask (mỗi dòng tương ứng một Subtask)
+            </label>
+            <p class="muted">
+                Dòng 1 là Subtask 1, dòng 2 là Subtask 2... Để trống nếu
+                Subtask đó không có ràng buộc riêng.
+            </p>
+            <textarea
+                id="subtask-constraints"
+                placeholder="1 <= n <= 100&#10;1 <= n <= 1000000"
+                style="min-height:100px"
+            ></textarea>
+
             <label for="sample-input">Input mẫu</label>
             <textarea id="sample-input"
           placeholder="Nhập input mẫu..."
@@ -499,6 +513,8 @@ hr {
         const count = document.getElementById('admin-problem-count');
         const form = document.getElementById('problem-form');
         const editor = document.getElementById('problem-json');
+        const constraintsEditor =
+            document.getElementById('subtask-constraints');
         const authorInput = document.getElementById('problem-author');
         const sampleInput = document.getElementById('sample-input');
         const sampleOutput = document.getElementById('sample-output');
@@ -567,6 +583,7 @@ hr {
         function resetEditor() {
     editingId = null;
     editor.value = '';
+    constraintsEditor.value = '';
     authorInput.value = '';
     sampleInput.value = '';
     sampleOutput.value = '';
@@ -797,6 +814,9 @@ hr {
         editingId = String(problem.id);
 
         editor.value = JSON.stringify(problem, null, 2);
+        constraintsEditor.value = (problem.subtasks || [])
+            .map(subtask => subtask.constraints || '')
+            .join('\n');
         authorInput.value = problem.author || '';
 
         const firstTest = problem.subtasks?.[0]?.tests?.[0];
@@ -960,6 +980,16 @@ hr {
                 return;
             }
             problem.author = authorInput.value.trim();
+
+            if (!Array.isArray(problem.subtasks) || problem.subtasks.length === 0) {
+                showMessage('Bài phải có ít nhất một subtask.', true);
+                return;
+            }
+
+            const constraintLines = constraintsEditor.value.split(/\r?\n/);
+            problem.subtasks.forEach((subtask, index) => {
+                subtask.constraints = (constraintLines[index] || '').trim();
+            });
 
             if (sampleInput.value !== '' || sampleOutput.value !== '') {
                 if (!Array.isArray(problem.subtasks) ||
