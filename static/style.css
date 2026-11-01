@@ -2900,3 +2900,131 @@ footer { margin-top: 52px !important; }
     .problem-toolbar .search-wrap { grid-column: auto; }
     .problem-list-meta { flex-direction: column; gap: 3px !important; }
 }
+
+
+/* =========================================
+   CLUEOJ-STYLE CONSISTENT LIGHT THEME
+   Pure white surfaces, subtle grey borders,
+   restrained blue links and controls.
+   ========================================= */
+:root {
+  color-scheme: light !important;
+  --ink: #273746 !important;
+  --muted: #687b8d !important;
+  --line: #dfe5eb !important;
+  --paper: #ffffff !important;
+  --white: #ffffff !important;
+  --oj-bg: #ffffff !important;
+  --oj-panel: #ffffff !important;
+  --oj-panel-soft: #f7f9fb !important;
+  --oj-border: #dfe5eb !important;
+  --oj-text: #273746 !important;
+  --oj-muted: #687b8d !important;
+  --oj-accent: #286da8 !important;
+}
+html, body {
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #273746 !important;
+  color-scheme: light !important;
+}
+body { font-family: Arial, Helvetica, sans-serif !important; }
+main, #main-content { background: #ffffff !important; color: #273746 !important; }
+.topbar {
+  background: #ffffff !important;
+  border-bottom: 1px solid #dfe5eb !important;
+  box-shadow: 0 1px 3px rgba(20,40,60,.06) !important;
+  backdrop-filter: none !important;
+}
+.brand, .brand > span, .brand-gradient { color: #244b6b !important; }
+.brand-gradient { background: none !important; }
+.topbar nav a, .top-user { color: #3e5367 !important; }
+.topbar nav a:hover, .topbar nav a[aria-current="page"] {
+  color: #1d6399 !important;
+  background: #eef5fa !important;
+}
+.nav-dropdown-menu, .nav-dropdown[open] .nav-dropdown-menu {
+  background: #ffffff !important;
+  border: 1px solid #dfe5eb !important;
+  box-shadow: 0 5px 16px rgba(20,40,60,.10) !important;
+}
+.nav-dropdown-menu a { color: #344b60 !important; }
+main .glass-card, main .table-card, main .problem, main .admin-hero,
+main .exam-group, main .contest-card, main .submission-card,
+main .home-workflow, main .workflow-step, main .analytics-panel,
+main .profile-hero, main .profile-form-card, main .profile-account-card {
+  background: #ffffff !important;
+  color: #273746 !important;
+  border-color: #dfe5eb !important;
+  box-shadow: 0 1px 3px rgba(20,40,60,.045) !important;
+  backdrop-filter: none !important;
+}
+main h1, main h2, main h3, main h4, main .page-heading h1 {
+  color: #263e54 !important;
+}
+main p, main .muted, main small { color: #687b8d; }
+main a { color: #286da8; }
+main a:hover { color: #174e7b; }
+.page-heading, .home-workflow {
+  background: #ffffff !important;
+  border: 1px solid #dfe5eb !important;
+  box-shadow: none !important;
+}
+.hero {
+  background: #ffffff !important;
+  border: 1px solid #dfe5eb !important;
+  box-shadow: none !important;
+}
+.hero::before { display: none !important; }
+.hero h1 { color: #263e54 !important; }
+.hero .gradient-text {
+  background: none !important;
+  color: #286da8 !important;
+  -webkit-text-fill-color: #286da8 !important;
+}
+.button-primary, .button.button-primary {
+  background: #286da8 !important;
+  border: 1px solid #245f91 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+.button-primary:hover, .button.button-primary:hover { background: #1f5684 !important; }
+.button-ghost, .button-glass, .button:not(.button-primary) {
+  background: #ffffff !important;
+  color: #31536f !important;
+  border: 1px solid #cfd9e2 !important;
+  box-shadow: none !important;
+}
+table { background: #ffffff !important; color: #273746 !important; }
+table thead th, table th, .table-card th {
+  background: #f1f4f7 !important;
+  color: #354d63 !important;
+  border-color: #dfe5eb !important;
+}
+table td, .table-card td {
+  background: #ffffff !important;
+  color: #34495d !important;
+  border-color: #e5e9ee !important;
+}
+table tbody tr:nth-child(even) { background: #fafbfc !important; }
+table tbody tr:nth-child(odd) { background: #ffffff !important; }
+table tbody tr:hover { background: #f0f6fb !important; }
+input, select, textarea,
+main input, main select, main textarea {
+  background: #ffffff !important;
+  color: #273746 !important;
+  border: 1px solid #cbd5df !important;
+  color-scheme: light !important;
+}
+input::placeholder, textarea::placeholder { color: #8795a3 !important; }
+input:focus, select:focus, textarea:focus {
+  border-color: #6d9fc5 !important;
+  box-shadow: 0 0 0 2px rgba(40,109,168,.12) !important;
+}
+pre, code, .code-window, .code-content, .code-dialog {
+  /* Code samples retain a dark editor surface intentionally. */
+}
+footer { background: #ffffff !important; color: #718091 !important; border-color: #dfe5eb !important; }
+@media(prefers-color-scheme:dark) {
+  html, body, main, #main-content { background: #ffffff !important; color: #273746 !important; }
+}
