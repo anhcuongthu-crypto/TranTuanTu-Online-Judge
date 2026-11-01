@@ -82,7 +82,7 @@
     ]
   },
   {
-    "category": "C++ Cơ Bản",
+    "category": "Hình học",
     "difficulty": "Dễ",
     "explanation": "Chu vi = (4 + 5) * 2 = 18\nDiện tích = 4 * 5 = 20",
     "id": "chu-vi-dien-tich-hcn",
@@ -125,7 +125,7 @@
   {
     "title": "Chia bánh - Phép chia lấy nguyên và dư",
     "id": "chia-banh-32bit",
-    "category": "Cơ bản",
+    "category": "Số học",
     "difficulty": "Dễ",
     "statement": "Có n cái bánh chia đều cho k bạn. Hãy tính xem mỗi bạn nhận được bao nhiêu cái bánh và còn thừa lại bao nhiêu cái.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 32-bit (kiểu `int` trong C++).",
     "input_format": "Một dòng chứa hai số nguyên dương n và k cách nhau bởi khoảng trắng.",
@@ -328,7 +328,7 @@
     ]
   },
   {
-    "category": "C++ Cơ Bản",
+    "category": "Cơ bản",
     "difficulty": "Dễ",
     "explanation": "Tổng: 3 + 5 = 8\nTích: 3 * 5 = 15",
     "id": "tổng-tích",
@@ -371,7 +371,7 @@
   {
     "title": "Vé xem phim",
     "id": "ve-phim-64",
-    "category": "Cơ bản",
+    "category": "Điều kiện",
     "difficulty": "Dễ",
     "statement": "Một rạp chiếu phim có chương trình khuyến mãi: Nếu tuổi của khách hàng dưới 12 tuổi thì giá vé là 50000 VNĐ, ngược lại giá vé là 80000 VNĐ. Cho biết tuổi của khách hàng, hãy tính số tiền vé phải trả.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 64-bit (kiểu `long long` trong C++).",
     "input_format": "Một dòng chứa số nguyên t là tuổi của khách hàng.",
@@ -412,7 +412,7 @@
   {
     "title": "Gửi xe",
     "id": "xe-32",
-    "category": "Cơ bản",
+    "category": "Điều kiện",
     "difficulty": "Dễ",
     "statement": "Nhập vào số giờ gửi xe. Nếu số giờ gửi từ 2 giờ trở xuống thì phí là 5000 đồng, ngược lại phí là 10000 đồng. In ra số tiền phải trả.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 32-bit (kiểu `int` trong C++).",
     "input_format": "Một dòng chứa số nguyên n là số giờ gửi xe.",
@@ -453,7 +453,7 @@
   {
     "title": "Tính tổng 1 đến n",
     "id": "for cơ bản",
-    "category": "Cơ bản",
+    "category": "Vòng lặp",
     "difficulty": "Dễ",
     "statement": "Nhập vào một số nguyên dương n. Hãy tính và in ra tổng S = 1 + 2 + ... + n.\n\nYêu cầu: Sử dụng kiểu dữ liệu số nguyên 64-bit (kiểu `long long` trong C++).",
     "input_format": "Một dòng chứa số nguyên dương n.",
@@ -492,7 +492,7 @@
     ]
   },
   {
-    "category": "Số học",
+    "category": "Hình học",
     "difficulty": "Dễ",
     "explanation": "Diện tích hình chữ nhật thứ nhất là a × b. Diện tích hình chữ nhật thứ hai là c × d. Kết quả là giá trị lớn nhất trong hai diện tích. Ví dụ: 2 × 4 = 8 và 3 × 6 = 18 nên kết quả là 18.",
     "id": "hsg9-ninh-binh-2026-hinh-chu-nhat",
