@@ -3,6 +3,7 @@ import urllib.request
 import urllib.error
 from urllib.parse import quote, urlencode
 import json
+import math
 import xml.etree.ElementTree as ET
 import os
 import re
@@ -39,33 +40,22 @@ def load_problems(path):
 
     ids = set()
     for p in data:
-        if p.get('id') in ids:
-            raise ValueError('Trùng problem id: ' + str(p.get('id')))
-        ids.add(p.get('id'))
+        if not isinstance(p, dict):
+            raise ValueError('Mỗi bài tập phải là một object.')
+
+        pid = str(p.get('id', '')).strip()
+        if not pid:
+            raise ValueError('Có bài tập thiếu ID.')
+        if pid in ids:
+            raise ValueError('Trùng problem id: ' + pid)
+        ids.add(pid)
 
         try:
-            total_score = float(p['total_score'])
-            subtask_scores = [
-                float(s['score']) for s in p['subtasks']
-            ]
-        except (KeyError, TypeError, ValueError, OverflowError):
-            raise ValueError('Điểm không hợp lệ: ' + str(p.get('id')))
-
-        import math
-
-        if (
-            not math.isfinite(total_score)
-            or total_score <= 0
-            or any(
-                not math.isfinite(s) or s <= 0
-                for s in subtask_scores
-            )
-            or abs(sum(subtask_scores) - total_score) > 1e-9
-        ):
-            raise ValueError('Điểm subtasks không khớp ' + str(p.get('id')))
-
-        if not p['subtasks'] or any(not s.get('tests') for s in p['subtasks']):
-            raise ValueError('Subtask thiếu test ' + str(p.get('id')))
+            validate_problem(p)
+        except (ValueError, TypeError, KeyError, OverflowError) as exc:
+            raise ValueError(
+                'Dữ liệu bài ' + pid + ' không hợp lệ: ' + str(exc)
+            ) from exc
 
     return data
 
@@ -78,10 +68,15 @@ def save_problems(data, path):
     if not isinstance(data, list):
         raise ValueError('Ngân hàng đề phải là danh sách.')
 
-    ids = [str(p.get('id', '')) for p in data]
-
-    if any(not pid for pid in ids):
-        raise ValueError('Có bài tập thiếu ID.')
+    ids = []
+    for p in data:
+        if not isinstance(p, dict):
+            raise ValueError('Mỗi bài tập phải là một object.')
+        pid = str(p.get('id', '')).strip()
+        if not pid:
+            raise ValueError('Có bài tập thiếu ID.')
+        ids.append(pid)
+        validate_problem(p)
 
     if len(ids) != len(set(ids)):
         raise ValueError('Có ID bài tập bị trùng.')
@@ -191,38 +186,71 @@ def github_read_problems():
 
 
 def validate_problem(p):
-    if (
-        not p.get('title')
-        or not p.get('statement')
-        or not p.get('subtasks')
-    ):
-        raise ValueError('Thiếu tiêu đề, đề bài hoặc subtasks.')
+    if not isinstance(p, dict):
+        raise ValueError('Dữ liệu bài tập phải là object.')
 
-    import math
+    if not str(p.get('id', '')).strip():
+        raise ValueError('Bài tập thiếu ID.')
+
+    if (
+        not isinstance(p.get('title'), str)
+        or not p['title'].strip()
+        or not isinstance(p.get('statement'), str)
+        or not p['statement'].strip()
+    ):
+        raise ValueError('Thiếu tiêu đề hoặc đề bài.')
+
+    subtasks = p.get('subtasks')
+    if not isinstance(subtasks, list) or not subtasks:
+        raise ValueError('Bài phải có ít nhất một subtask.')
 
     try:
         total_score = float(p.get('total_score', 0))
-        subtask_scores = [
-            float(s['score']) for s in p['subtasks']
-        ]
-    except (KeyError, TypeError, ValueError, OverflowError):
-        raise ValueError('Điểm bài hoặc điểm subtask không hợp lệ.')
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError('Điểm tối đa không hợp lệ.') from exc
 
-    if (
-        not math.isfinite(total_score)
-        or total_score <= 0
-        or any(
-            not math.isfinite(score) or score <= 0
-            for score in subtask_scores
-        )
-    ):
-        raise ValueError('Điểm bài và điểm subtask phải là số dương hợp lệ.')
+    if not math.isfinite(total_score) or total_score <= 0:
+        raise ValueError('Điểm tối đa phải là số dương hữu hạn.')
+
+    subtask_ids = set()
+    subtask_scores = []
+
+    for subtask in subtasks:
+        if not isinstance(subtask, dict):
+            raise ValueError('Mỗi subtask phải là object.')
+
+        sid = str(subtask.get('id', '')).strip()
+        name = str(subtask.get('name', '')).strip()
+        if not sid or not name or sid in subtask_ids:
+            raise ValueError('ID hoặc tên subtask thiếu/bị trùng.')
+        subtask_ids.add(sid)
+
+        try:
+            score = float(subtask.get('score', 0))
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise ValueError('Điểm subtask không hợp lệ.') from exc
+
+        if not math.isfinite(score) or score <= 0:
+            raise ValueError('Điểm subtask phải là số dương hữu hạn.')
+
+        tests = subtask.get('tests')
+        if not isinstance(tests, list) or not tests:
+            raise ValueError('Mỗi subtask cần ít nhất một test.')
+
+        for test in tests:
+            if (
+                not isinstance(test, dict)
+                or not isinstance(test.get('input'), str)
+                or not isinstance(test.get('output'), str)
+            ):
+                raise ValueError(
+                    'Mỗi test phải có input và output dạng chuỗi.'
+                )
+
+        subtask_scores.append(score)
 
     if abs(sum(subtask_scores) - total_score) > 1e-9:
         raise ValueError('Tổng điểm subtasks phải bằng total_score.')
-
-    if any(not s.get('tests') for s in p['subtasks']):
-        raise ValueError('Mỗi subtask cần ít nhất một test.')
 
 def initialize_problem_file(app):
     target = Path(app.config['PROBLEMS_PATH'])
@@ -492,7 +520,9 @@ def create_app(test_config=None):
                 'SELECT id, username, is_admin, approved FROM users WHERE id=?',
                 (uid,)
             ).fetchone()
-        return dict(row) if row else None
+        if not row or not row['approved']:
+            return None
+        return dict(row)
 
     def safe_next_url(value):
         value = str(value or '').strip()
@@ -857,7 +887,10 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
     @app.get('/api/problems/<pid>')
     def api_problem(pid):
-        p = next((x for x in problems() if x['id'] == pid), None)
+        p = next(
+            (x for x in problems() if str(x.get('id')) == pid),
+            None
+        )
         if not p:
             return jsonify(error='Không tìm thấy bài'), 404
         public = {k: v for k, v in p.items() if k != 'subtasks'}
@@ -1189,6 +1222,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                            FROM submissions
                            WHERE user_id=?
                              AND problem_id=?
+                             AND max_score > 0
                              AND score >= max_score
                              AND contest_id IS NULL
                            LIMIT 1''',
@@ -1200,6 +1234,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                            FROM submissions
                            WHERE user_id=?
                              AND problem_id=?
+                             AND max_score > 0
                              AND score >= max_score
                              AND contest_id=?
                            LIMIT 1''',
@@ -1316,7 +1351,10 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         pid = str(d.get('problem_id', ''))
         code = d.get('source_code', '')
         language = d.get('language_id', 54)
-        p = next((x for x in problems() if x['id'] == pid), None)
+        p = next(
+            (x for x in problems() if str(x.get('id')) == pid),
+            None
+        )
         if not p:
             return jsonify(error='Không tìm thấy bài.'), 404
         if not isinstance(code, str) or not code.strip() or len(code) > 100000:
@@ -1618,8 +1656,13 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 d.get('memory_limit', old['memory_limit'])
             )
 
-            if (total_score <= 0 or time_limit <= 0
-                    or memory_limit <= 0):
+            if (
+                not math.isfinite(total_score)
+                or not math.isfinite(time_limit)
+                or total_score <= 0
+                or time_limit <= 0
+                or memory_limit <= 0
+            ):
                 raise ValueError()
 
             if not isinstance(subtasks, list) or not subtasks:
@@ -1639,10 +1682,13 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 score = float(s.get('score', 0))
                 tests = s.get('tests')
 
-                if (not sid or not name or score <= 0
-                        or sid in subtask_ids
-                        or not isinstance(tests, list)
-                        or not tests):
+                if (
+                    not sid or not name
+                    or not math.isfinite(score) or score <= 0
+                    or sid in subtask_ids
+                    or not isinstance(tests, list)
+                    or not tests
+                ):
                     raise ValueError()
 
                 subtask_ids.add(sid)
@@ -2120,7 +2166,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                         'ID subtask thiếu hoặc bị trùng.'
                     )
 
-                if score <= 0 or not __import__('math').isfinite(score):
+                if score <= 0 or not math.isfinite(score):
                     raise ValueError('Điểm subtask không hợp lệ.')
 
                 if not isinstance(tests, list) or not tests:
@@ -2167,12 +2213,16 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         if custom:
             try:
                 total_score = float(custom['total_score'])
-            except (ValueError, TypeError):
+            except (ValueError, TypeError, OverflowError):
                 return jsonify(
                     error='Điểm tối đa của bài không hợp lệ.'
                 ), 400
 
-            if abs(score_sum - total_score) > 1e-9:
+            if (
+                not math.isfinite(total_score)
+                or total_score <= 0
+                or abs(score_sum - total_score) > 1e-9
+            ):
                 return jsonify(
                     error='Tổng điểm subtask phải bằng điểm tối đa.'
                 ), 400
@@ -2213,7 +2263,11 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
             total_score = float(bank[idx]['total_score'])
 
-            if abs(score_sum - total_score) > 1e-9:
+            if (
+                not math.isfinite(total_score)
+                or total_score <= 0
+                or abs(score_sum - total_score) > 1e-9
+            ):
                 return jsonify(
                     error='Tổng điểm subtask phải bằng điểm tối đa '
                           'của bài trong ngân hàng.'
