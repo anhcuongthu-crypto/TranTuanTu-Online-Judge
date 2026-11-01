@@ -2118,7 +2118,7 @@ async function loadContestTestDetails(problemId) {
                         subtask.condition ??
                         ''
                     )
-                    .join('\\n');
+                    .join('\n');
 
             contestTestJson.disabled = false;
             contestSubtaskConstraints.disabled = false;
@@ -2273,7 +2273,7 @@ contestTestContest.addEventListener('change', async () => {
                 return;
             }
 
-            const constraintLines = contestSubtaskConstraints.value.split('\\n');
+            const constraintLines = contestSubtaskConstraints.value.split(/\r?\n/);
             for (let i = 0; i < subtasks.length; i++) {
                 subtasks[i].constraints = (constraintLines[i] ?? '').trim();
                 delete subtasks[i].condition;
