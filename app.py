@@ -970,6 +970,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 'title': p['title'],
                 'category': p.get('category', ''),
                 'difficulty': p.get('difficulty', ''),
+                'exam_set': p.get('exam_set', ''),
                 'tags': sorted({
                     {'Số học cơ bản': 'Số học', 'Rẽ nhánh': 'Điều kiện',
                      'Max': 'Tìm giá trị lớn nhất'}.get(tag, tag)
