@@ -2189,3 +2189,44 @@ footer {
     .exam-question-list { grid-template-columns: minmax(0, 1fr); }
     .exam-group-heading h2 { font-size: 16px; }
 }
+
+
+/* Expandable exam cards in the exam archive */
+.exam-group {
+    overflow: hidden;
+    border: 1px solid #294866;
+    border-radius: 7px;
+    background: #10243a;
+}
+.exam-group[open] { border-color: #3979a5; }
+.exam-group-heading {
+    list-style: none;
+    cursor: pointer;
+    margin: 0;
+    padding: 16px 18px;
+    border: 0;
+    transition: background .15s ease;
+}
+.exam-group-heading::-webkit-details-marker { display: none; }
+.exam-group-heading::marker { content: ""; }
+.exam-group-heading:hover { background: #17334e; }
+.exam-group-title h2 { margin: 4px 0 0; }
+.exam-group-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: #9fc5df;
+    font-size: 11px;
+    white-space: nowrap;
+}
+.exam-group-arrow {
+    display: inline-block;
+    color: #7dd3fc;
+    font-size: 18px;
+    transition: transform .18s ease;
+}
+.exam-group[open] .exam-group-arrow { transform: rotate(180deg); }
+.exam-question-list {
+    padding: 0 14px 14px;
+}
+.exam-question-card { background: #0d2033; }
