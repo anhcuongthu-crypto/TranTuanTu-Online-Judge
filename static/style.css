@@ -1938,3 +1938,40 @@ footer {
     .my-progress-stats > div { padding: 8px; }
     .my-progress-stats strong { font-size: 18px; }
 }
+
+
+/* Algorithm tag filters and problem labels */
+.tag-filter-wrap {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+    margin-top: 2px;
+}
+.tag-filter-label { color: #9eafc2; font-size: 11px; font-weight: 700; }
+.tag-filter-list { display: flex; flex-wrap: wrap; gap: 5px; }
+.tag-filter-chip, .problem-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border: 1px solid #344a63;
+    border-radius: 4px;
+    background: #142438;
+    color: #b9c8d9;
+    font: inherit;
+    font-size: 10px;
+    line-height: 1.35;
+}
+.tag-filter-chip { cursor: pointer; }
+.tag-filter-chip:hover, .tag-filter-chip.active {
+    border-color: #8b78ee;
+    background: rgba(124,105,230,.17);
+    color: #d8d0ff;
+}
+.problem-tags { display: flex; flex-wrap: wrap; gap: 4px; min-width: 150px; }
+.problem-tag { padding: 3px 6px; background: #142438; }
+@media(max-width:700px) {
+    .tag-filter-wrap { align-items: flex-start; }
+    .problem-tags { min-width: 130px; }
+}
