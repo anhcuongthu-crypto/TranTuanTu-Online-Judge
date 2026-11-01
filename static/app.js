@@ -69,6 +69,44 @@ function formatScore(value) {
     return Number.isFinite(number) ? escapeHtml(number) : '0';
 }
 
+// Tiến độ của tài khoản hiện tại trên ngân hàng bài tập.
+let mySolvedProblems = {};
+
+async function loadMyProgress() {
+    const section = document.querySelector('#my-progress-section');
+    if (!section) return;
+
+    const solvedEl = document.querySelector('#progress-solved');
+    const attemptedEl = document.querySelector('#progress-attempted');
+    const totalEl = document.querySelector('#progress-total');
+    const fill = document.querySelector('#progress-fill');
+    const caption = document.querySelector('#progress-caption');
+
+    try {
+        const data = await api('/api/my-progress');
+        mySolvedProblems = {};
+        (data.problems || []).forEach(item => {
+            mySolvedProblems[String(item.problem_id)] = item;
+        });
+
+        if (solvedEl) solvedEl.textContent = data.solved ?? 0;
+        if (attemptedEl) attemptedEl.textContent = data.attempted ?? 0;
+        if (totalEl) totalEl.textContent = data.total ?? 0;
+
+        const percent = data.total > 0 ? Math.min(100, (data.solved / data.total) * 100) : 0;
+        if (fill) fill.style.width = percent + '%';
+        if (caption) caption.textContent = `Bạn đã hoàn thành ${data.solved} / ${data.total} bài (${percent.toFixed(1)}%).`;
+
+        const problemEl = document.querySelector('#problems');
+        if (problemEl && problemEl.dataset.items) {
+            renderProblems(getFilteredProblems());
+        }
+    } catch (error) {
+        if (caption) caption.textContent = 'Chưa thể tải tiến độ. Hãy tải lại trang sau.';
+        console.error('Lỗi tải tiến độ:', error);
+    }
+}
+
 // ==================== DANH SÁCH BÀI TẬP ====================
 
 // Cột mặc định: mã bài, tăng dần.
@@ -113,7 +151,8 @@ function renderProblems(items) {
         ['title', 'Tên bài'],
         ['category', 'Chủ đề'],
         ['difficulty', 'Độ khó'],
-        ['total_score', 'Điểm']
+        ['total_score', 'Điểm'],
+        ['status', 'Trạng thái']
     ];
 
     const sorted = [...items].sort((a, b) => {
@@ -200,6 +239,13 @@ function renderProblems(items) {
                             <td>${escapeHtml(p.category)}</td>
                             <td>${escapeHtml(p.difficulty)}</td>
                             <td>${formatScore(p.total_score)}</td>
+                            <td>
+                                ${mySolvedProblems[String(p.id)]?.solved
+                                    ? '<span class="problem-status solved">✓ Đã FULL</span>'
+                                    : mySolvedProblems[String(p.id)]
+                                        ? '<span class="problem-status attempted">Đã thử</span>'
+                                        : '<span class="problem-status unsolved">Chưa làm</span>'}
+                            </td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -939,5 +985,6 @@ document.querySelector('#random-problem')?.addEventListener('click', () => {
 Promise.allSettled([
     refresh(),
     loadProfile(),
-    loadAdmin()
+    loadAdmin(),
+    loadMyProgress()
 ]);
