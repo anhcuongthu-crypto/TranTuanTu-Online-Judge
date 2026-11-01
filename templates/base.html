@@ -12,8 +12,10 @@
 
     <!-- Basic SEO -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#6d28d9">
+    <meta name="theme-color" content="#06172e">
     <meta name="color-scheme" content="dark">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.svg') }}">
 
     <title>{% block title %}TranTu OJ — Nền tảng luyện lập trình{% endblock %}</title>
 
@@ -45,11 +47,16 @@
     <meta property="og:title" content="{{ self.title() }}">
     <meta property="og:description" content="{{ self.meta_description() }}">
     <meta property="og:url" content="{{ request.base_url }}">
+    <meta property="og:image" content="{{ url_for('static', filename='og-cover.svg', _external=True) }}">
+    <meta property="og:image:alt" content="TranTu OJ — Think, Code, Grow">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
 
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary">
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ self.title() }}">
     <meta name="twitter:description" content="{{ self.meta_description() }}">
+    <meta name="twitter:image" content="{{ url_for('static', filename='og-cover.svg', _external=True) }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -330,6 +337,7 @@
 </head>
 
 <body class="{% if request.path == '/login' or request.path == '/login/' %}login-page{% endif %}">
+    <a class="skip-link" href="#main-content">Bỏ qua điều hướng, đến nội dung chính</a>
 
     {% if request.path != '/login' and request.path != '/login/' %}
 
@@ -351,10 +359,10 @@
             </a>
 
             <nav aria-label="Điều hướng chính" class="clue-nav">
-                <a href="/problems" data-i18n="nav_problems">Bài tập</a>
-                <a href="/submissions" data-i18n="nav_submissions">Bài nộp</a>
-                <a href="/contests" data-i18n="nav_contests">Kỳ thi</a>
-                <a href="/library">Thư viện đề thi</a>
+                <a href="/problems" data-i18n="nav_problems" {% if request.path == '/problems' or request.path.startswith('/problems/') %}aria-current="page"{% endif %}>Bài tập</a>
+                <a href="/submissions" data-i18n="nav_submissions" {% if request.path.startswith('/submissions') %}aria-current="page"{% endif %}>Bài nộp</a>
+                <a href="/contests" data-i18n="nav_contests" {% if request.path.startswith('/contests') %}aria-current="page"{% endif %}>Kỳ thi</a>
+                <a href="/library" {% if request.path == '/library' %}aria-current="page"{% endif %}>Thư viện đề thi</a>
 
                 <details class="nav-dropdown">
                     <summary>Người dùng <span>⌄</span></summary>
@@ -429,7 +437,7 @@
 
     {% endif %}
 
-    <main id="main-content">
+    <main id="main-content" tabindex="-1">
         {% block content %}{% endblock %}
     </main>
 
