@@ -895,15 +895,21 @@ async function editProblem(p) {
             <input id="editScore" type="number" min="0"
                 value="${Number(p.total_score) || 0}" readonly>
 
-            <label for="editStatement">${t("statement")}</label>
-            <textarea id="editStatement">${esc(p.statement || '')}</textarea>
+<label for="editStatement">${t("statement")}</label>
+<textarea id="editStatement">${esc(
+    p.statement || p.description || p.content ||
+    p.problem_statement || ''
+)}</textarea>
 
-            <label for="editInput">${t("inputDescription")}</label>
-            <textarea id="editInput">${esc(p.input_desc || '')}</textarea>
+<label for="editInput">${t("inputDescription")}</label>
+<textarea id="editInput">${esc(
+    p.input_desc || p.input_description || ''
+)}</textarea>
 
-            <label for="editOutput">${t("outputDescription")}</label>
-            <textarea id="editOutput">${esc(p.output_desc || '')}</textarea>
-
+<label for="editOutput">${t("outputDescription")}</label>
+<textarea id="editOutput">${esc(
+    p.output_desc || p.output_description || ''
+)}</textarea>
             <button id="saveProblem">${t("saveChanges")}</button>
             <button id="cancelEdit" class="secondary">${t("cancel")}</button>
             <div id="editMessage" class="status"></div>
