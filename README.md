@@ -3,7 +3,7 @@
 Giao diện luyện lập trình bằng tiếng Việt, Flask + SQLite, chấm qua Judge0, có lịch sử nộp bài, bảng xếp hạng, hồ sơ học sinh và module admin riêng.
 
 ## Chức năng có trong mã nguồn
-- Danh sách 500 bài, tìm kiếm theo mã/tên/chủ đề; trang bài có Input/Output, ví dụ, giải thích, giới hạn và subtasks.
+- Danh sách bài tập được nạp từ `data/problems.json` hoặc ngân hàng đề GitHub đã cấu hình; tìm kiếm theo mã/tên/chủ đề; trang bài có Input/Output, ví dụ, giải thích, giới hạn và subtasks.
 - Đăng ký với username duy nhất; mật khẩu được băm. Tài khoản mới ở trạng thái chờ duyệt, cần liên hệ Trần Tuấn Tú và được admin phê duyệt trước khi đăng nhập.
 - Đăng nhập/đăng xuất, hồ sơ với giới thiệu và màu avatar.
 - Nộp C++ qua Judge0, chấm từng test theo subtask, lưu mã nguồn/lịch sử/chi tiết verdict; cập nhật điểm tốt nhất vào bảng xếp hạng.
@@ -46,7 +46,7 @@ python -m pytest -q
 `tests/test_problem_bank_reference.py` đối chiếu 2.500 test dữ liệu với lời giải tham chiếu độc lập. Các test route cần Flask được cài từ `requirements.txt`; test kết nối Judge0 thật cần endpoint có thể truy cập.
 
 ## Lưu ý quan trọng về ngân hàng đề
-500 bài hiện tại là bộ luyện tập thuật toán tổng hợp, gồm 61 dạng mô tả khác nhau được lặp theo mức độ, không phải 500 đề thi chính thức được xác minh nguồn từ các tỉnh. Các ví dụ và giải thích được sinh từ test của từng bài và lời giải tham chiếu. Mỗi bài hiện có một subtask 100 điểm với 5 test; chưa có phân chia nhiều subtask theo giới hạn dữ liệu kiểu đề HSG chính thức. Hãy xem đây là nền tảng để tiếp tục biên soạn, không phải ngân hàng đề thi chính thức đã được thẩm định.
+Dữ liệu `data/problems.json` trên nhánh `main` hiện có 16 bài. Số bài thực tế trên máy chủ còn phụ thuộc cấu hình `GITHUB_OWNER`, `GITHUB_REPO`, `GITHUB_BRANCH` và `PROBLEMS_PATH`. Không nên coi số lượng bài hiển thị trên giao diện là số đề thi chính thức đã được thẩm định nguồn.
 
 ## Database on Render (PostgreSQL)
 
