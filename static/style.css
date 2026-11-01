@@ -3045,3 +3045,77 @@ footer { background: #ffffff !important; color: #718091 !important; border-color
   background: transparent !important;
   color: #34495d !important;
 }
+
+
+/* FINAL PALETTE LOCK — balanced blue + white, no dark UI blocks */
+:root {
+  color-scheme: light !important;
+  --bg:#f4f8fc !important;
+  --panel:#ffffff !important;
+  --line:#dce6ef !important;
+  --text:#263f56 !important;
+  --muted:#71869a !important;
+  --primary:#2f75b7 !important;
+  --primary-hover:#245f98 !important;
+  --link:#286da8 !important;
+}
+html, body, #main-content, main {
+  background:#f4f8fc !important;
+  background-image:none !important;
+  color:#263f56 !important;
+  color-scheme:light !important;
+}
+body { background:#f4f8fc !important; }
+.topbar, header {
+  background:#ffffff !important;
+  border-color:#dce6ef !important;
+  box-shadow:0 1px 4px rgba(31,66,99,.055) !important;
+}
+main .panel, main .glass-card, main .table-card, main .problem,
+main .contest-card, main .contest-stat, main .contest-admin,
+main .submission-card, main .submission-detail .panel,
+main .auth-card, main .profile-card, main .leaderboard-card {
+  background:#ffffff !important;
+  color:#263f56 !important;
+  border:1px solid #dce6ef !important;
+  box-shadow:0 2px 8px rgba(31,66,99,.045) !important;
+  backdrop-filter:none !important;
+}
+main h1, main h2, main h3, main h4, main strong { color:#263f56; }
+main p, main small, main .muted { color:#71869a; }
+main a { color:#286da8; }
+main input, main select, main textarea {
+  background:#ffffff !important;
+  color:#263f56 !important;
+  border-color:#cbd9e5 !important;
+  color-scheme:light !important;
+}
+main table { background:#ffffff !important; color:#263f56 !important; }
+main table th {
+  background:#eaf2f9 !important;
+  color:#365a78 !important;
+  border-color:#dce6ef !important;
+}
+main table td {
+  background:#ffffff !important;
+  color:#40586d !important;
+  border-color:#e5ebf1 !important;
+}
+main table tbody tr:nth-child(even) td { background:#f8fbfd !important; }
+main table tbody tr:hover td { background:#edf5fb !important; }
+main pre, main code, main .code-content, main .source-code {
+  background:#f2f6fa !important;
+  color:#344e65 !important;
+  border-color:#dce6ef !important;
+}
+main .button-primary, main button.primary, main .btn-primary {
+  background:#2f75b7 !important;
+  border-color:#28679f !important;
+  color:#ffffff !important;
+}
+main .button-ghost, main .button-glass, main .btn:not(.btn-primary) {
+  background:#ffffff !important;
+  color:#315c7d !important;
+  border-color:#cbd9e5 !important;
+}
+footer { background:#ffffff !important; color:#71869a !important; border-color:#dce6ef !important; }
