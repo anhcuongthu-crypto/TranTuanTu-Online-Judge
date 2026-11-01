@@ -403,6 +403,55 @@
     padding: 18px;
   }
 }
+
+/* Compact contest directory */
+.contest-page { max-width: 1120px !important; margin: 20px auto !important; }
+.contest-hero {
+    padding: 24px !important;
+    margin-bottom: 16px !important;
+    border: 1px solid #2b4058 !important;
+    border-radius: 7px !important;
+    background: #152438 !important;
+    box-shadow: none !important;
+}
+.contest-hero h1 { font-size: 27px !important; }
+.contest-hero p, .contest-muted { font-size: 12px !important; line-height: 1.7 !important; }
+.contest-stats { gap: 10px !important; margin: 14px 0 22px !important; }
+.contest-stat, .contest-card, .contest-admin {
+    padding: 16px !important;
+    border: 1px solid #2b4058 !important;
+    border-radius: 7px !important;
+    background: #152438 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+}
+.contest-stat { background: #152438 !important; }
+.contest-stat strong { font-size: 23px !important; margin-top: 5px !important; }
+.contest-stat small { font-size: 11px !important; }
+.contest-heading { margin: 22px 0 12px !important; }
+.contest-heading h2 { font-size: 19px !important; }
+.contest-grid { gap: 12px !important; }
+.contest-card h3 { font-size: 17px !important; margin: 10px 0 !important; }
+.contest-card p { font-size: 12px !important; line-height: 1.65 !important; }
+.contest-card-foot { margin-top: 14px !important; padding-top: 11px !important; }
+.contest-badge { border-radius: 4px !important; font-size: 10px !important; padding: 4px 8px !important; }
+.contest-btn { border-radius: 5px !important; padding: 8px 12px !important; font-size: 11px !important; }
+.contest-admin { margin-top: 22px !important; padding: 18px !important; }
+.contest-admin h2 { font-size: 20px !important; }
+.contest-page input:not([type="checkbox"]), .contest-page textarea, .contest-page select {
+    border-radius: 5px !important; font-size: 12px !important; padding: 9px 11px !important;
+}
+.contest-checklist { gap: 7px !important; }
+.contest-checkitem { border-radius: 5px !important; padding: 9px !important; font-size: 11px !important; }
+@media(max-width:720px) {
+    .contest-page { margin: 12px auto !important; padding: 0 12px !important; }
+    .contest-hero { padding: 18px !important; }
+    .contest-stats { gap: 7px !important; }
+    .contest-stat { padding: 10px !important; }
+    .contest-stat strong { font-size: 19px !important; }
+    .contest-grid { grid-template-columns: 1fr !important; }
+}
+
 </style>
 
 
