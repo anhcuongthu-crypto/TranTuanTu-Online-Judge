@@ -785,7 +785,9 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             urls.append(
                 'https://trantuantu-online-judge.onrender.com/problems/' + pid
             )
-            urls = list(dict.fromkeys(urls))
+
+        # Loại URL trùng một lần sau khi đã thêm toàn bộ bài tập.
+        urls = list(dict.fromkeys(urls))
 
         root = ET.Element(
             'urlset',
