@@ -1873,3 +1873,68 @@ footer {
     border: 1px solid #3a506a !important;
     border-radius: 5px !important;
 }
+
+
+/* Personal practice progress and solved-state labels */
+.my-progress-card {
+    padding: 18px 20px !important;
+    background: #152438 !important;
+    border: 1px solid #2b4058 !important;
+    border-radius: 7px !important;
+    box-shadow: none !important;
+}
+.my-progress-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 15px;
+}
+.my-progress-heading h2 { margin: 4px 0 5px !important; font-size: 19px !important; }
+.my-progress-heading .muted { margin: 0; font-size: 11px; color: #a8b6c8; }
+.my-progress-stats {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.my-progress-stats > div {
+    padding: 10px 12px;
+    border: 1px solid #2b4058;
+    border-radius: 5px;
+    background: #101f31;
+}
+.my-progress-stats strong { display: block; color: #e5edf6; font-size: 21px; }
+.my-progress-stats span { color: #9eafc2; font-size: 10px; }
+.progress-track {
+    height: 8px;
+    overflow: hidden;
+    border-radius: 20px;
+    background: #26384d;
+}
+.progress-track span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: #22c58b;
+    transition: width .35s ease;
+}
+.progress-caption { margin: 8px 0 0; color: #9eafc2; font-size: 10px; }
+.problem-status {
+    display: inline-block;
+    white-space: nowrap;
+    padding: 3px 7px;
+    border: 1px solid #3a506a;
+    border-radius: 4px;
+    font-size: 10px;
+}
+.problem-status.solved { color: #6ee7b7; border-color: #17664f; background: rgba(16,185,129,.09); }
+.problem-status.attempted { color: #fcd34d; border-color: #765a20; background: rgba(245,158,11,.08); }
+.problem-status.unsolved { color: #9eafc2; }
+@media(max-width:700px) {
+    .my-progress-heading { align-items: flex-start; flex-direction: column; }
+    .my-progress-stats { gap: 6px; }
+    .my-progress-stats > div { padding: 8px; }
+    .my-progress-stats strong { font-size: 18px; }
+}
