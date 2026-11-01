@@ -909,6 +909,9 @@ hr {
         editingId = String(problem.id);
 
         editor.value = JSON.stringify(problem, null, 2);
+        examSetSelect.value = String(problem.exam_set || '').trim() ? 'custom' : '';
+        examSetNameInput.value = problem.exam_set || '';
+        examSetNameInput.hidden = examSetSelect.value !== 'custom';
         constraintsEditor.value = (problem.subtasks || [])
             .map(subtask => subtask.constraints || '')
             .join('\n');
