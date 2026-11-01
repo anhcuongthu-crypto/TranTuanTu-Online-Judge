@@ -74,7 +74,12 @@
     "author": "admin",
     "use_freopen": false,
     "input_file": "",
-    "output_file": ""
+    "output_file": "",
+    "tags": [
+      "Số học",
+      "Ước số",
+      "Đếm"
+    ]
   },
   {
     "category": "C++ Cơ Bản",
@@ -111,7 +116,11 @@
     ],
     "time_limit": 1,
     "title": "Chu vi và Diện tích Hình chữ nhật",
-    "total_score": 100
+    "total_score": 100,
+    "tags": [
+      "Tính toán",
+      "Hình học"
+    ]
   },
   {
     "title": "Chia bánh - Phép chia lấy nguyên và dư",
@@ -148,6 +157,10 @@
           }
         ]
       }
+    ],
+    "tags": [
+      "Chia dư",
+      "Số học cơ bản"
     ]
   },
   {
@@ -185,6 +198,10 @@
           }
         ]
       }
+    ],
+    "tags": [
+      "Tính toán",
+      "Số học cơ bản"
     ]
   },
   {
@@ -222,6 +239,10 @@
           }
         ]
       }
+    ],
+    "tags": [
+      "Chẵn lẻ",
+      "Điều kiện"
     ]
   },
   {
@@ -259,6 +280,10 @@
           }
         ]
       }
+    ],
+    "tags": [
+      "Tính tổng",
+      "Số học cơ bản"
     ]
   },
   {
@@ -296,6 +321,10 @@
           }
         ]
       }
+    ],
+    "tags": [
+      "So sánh",
+      "Điều kiện"
     ]
   },
   {
@@ -333,7 +362,11 @@
     ],
     "time_limit": 1,
     "title": "Tổng và Tích hai số",
-    "total_score": 100
+    "total_score": 100,
+    "tags": [
+      "Tính tổng",
+      "Tính tích"
+    ]
   },
   {
     "title": "Vé xem phim",
@@ -370,6 +403,10 @@
           }
         ]
       }
+    ],
+    "tags": [
+      "Điều kiện",
+      "Rẽ nhánh"
     ]
   },
   {
@@ -407,6 +444,10 @@
           }
         ]
       }
+    ],
+    "tags": [
+      "Điều kiện",
+      "Rẽ nhánh"
     ]
   },
   {
@@ -444,6 +485,10 @@
           }
         ]
       }
+    ],
+    "tags": [
+      "Vòng lặp",
+      "Tính tổng"
     ]
   },
   {
@@ -541,7 +586,12 @@
     ],
     "time_limit": 1,
     "title": "HSG9 Ninh Bình 2026 - Hình chữ nhật",
-    "total_score": 100
+    "total_score": 100,
+    "tags": [
+      "Hình học",
+      "Tính toán",
+      "Max"
+    ]
   },
   {
     "id": "Ninh Binh-Câu 2",
@@ -622,6 +672,11 @@
           }
         ]
       }
+    ],
+    "tags": [
+      "Chữ số",
+      "Mảng",
+      "Duyệt đoạn"
     ]
   },
   {
@@ -751,6 +806,11 @@
           }
         ]
       }
+    ],
+    "tags": [
+      "Xâu ký tự",
+      "Tách số",
+      "Số nguyên tố"
     ]
   },
   {
@@ -928,6 +988,11 @@
           }
         ]
       }
+    ],
+    "tags": [
+      "Chữ số",
+      "Số chính phương",
+      "Đếm"
     ]
   },
   {
@@ -1097,6 +1162,11 @@
           }
         ]
       }
+    ],
+    "tags": [
+      "Mảng",
+      "Chia đoạn",
+      "Tối ưu"
     ]
   }
 ]
