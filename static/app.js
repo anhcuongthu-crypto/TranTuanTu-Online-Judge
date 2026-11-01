@@ -162,19 +162,22 @@ function renderProblems(items) {
         if (sortColumn === 'total_score') {
             x = Number(x) || 0;
             y = Number(y) || 0;
+            return sortAscending ? x - y : y - x;
+        }
 
+        if (sortColumn === 'status') {
+            x = mySolvedProblems[String(a.id)]?.solved ? 2
+                : mySolvedProblems[String(a.id)] ? 1 : 0;
+            y = mySolvedProblems[String(b.id)]?.solved ? 2
+                : mySolvedProblems[String(b.id)] ? 1 : 0;
             return sortAscending ? x - y : y - x;
         }
 
         const result = String(x).localeCompare(
             String(y),
             'vi',
-            {
-                numeric: true,
-                sensitivity: 'base'
-            }
+            { numeric: true, sensitivity: 'base' }
         );
-
         return sortAscending ? result : -result;
     });
 
