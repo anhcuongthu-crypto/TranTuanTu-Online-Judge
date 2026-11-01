@@ -91,12 +91,17 @@ function getFilteredProblems() {
     const query = (
         document.querySelector('#search')?.value || ''
     ).trim().toLocaleLowerCase('vi');
+    const category = document.querySelector('#filter-category')?.value || '';
+    const difficulty = document.querySelector('#filter-difficulty')?.value || '';
 
-    return items.filter(p =>
-        `${p.id ?? ''} ${p.title ?? ''} ${p.category ?? ''} ${p.difficulty ?? ''}`
+    return items.filter(p => {
+        const matchesQuery = `${p.id ?? ''} ${p.title ?? ''} ${p.category ?? ''} ${p.difficulty ?? ''}`
             .toLocaleLowerCase('vi')
-            .includes(query)
-    );
+            .includes(query);
+        const matchesCategory = !category || String(p.category ?? '') === category;
+        const matchesDifficulty = !difficulty || String(p.difficulty ?? '') === difficulty;
+        return matchesQuery && matchesCategory && matchesDifficulty;
+    });
 }
 
 function renderProblems(items) {
@@ -134,8 +139,15 @@ function renderProblems(items) {
         return sortAscending ? result : -result;
     });
 
+    const resultCount = document.querySelector('#problem-result-count');
+    if (resultCount) {
+        let total = 0;
+        try { total = JSON.parse(el.dataset.items || '[]').length; } catch {}
+        resultCount.textContent = `Hiển thị ${sorted.length} / ${total} bài tập`;
+    }
+
     if (!sorted.length) {
-        el.innerHTML = '<p>Không tìm thấy bài phù hợp.</p>';
+        el.innerHTML = '<div class="problem-empty">Không tìm thấy bài phù hợp. Hãy thử đổi từ khóa hoặc bộ lọc.</div>';
         return;
     }
 
@@ -392,6 +404,24 @@ async function refresh() {
 
                 if (problems) {
                     problems.dataset.items = JSON.stringify(items);
+
+                    const categories = [...new Set(items.map(p => String(p.category ?? '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi'));
+                    const difficulties = [...new Set(items.map(p => String(p.difficulty ?? '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi', { numeric: true }));
+
+                    const categorySelect = document.querySelector('#filter-category');
+                    const difficultySelect = document.querySelector('#filter-difficulty');
+                    if (categorySelect) {
+                        const selected = categorySelect.value;
+                        categorySelect.innerHTML = '<option value="">Tất cả chủ đề</option>' +
+                            categories.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('');
+                        categorySelect.value = selected;
+                    }
+                    if (difficultySelect) {
+                        const selected = difficultySelect.value;
+                        difficultySelect.innerHTML = '<option value="">Mọi độ khó</option>' +
+                            difficulties.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('');
+                        difficultySelect.value = selected;
+                    }
                     renderProblems(getFilteredProblems());
                 }
 
@@ -875,6 +905,34 @@ document.querySelector('#refresh-submissions')
             button.disabled = false;
         }
     });
+
+// Bộ lọc kho bài tập.
+['#search', '#filter-category', '#filter-difficulty'].forEach(selector => {
+    document.querySelector(selector)?.addEventListener(
+        selector === '#search' ? 'input' : 'change',
+        () => renderProblems(getFilteredProblems())
+    );
+});
+
+document.querySelector('#reset-problem-filters')?.addEventListener('click', () => {
+    const search = document.querySelector('#search');
+    const category = document.querySelector('#filter-category');
+    const difficulty = document.querySelector('#filter-difficulty');
+    if (search) search.value = '';
+    if (category) category.value = '';
+    if (difficulty) difficulty.value = '';
+    renderProblems(getFilteredProblems());
+});
+
+document.querySelector('#random-problem')?.addEventListener('click', () => {
+    const items = getFilteredProblems();
+    if (!items.length) {
+        note('Không có bài tập phù hợp để chọn ngẫu nhiên.');
+        return;
+    }
+    const selected = items[Math.floor(Math.random() * items.length)];
+    window.location.href = `/problems/${encodeURIComponent(selected.id ?? '')}`;
+});
 
 // ==================== KHỞI ĐỘNG ====================
 
