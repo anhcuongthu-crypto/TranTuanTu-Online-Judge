@@ -414,6 +414,21 @@ hr {
     <option value="">Chọn Contest trước</option>
 </select>
 
+<label for="contestSubtaskConstraints">
+    Ràng buộc từng Subtask (mỗi dòng tương ứng một Subtask)
+</label>
+<p class="muted">
+    Dòng 1 là ràng buộc Subtask 1, dòng 2 là Subtask 2...
+    Để trống nếu không có ràng buộc riêng.
+</p>
+<textarea
+    id="contestSubtaskConstraints"
+    rows="5"
+    disabled
+    style="white-space:pre-wrap"
+    placeholder="1 <= n <= 100&#10;1 <= n <= 1000000"
+></textarea>
+
 <label for="contestTestJson">Subtasks và tests (JSON)</label>
 <textarea
     id="contestTestJson"
@@ -421,9 +436,8 @@ hr {
     spellcheck="false"
     disabled
     style="font-family:monospace;white-space:pre;overflow:auto"
-    placeholder='[{"id":"1","name":"Subtask 1","score":10,"tests":[{"input":"5\n","output":"5\n"}]}]'
+    placeholder='[{"id":"1","name":"Subtask 1","score":10,"tests":[{"input":"5\\n","output":"5\\n"}]}]'
 ></textarea>
-
 <div class="toolbar">
     <button type="button" id="contestTestFormat" class="secondary">
         Định dạng JSON
@@ -1885,6 +1899,7 @@ async function editContestProblem(contestId, problemId) {
         const contestTestContest = document.getElementById('contestTestContest');
         const contestTestProblem = document.getElementById('contestTestProblem');
         const contestTestJson = document.getElementById('contestTestJson');
+        const contestSubtaskConstraints = document.getElementById('contestSubtaskConstraints');
         const contestTestFormat = document.getElementById('contestTestFormat');
         const contestTestSave = document.getElementById('contestTestSave');
         const contestTestReload = document.getElementById('contestTestReload');
@@ -1909,6 +1924,8 @@ async function editContestProblem(contestId, problemId) {
             contestTestProblem.disabled = true;
             contestTestJson.value = '';
             contestTestJson.disabled = true;
+            contestSubtaskConstraints.value = '';
+            contestSubtaskConstraints.disabled = true;
             contestTestSave.disabled = true;
         }
 
@@ -2094,8 +2111,17 @@ async function loadContestTestDetails(problemId) {
                 null,
                 2
             );
+            contestSubtaskConstraints.value =
+                contestTestCurrentProblem.subtasks
+                    .map(subtask =>
+                        subtask.constraints ??
+                        subtask.condition ??
+                        ''
+                    )
+                    .join('\\n');
 
             contestTestJson.disabled = false;
+            contestSubtaskConstraints.disabled = false;
             contestTestSave.disabled = false;
             showContestTestMessage(
                 problem.is_custom
@@ -2111,6 +2137,8 @@ contestTestProblem.addEventListener('change', async () => {
         contestTestCurrentProblem = null;
         contestTestJson.value = '';
         contestTestJson.disabled = true;
+        contestSubtaskConstraints.value = '';
+        contestSubtaskConstraints.disabled = true;
         contestTestSave.disabled = true;
         showContestTestMessage('');
         return;
@@ -2243,6 +2271,12 @@ contestTestContest.addEventListener('change', async () => {
                     true
                 );
                 return;
+            }
+
+            const constraintLines = contestSubtaskConstraints.value.split('\\n');
+            for (let i = 0; i < subtasks.length; i++) {
+                subtasks[i].constraints = (constraintLines[i] ?? '').trim();
+                delete subtasks[i].condition;
             }
 
             const savedContestId = contestId;
