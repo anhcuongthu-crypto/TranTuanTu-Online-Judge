@@ -641,6 +641,10 @@ def create_app(test_config=None):
                             'id': s['id'],
                             'name': s['name'],
                             'score': s['score'],
+                            'constraints': s.get(
+                                'constraints',
+                                s.get('condition', '')
+                            ),
                             'test_count': len(s.get('tests', []))
                         }
                         for s in subtasks
@@ -665,6 +669,10 @@ def create_app(test_config=None):
                             'id': s['id'],
                             'name': s['name'],
                             'score': s['score'],
+                            'constraints': s.get(
+                                'constraints',
+                                s.get('condition', '')
+                            ),
                             'test_count': len(s.get('tests', []))
                         }
                         for s in p.get('subtasks', [])
