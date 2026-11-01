@@ -160,6 +160,138 @@
 
 </style>
 
+<style>
+/* Modern readable problem statement layout */
+.problem-detail-layout { gap: 22px !important; }
+.problem-main { min-width: 0; }
+.problem-detail-layout .problem-hero,
+.problem-detail-layout .problem-content,
+.problem-detail-layout .problem-sidebar .glass-card {
+    background: #ffffff !important;
+    color: #25364a !important;
+    border: 1px solid #e1e9f2 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 7px 24px rgba(31,58,90,.045) !important;
+}
+.problem-detail-layout .problem-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 25px 28px !important;
+    background: linear-gradient(125deg,#ffffff,#f5f9ff) !important;
+}
+.problem-detail-layout .problem-hero::after {
+    content: "PROBLEM";
+    position: absolute;
+    right: 22px;
+    top: 24px;
+    color: rgba(55,113,177,.08);
+    font: 800 35px 'JetBrains Mono',monospace;
+    letter-spacing: 2px;
+    pointer-events: none;
+}
+.problem-detail-layout .problem-hero h1 {
+    position: relative;
+    z-index: 1;
+    color: #1d3552 !important;
+    font-size: clamp(25px,3vw,34px) !important;
+    letter-spacing: -1px !important;
+    line-height: 1.25;
+}
+.problem-detail-layout .problem-hero .statement,
+.problem-detail-layout .problem-content p {
+    color: #485d73 !important;
+    font-size: 14px !important;
+    line-height: 1.85 !important;
+}
+.problem-detail-layout .problem-content {
+    padding: 26px 28px !important;
+}
+.problem-detail-layout .problem-content h2 {
+    color: #203b59 !important;
+    font-size: 18px !important;
+    border-bottom: 1px solid #e5ebf2 !important;
+    padding-bottom: 12px;
+    margin: 8px 0 18px;
+}
+.problem-detail-layout .problem-content h3 {
+    color: #365979 !important;
+    font-size: 13px !important;
+    text-transform: uppercase;
+    letter-spacing: .45px;
+}
+.problem-detail-layout .problem-content pre {
+    background: #14263d !important;
+    color: #e5f1ff !important;
+    border: 1px solid #243e5c !important;
+    border-radius: 11px !important;
+    padding: 16px !important;
+    font-size: 12px !important;
+    line-height: 1.75 !important;
+    box-shadow: inset 0 1px rgba(255,255,255,.04);
+}
+.problem-detail-layout .sample-grid {
+    gap: 14px !important;
+}
+.problem-detail-layout .sample-grid label {
+    display: block;
+    color: #60768d !important;
+    font-size: 10px !important;
+    font-weight: 800;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+}
+.problem-detail-layout .problem-sidebar .glass-card {
+    padding: 18px !important;
+}
+.problem-detail-layout .problem-sidebar h3 {
+    color: #203b59 !important;
+    font-size: 14px !important;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e7edf4;
+}
+.problem-detail-layout .problem-info-row {
+    border-color: #e8edf3 !important;
+}
+.problem-detail-layout .problem-info-row span {
+    color: #718397 !important;
+}
+.problem-detail-layout .problem-info-row strong {
+    color: #304b67 !important;
+}
+.problem-detail-layout .problem-side-link {
+    color: #3476bd !important;
+    border-color: #e8edf3 !important;
+}
+.problem-detail-layout .problem-side-link:hover {
+    color: #1f5e9e !important;
+}
+.problem-detail-layout .problem-action {
+    min-height: 42px;
+    border-radius: 10px !important;
+}
+.problem-detail-layout .breadcrumbs {
+    color: #8191a3 !important;
+    margin-bottom: 16px !important;
+}
+.problem-detail-layout .breadcrumbs a { color: #3978b9 !important; }
+.problem-detail-layout .subtask-row {
+    border-color: #e5ebf2 !important;
+}
+.problem-detail-layout .subtask-name { color: #304b67 !important; }
+.problem-detail-layout .subtask-constraints { color: #8191a3 !important; }
+@media(max-width:900px) {
+    .problem-detail-layout .problem-sidebar { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+}
+@media(max-width:560px) {
+    .problem-detail-layout .problem-hero { padding: 20px !important; }
+    .problem-detail-layout .problem-content { padding: 19px !important; }
+    .problem-detail-layout .problem-sidebar { grid-template-columns: 1fr !important; }
+    .problem-detail-layout .problem-hero::after { font-size: 24px; right: 14px; top: 17px; }
+}
+</style>
+
+
 <div class="breadcrumbs">
     <a href="/" id="problem-back">← Tất cả bài tập</a>
     <span>/</span>
