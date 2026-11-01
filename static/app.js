@@ -336,7 +336,6 @@ function renderProblems(items) {
 
                             <td>${escapeHtml(p.category)}</td>
                             <td>${escapeHtml(p.difficulty)}</td>
-                            <td><div class="problem-tags">${(Array.isArray(p.tags) ? p.tags : []).map(tag => `<span class="problem-tag">${escapeHtml(tag)}</span>`).join('')}</div></td>
                             <td>${formatScore(p.total_score)}</td>
                             <td>
                                 ${mySolvedProblems[String(p.id)]?.solved
