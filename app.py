@@ -593,7 +593,15 @@ def create_app(test_config=None):
                     'title': p['title'],
                     'total_score': p['total_score'],
                     'is_custom': True,
-                    'subtasks': json.loads(p.get('subtasks_json') or '[]'),
+                    'subtasks': [
+                        {
+                            'id': s['id'],
+                            'name': s['name'],
+                            'score': s['score'],
+                            'test_count': len(s.get('tests', []))
+            }
+                        for s in p.get('subtasks', [])
+        ],
                     'statement': p['statement'],
                     'input_desc': p['input_desc'],
                     'output_desc': p['output_desc'],
