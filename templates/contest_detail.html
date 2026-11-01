@@ -727,28 +727,38 @@ function showProblem(pid, scroll = true) {
     const subtasks = Array.isArray(p.subtasks) ? p.subtasks : [];
     const totalScore = Number(p.total_score) || 0;
 
-    // Lấy điều kiện subtask từ các tên trường thường gặp.
-    function getSubtaskCondition(s) {
-        const condition =
-            s.description ??
-            s.condition ??
-            s.constraints ??
-            s.limit ??
-            s.note ??
-            s.requirement ??
-            s.test_description ??
-            '';
+function getSubtaskCondition(s) {
+    const fields = [
+        s.condition,
+        s.constraints,
+        s.description,
+        s.limit,
+        s.note,
+        s.requirement,
+        s.test_description
+    ];
 
-        if (Array.isArray(condition)) {
-            return condition.join('\n');
+    for (const value of fields) {
+        if (value === undefined || value === null) continue;
+
+        if (Array.isArray(value)) {
+            if (value.length) return value.join('\n');
+            continue;
         }
 
-        if (typeof condition === 'object' && condition !== null) {
-            return JSON.stringify(condition);
+        if (typeof value === 'object') {
+            if (Object.keys(value).length)
+                return JSON.stringify(value);
+            continue;
         }
 
-        return String(condition);
+        if (String(value).trim() !== '') {
+            return String(value);
+        }
     }
+
+    return 'Không có ràng buộc';
+}
 
     const subtaskHtml = subtasks.length ? `
         <h3>${t("subtasks")}</h3>
