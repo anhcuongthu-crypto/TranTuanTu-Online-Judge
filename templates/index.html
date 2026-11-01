@@ -1,23 +1,18 @@
-
 {% extends 'base.html' %}
 
-{% block title %}TranTu OJ - Luyện lập trình C++, bài tập Tin học và thi HSG{% endblock %}
-
-{% block meta_description %}TranTu OJ là nền tảng luyện lập trình C++ trực tuyến miễn phí. Làm bài tập thuật toán, luyện thi học sinh giỏi Tin học, nộp code và chấm bài tự động.{% endblock %}
+{% block title %}TranTu OJ — Luyện lập trình C++ và thuật toán{% endblock %}
+{% block meta_description %}TranTu OJ là nền tảng luyện lập trình C++ miễn phí, thực hành thuật toán, tham gia kỳ thi và theo dõi tiến độ học tập.{% endblock %}
 
 {% block content %}
-
 <section class="hero">
     <div class="hero-copy">
         <span class="eyebrow"><i></i> TRANTU ONLINE JUDGE</span>
-        <h1>Chào mừng đến với <span class="gradient-text">TranTu OJ</span></h1>
-        <p>
-            Nền tảng luyện lập trình C++ và thuật toán. Chọn bài tập,
-            đọc giới hạn, gửi lời giải và theo dõi kết quả chấm theo từng subtask.
-        </p>
+        <h1>Luyện tư duy.<br><span class="gradient-text">Chinh phục thuật toán.</span></h1>
+        <p>Thực hành C++, giải bài tập, tham gia kỳ thi và theo dõi hành trình tiến bộ của bạn trên một nền tảng.</p>
         <div class="hero-actions">
-            <a class="button button-primary" href="#problem-section">Danh sách bài tập <span>→</span></a>
-            <a class="button button-glass" href="/contests">Các kỳ thi</a>
+            <a class="button button-primary" href="/problems">Khám phá bài tập <span>→</span></a>
+            <a class="button button-glass" href="/contests">Tham gia kỳ thi</a>
+            <a class="button button-ghost" href="/library">Thư viện đề thi</a>
         </div>
         <div class="hero-stats">
             <div><b id="problem-count">—</b><span>bài tập</span></div>
@@ -36,7 +31,7 @@
                 <h2>Tiến độ luyện tập</h2>
                 <p class="muted">Theo dõi những bài bạn đã làm và hoàn thành trên TranTu OJ.</p>
             </div>
-            <a class="button button-ghost" href="/submissions">Lịch sử bài nộp ↗</a>
+            <a class="button button-ghost" href="/profile">Hồ sơ cá nhân ↗</a>
         </div>
         <div class="my-progress-stats">
             <div><strong id="progress-solved">—</strong><span>Bài đã FULL</span></div>
@@ -49,74 +44,39 @@
 </section>
 {% endif %}
 
-<!-- DANH SÁCH BÀI TẬP -->
-<section class="section-block" id="problem-section">
+<section class="section-block home-shortcuts">
     <div class="section-heading">
         <div>
-            <span class="eyebrow">PRACTICE LIBRARY</span>
-            <h2>Kho bài tập lập trình C++</h2>
-            <p class="muted">
-                Luyện thuật toán, thực hành Tin học và chuẩn bị cho
-                các kỳ thi học sinh giỏi. Tìm theo mã bài, tên bài
-                hoặc chủ đề. Bấm tiêu đề cột để sắp xếp.
-            </p>
-        </div>
-
-        <div class="problem-toolbar">
-            <div class="search-wrap">
-                <span>⌕</span>
-                <input
-                    id="search"
-                    type="search"
-                    placeholder="Tìm mã bài, tên bài..."
-                    aria-label="Tìm theo mã bài, tên bài hoặc chủ đề"
-                >
-            </div>
-            <select id="filter-category" aria-label="Lọc theo chủ đề">
-                <option value="">Tất cả chủ đề</option>
-            </select>
-            <select id="filter-difficulty" aria-label="Lọc theo độ khó">
-                <option value="">Mọi độ khó</option>
-            </select>
-            <button type="button" class="button button-ghost" id="reset-problem-filters">Đặt lại</button>
-            <button type="button" class="button button-primary" id="random-problem">Bài ngẫu nhiên ↗</button>
+            <span class="eyebrow">START LEARNING</span>
+            <h2>Bắt đầu hành trình của bạn</h2>
+            <p class="muted">Chọn khu vực phù hợp với mục tiêu luyện tập.</p>
         </div>
     </div>
-
-    <div class="problem-list-meta">
-        <span id="problem-result-count">Đang tải danh sách bài tập...</span>
-        <span>Sắp xếp bằng cách bấm tiêu đề cột</span>
-    </div>
-    <div class="glass-card table-card" id="problems">
-        Đang tải danh sách...
-    </div>
-</section>
-
-<section class="section-block" aria-labelledby="about-practice-heading">
-    <div class="glass-card" style="padding:clamp(22px,4vw,38px)">
-        <span class="eyebrow">ABOUT THE PLATFORM</span>
-        <h2 id="about-practice-heading">Luyện lập trình C++ và thuật toán cùng TranTu OJ</h2>
-        <p>
-            TranTu OJ là nền tảng luyện lập trình trực tuyến bằng tiếng Việt,
-            giúp học sinh thực hành C++, rèn tư duy giải thuật và làm quen
-            với cách trình bày lời giải theo định dạng bài tập lập trình.
-            Người học có thể đọc đề, xem dữ liệu vào và dữ liệu ra,
-            tham khảo ví dụ, giới hạn từng phần và gửi chương trình để chấm tự động.
-        </p>
-        <h3>Ôn luyện Tin học và chuẩn bị cho kỳ thi học sinh giỏi</h3>
-        <p>
-            Khi luyện thi Tin học, hãy bắt đầu từ việc hiểu đề, xác định giới hạn
-            dữ liệu, chọn thuật toán phù hợp và kiểm tra chương trình với nhiều
-            trường hợp thử. TranTu OJ hỗ trợ quá trình thực hành đó thông qua
-            kho bài tập, lịch sử nộp bài và kết quả chấm theo từng bài.
-        </p>
-        <p>
-            <a href="/about">Tìm hiểu về TranTu OJ</a>
-            · <a href="/contests">Xem các kỳ thi</a>
-            · <a href="#problem-section">Bắt đầu luyện bài tập C++</a>
-        </p>
+    <div class="home-shortcut-grid">
+        <a class="home-shortcut-card" href="/problems">
+            <span class="home-shortcut-icon">⌘</span>
+            <span class="home-shortcut-title">Bài tập</span>
+            <span class="home-shortcut-desc">Luyện thuật toán từ cơ bản đến nâng cao.</span>
+            <span class="home-shortcut-link">Khám phá bài tập →</span>
+        </a>
+        <a class="home-shortcut-card" href="/contests">
+            <span class="home-shortcut-icon">◷</span>
+            <span class="home-shortcut-title">Kỳ thi</span>
+            <span class="home-shortcut-desc">Thử sức trong các kỳ thi lập trình.</span>
+            <span class="home-shortcut-link">Xem kỳ thi →</span>
+        </a>
+        <a class="home-shortcut-card" href="/library">
+            <span class="home-shortcut-icon">▤</span>
+            <span class="home-shortcut-title">Thư viện đề thi</span>
+            <span class="home-shortcut-desc">Ôn tập đề tuyển sinh và đề học sinh giỏi.</span>
+            <span class="home-shortcut-link">Mở thư viện →</span>
+        </a>
+        <a class="home-shortcut-card" href="/leaderboard">
+            <span class="home-shortcut-icon">♛</span>
+            <span class="home-shortcut-title">Xếp hạng</span>
+            <span class="home-shortcut-desc">Theo dõi thành tích của cộng đồng.</span>
+            <span class="home-shortcut-link">Xem bảng xếp hạng →</span>
+        </a>
     </div>
 </section>
-
 {% endblock %}
-```
