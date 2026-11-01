@@ -1852,3 +1852,24 @@ footer {
     .submissions-page .stat-card { padding: 10px !important; }
     .submissions-page .stat-value { font-size: 18px !important; }
 }
+
+/* Profile and leaderboard shared judge styling */
+#leaderboard table { width: 100%; border-collapse: collapse; }
+#leaderboard th { background: #20344b; color: #cbd8e6; }
+#leaderboard th, #leaderboard td { padding: 10px 12px; border-bottom: 1px solid #2b4058; font-size: 12px; text-align: left; }
+#leaderboard tbody tr:nth-child(even) { background: rgba(255,255,255,.018); }
+#leaderboard tbody tr:hover { background: #203b55; }
+.profile-hero, .profile-form-card {
+    background: #152438 !important;
+    border: 1px solid #2b4058 !important;
+    border-radius: 7px !important;
+    box-shadow: none !important;
+}
+.profile-hero { padding: 18px !important; }
+.profile-hero h1 { font-size: 25px !important; }
+.profile-form-card { padding: 18px !important; }
+.profile-form-card textarea, .profile-form-card input:not([type="color"]) {
+    background: #0d1725 !important;
+    border: 1px solid #3a506a !important;
+    border-radius: 5px !important;
+}
