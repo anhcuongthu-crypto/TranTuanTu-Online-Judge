@@ -553,12 +553,11 @@ def create_app(test_config=None):
                 return None
 
             ids = db.execute(
-    '''SELECT problem_id, total_score FROM contest_problems
-       WHERE contest_id=?
-       ORDER BY position, problem_id''',
-    (contest_id,)
-).fetchall()
-            
+                '''SELECT problem_id, total_score FROM contest_problems
+                   WHERE contest_id=?
+                   ORDER BY position, problem_id''',
+                (contest_id,)
+            ).fetchall()
 
             custom_rows = db.execute(
                 '''SELECT problem_id, title, statement,
@@ -568,8 +567,6 @@ def create_app(test_config=None):
                    WHERE contest_id=?''',
                 (contest_id,)
             ).fetchall()
-
-
 
         item = dict(contest)
         item['is_visible'] = bool(item['is_visible'])
@@ -588,6 +585,8 @@ def create_app(test_config=None):
 
             if pid in custom:
                 p = custom[pid]
+                subtasks = json.loads(p.get('subtasks_json') or '[]')
+
                 item['problems'].append({
                     'id': pid,
                     'title': p['title'],
@@ -599,9 +598,9 @@ def create_app(test_config=None):
                             'name': s['name'],
                             'score': s['score'],
                             'test_count': len(s.get('tests', []))
-            }
-                        for s in p.get('subtasks', [])
-        ],
+                        }
+                        for s in subtasks
+                    ],
                     'statement': p['statement'],
                     'input_desc': p['input_desc'],
                     'output_desc': p['output_desc'],
@@ -611,12 +610,21 @@ def create_app(test_config=None):
 
             elif pid in bank:
                 p = bank[pid]
+
                 item['problems'].append({
                     'id': pid,
                     'title': p.get('title', pid),
                     'total_score': row['total_score'],
                     'is_custom': False,
-                    'subtasks': p.get('subtasks', []),
+                    'subtasks': [
+                        {
+                            'id': s['id'],
+                            'name': s['name'],
+                            'score': s['score'],
+                            'test_count': len(s.get('tests', []))
+                        }
+                        for s in p.get('subtasks', [])
+                    ],
                     'statement': p.get('statement', ''),
                     'input_desc': p.get('input_desc', ''),
                     'output_desc': p.get('output_desc', ''),
@@ -626,6 +634,7 @@ def create_app(test_config=None):
 
         item['state'] = contest_state(item)
         return item
+
 
     @app.get('/health')
     def health():
