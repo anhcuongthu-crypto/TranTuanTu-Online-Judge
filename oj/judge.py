@@ -318,4 +318,4 @@ class Judge0:
                 'message': 'Hết thời gian chờ kết quả từ Judge0.'
             }
 
-        return resultss
+        return results
