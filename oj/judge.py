@@ -257,7 +257,7 @@ class Judge0:
             for future in as_completed(futures):
                 tokens[futures[future]] = future.result()
 
-        deadline = time.monotonic() + 90
+        deadline = time.monotonic() + 60
         results = [None] * len(tokens)
         pending = set(range(len(tokens)))
         errors = [0] * len(tokens)
