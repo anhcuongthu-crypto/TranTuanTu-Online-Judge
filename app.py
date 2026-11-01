@@ -144,7 +144,7 @@ def github_request(path, method='GET', payload=None):
         'Authorization': f'Bearer {token}',
         'Accept': 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28',
-        'User-Agent': 'Tran-Tu-36-Online-Judge'
+        'User-Agent': 'TranTu-Online-Judge/1.0'
     }
 
     body = None
@@ -682,11 +682,14 @@ def create_app(test_config=None):
 
     @app.get('/health')
     def health():
-        try:
-            return jsonify(ok=True, problem_count=len(problems()))
-        except Exception:
-            app.logger.exception('Health check failed')
-            return jsonify(ok=False, error='Problem bank unavailable'), 503
+        # Liveness check phải thật nhẹ: không gọi GitHub API hoặc tải ngân hàng đề.
+        # Tránh để health check chờ mạng ngoài trong lúc Render khởi động.
+        loaded = problems_cache is not None
+        return jsonify(
+            ok=True,
+            problem_bank_loaded=loaded,
+            problem_count=len(problems_cache) if loaded else None
+        )
 
     @app.get('/robots.txt')
     def robots_txt():
@@ -889,7 +892,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
     @app.get('/api/problems')
     def api_problems():
-        return jsonify([
+        response = jsonify([
             {
                 'id': p['id'],
                 'title': p['title'],
@@ -899,6 +902,11 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             }
             for p in problems()
         ])
+        # Danh sách ít thay đổi: cho trình duyệt dùng cache ngắn để mở lại nhanh.
+        response.headers['Cache-Control'] = (
+            'public, max-age=15, stale-while-revalidate=60'
+        )
+        return response
 
     @app.get('/api/problems/<pid>')
     def api_problem(pid):
