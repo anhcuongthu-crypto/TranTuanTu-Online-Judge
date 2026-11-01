@@ -5,6 +5,51 @@
 {% block meta_description %}{{ problem.title }} — bài tập {{ problem.category }} trên TranTu OJ. Đọc đề, xem dữ liệu vào ra, ví dụ và luyện giải bằng C++ trực tuyến.{% endblock %}
 
 {% block content %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LearningResource",
+  "name": {{ (problem.id ~ " · " ~ problem.title ~ " — TranTu OJ")|tojson }},
+  "description": {{ (problem.title ~ " — bài tập " ~ problem.category ~ " trên TranTu OJ. Đọc đề, xem dữ liệu vào ra, ví dụ và luyện giải bằng C++ trực tuyến.")|tojson }},
+  "url": {{ request.base_url|tojson }},
+  "learningResourceType": "Bài tập lập trình",
+  "educationalLevel": "Trung học cơ sở và trung học phổ thông",
+  "inLanguage": "vi",
+  "isAccessibleForFree": true,
+  "provider": {
+    "@type": "Organization",
+    "name": "TranTu OJ",
+    "url": "https://trantuantu-online-judge.onrender.com/"
+  },
+  "teaches": {{ problem.category|default("Lập trình C++", true)|tojson }}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "TranTu OJ",
+      "item": "https://trantuantu-online-judge.onrender.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Bài tập",
+      "item": "https://trantuantu-online-judge.onrender.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": {{ problem.title|tojson }},
+      "item": {{ request.base_url|tojson }}
+    }
+  ]
+}
+</script>
 <style>
 .problem-detail-layout {
     display: grid;
