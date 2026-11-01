@@ -85,3 +85,19 @@ def test_admin_problem_crud_and_delete_is_protected(tmp_path):
     assert c.post('/api/admin/problems', json=p).status_code == 201
     assert c.put('/api/admin/problems/X02', json={**p, 'title': 'Updated'}).status_code == 200
     assert c.delete('/api/admin/problems/X02').status_code == 200
+
+def test_home_problemset_library_and_brand_assets_render(tmp_path):
+    c = setup(tmp_path)
+
+    home = c.get('/')
+    assert home.status_code == 200
+    assert b'class="hero-art"' in home.data
+    assert b'og-cover.svg' in home.data
+    assert b'favicon.svg' in home.data
+
+    assert c.get('/problems').status_code == 200
+    assert c.get('/library').status_code == 200
+    assert c.get('/contests').status_code == 200
+
+    assert c.get('/static/favicon.svg').status_code == 200
+    assert c.get('/static/og-cover.svg').status_code == 200
