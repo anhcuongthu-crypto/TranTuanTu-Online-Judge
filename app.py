@@ -966,6 +966,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 'title': p['title'],
                 'category': p.get('category', ''),
                 'difficulty': p.get('difficulty', ''),
+                'tags': p.get('tags', []),
                 'total_score': p['total_score']
             }
             for p in problems()
