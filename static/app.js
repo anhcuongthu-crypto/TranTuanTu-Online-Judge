@@ -1,3 +1,75 @@
+// ==================== THƯ VIỆN BÀI TẬP ====================
+async function initProblemLibrary() {
+    const grid = document.querySelector('#library-grid');
+    if (!grid) return;
+    const search = document.querySelector('#library-search');
+    const category = document.querySelector('#library-category');
+    const difficulty = document.querySelector('#library-difficulty');
+    const sort = document.querySelector('#library-sort');
+    const count = document.querySelector('#library-result-count');
+    const total = document.querySelector('#library-total');
+    let items = [], activeCategory = '', activeDifficulty = '', activeTag = '';
+
+    function facets(id, values, type) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = values.map(value => {
+            const active = type === 'category' ? activeCategory === value : type === 'difficulty' ? activeDifficulty === value : activeTag === value;
+            const n = items.filter(p => type === 'category' ? p.category === value : type === 'difficulty' ? p.difficulty === value : (p.tags || []).includes(value)).length;
+            return `<button type="button" class="library-facet ${active ? 'active' : ''}" data-value="${escapeHtml(value)}"><span>${escapeHtml(value)}</span><b>${n}</b></button>`;
+        }).join('') || '<p class="muted">Chưa có dữ liệu.</p>';
+        el.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
+            const value = btn.dataset.value;
+            if (type === 'category') { activeCategory = activeCategory === value ? '' : value; category.value = activeCategory; }
+            if (type === 'difficulty') { activeDifficulty = activeDifficulty === value ? '' : value; difficulty.value = activeDifficulty; }
+            if (type === 'tag') activeTag = activeTag === value ? '' : value;
+            render();
+        }));
+    }
+
+    function render() {
+        const q = (search.value || '').trim().toLocaleLowerCase('vi');
+        const rows = items.filter(p => {
+            const hay = [p.id, p.title, p.category, p.difficulty, ...(p.tags || [])].join(' ').toLocaleLowerCase('vi');
+            return (!q || hay.includes(q)) && (!activeCategory || p.category === activeCategory)
+                && (!activeDifficulty || p.difficulty === activeDifficulty) && (!activeTag || (p.tags || []).includes(activeTag));
+        });
+        rows.sort((a,b) => sort.value === 'score' ? (Number(b.total_score)||0)-(Number(a.total_score)||0)
+            : String(a[sort.value] ?? '').localeCompare(String(b[sort.value] ?? ''),'vi',{numeric:true,sensitivity:'base'}));
+        count.textContent = `Hiển thị ${rows.length} / ${items.length} bài`;
+        grid.innerHTML = rows.length ? rows.map(p => `
+            <article class="library-card">
+                <div class="library-card-top"><span class="library-code">${escapeHtml(p.id)}</span><span class="library-difficulty">${escapeHtml(p.difficulty || 'Chưa phân loại')}</span></div>
+                <h2><a href="/problems/${encodeURIComponent(p.id)}">${escapeHtml(p.title)}</a></h2>
+                <div class="library-card-meta"><span>${escapeHtml(p.category || 'Khác')}</span><span>${Number(p.total_score)||0} điểm</span><span>${Number(p.subtasks_count)||0} subtask</span></div>
+                <div class="library-card-tags">${(p.tags||[]).map(tag=>`<span>${escapeHtml(tag)}</span>`).join('')}</div>
+                <a class="library-open" href="/problems/${encodeURIComponent(p.id)}">Mở bài <span>→</span></a>
+            </article>`).join('') : '<div class="glass-card library-empty">Không tìm thấy bài phù hợp. Hãy đổi bộ lọc hoặc từ khóa.</div>';
+        facets('library-categories',[...new Set(items.map(p=>p.category).filter(Boolean))].sort(),'category');
+        facets('library-difficulties',[...new Set(items.map(p=>p.difficulty).filter(Boolean))].sort(),'difficulty');
+        facets('library-tags',[...new Set(items.flatMap(p=>p.tags||[]))].sort(),'tag');
+    }
+    try {
+        items = await api('/api/problems');
+        total.textContent = items.length;
+        [...new Set(items.map(p=>p.category).filter(Boolean))].sort().forEach(v=>category.add(new Option(v,v)));
+        [...new Set(items.map(p=>p.difficulty).filter(Boolean))].sort().forEach(v=>difficulty.add(new Option(v,v)));
+        search.addEventListener('input',render);
+        category.addEventListener('change',()=>{activeCategory=category.value;render();});
+        difficulty.addEventListener('change',()=>{activeDifficulty=difficulty.value;render();});
+        sort.addEventListener('change',render);
+        document.querySelector('#library-reset').addEventListener('click',()=>{
+            search.value='';category.value='';difficulty.value='';sort.value='id';
+            activeCategory='';activeDifficulty='';activeTag='';render();
+        });
+        render();
+    } catch(e) {
+        grid.innerHTML = `<div class="glass-card library-empty">Không tải được thư viện: ${escapeHtml(e.message)}</div>`;
+        count.textContent='Lỗi tải dữ liệu';
+    }
+}
+document.addEventListener('DOMContentLoaded', initProblemLibrary);
+
 // ==================== API ====================
 
 const pendingGetRequests = new Map();
