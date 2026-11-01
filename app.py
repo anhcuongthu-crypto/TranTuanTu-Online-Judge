@@ -1417,6 +1417,49 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         return jsonify(result)
 
 
+    @app.get('/api/my-progress')
+    def my_progress():
+        user = current_user()
+        if not user:
+            return jsonify(error='Đăng nhập để xem tiến độ luyện tập.'), 401
+
+        bank = problems()
+        maximum_scores = {
+            str(p.get('id')): float(p.get('total_score') or 0)
+            for p in bank
+        }
+
+        with connect(app.config['DATABASE_PATH']) as db:
+            rows = db.execute(
+                '''SELECT problem_id, best_score
+                   FROM solves
+                   WHERE user_id=?
+                   ORDER BY problem_id''',
+                (user['id'],)
+            ).fetchall()
+
+        progress = []
+        for row in rows:
+            pid = str(row['problem_id'])
+            score = float(row['best_score'] or 0)
+            maximum = maximum_scores.get(pid, 0)
+            progress.append({
+                'problem_id': pid,
+                'best_score': score,
+                'max_score': maximum,
+                'solved': maximum > 0 and score >= maximum
+            })
+
+        solved_count = sum(1 for item in progress if item['solved'])
+        return jsonify(
+            username=user['username'],
+            solved=solved_count,
+            attempted=len(progress),
+            total=len(bank),
+            problems=progress
+        )
+
+
     @app.get('/api/leaderboard')
     def leaderboard():
         with connect(app.config['DATABASE_PATH']) as db:
