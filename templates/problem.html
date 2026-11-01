@@ -270,7 +270,7 @@
                 </span>
             </div>
 
-            <span class="eyebrow">PROBLEM {{ problem.id }}</span>
+            <span class="eyebrow"><span id="problem-label">PROBLEM</span> {{ problem.id }}</span>
 
             <h1 id="problem-title">{{ problem.title }}</h1>
 
@@ -301,12 +301,12 @@
 
                 <div class="sample-grid">
                     <div>
-                        <label>Sample Input</label>
+                        <label id="sample-input-label">Sample Input</label>
                         <pre>{{ problem.sample_input }}</pre>
                     </div>
 
                     <div>
-                        <label>Sample Output</label>
+                        <label id="sample-output-label">Sample Output</label>
                         <pre>{{ problem.sample_output }}</pre>
                     </div>
                 </div>
@@ -458,6 +458,7 @@
     };
 
     const interfaceEnglish = {
+        problem: "PROBLEM",
         back: "← All problems",
         data: "Input and Output",
         input: "Input",
@@ -482,10 +483,13 @@
         points: "points",
         notUpdated: "Not updated",
         inputInfo: "Input",
-        outputInfo: "Output"
+        outputInfo: "Output",
+        sampleInput: "Sample Input",
+        sampleOutput: "Sample Output"
     };
 
     const interfaceVietnamese = {
+        problem: "BÀI TẬP",
         back: "← Tất cả bài tập",
         data: "Mô tả dữ liệu",
         input: "Input",
@@ -510,7 +514,9 @@
         points: "điểm",
         notUpdated: "Chưa cập nhật",
         inputInfo: "Input",
-        outputInfo: "Output"
+        outputInfo: "Output",
+        sampleInput: "Dữ liệu vào mẫu",
+        sampleOutput: "Dữ liệu ra mẫu"
     };
 
     let translated = null;
@@ -574,7 +580,10 @@
             ? interfaceEnglish
             : interfaceVietnamese;
 
+        setText("problem-label", labels.problem);
         setText("problem-back", labels.back);
+        setText("sample-input-label", labels.sampleInput);
+        setText("sample-output-label", labels.sampleOutput);
         setText("problem-data-heading", labels.data);
         setText("input-heading", labels.input);
         setText("output-heading", labels.output);
@@ -631,6 +640,8 @@
         setInterface("vi");
 
         status.classList.remove("show");
+        document.documentElement.lang = "vi";
+        document.title = original.title + " — TranTu OJ";
     }
 
     function showTranslated(data) {
@@ -657,6 +668,8 @@
 
         translateSubtasks(data);
         setInterface("en");
+        document.documentElement.lang = "en";
+        document.title = (data.title || original.title) + " — TranTu OJ";
 
         status.classList.remove("show");
     }
