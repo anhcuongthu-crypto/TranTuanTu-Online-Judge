@@ -1480,7 +1480,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             submission_rows = db.execute(
                 '''SELECT created_at, verdict, score, max_score
                    FROM submissions
-                   WHERE user_id=? AND contest_id IS NULL
+                   WHERE user_id=?
                    ORDER BY id DESC
                    LIMIT 500''',
                 (user['id'],)
