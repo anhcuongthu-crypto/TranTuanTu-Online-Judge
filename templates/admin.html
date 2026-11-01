@@ -247,7 +247,22 @@ hr {
     <section class="panel">
         <h2>Ngân hàng đề</h2>
 
-        <div id="admin-problem-count">Đang tải...</div>
+        <div class="admin-bank-summary">
+            <div id="admin-problem-count">Đang tải...</div>
+            <div class="admin-bank-links">
+                <a href="/problems" target="_blank" rel="noopener">Xem trang Bài tập ↗</a>
+                <a href="/library" target="_blank" rel="noopener">Xem Thư viện đề ↗</a>
+            </div>
+        </div>
+
+        <div class="admin-bank-filters">
+            <input id="admin-problem-search" type="search" placeholder="Tìm theo mã bài, tên bài..." aria-label="Tìm bài trong ngân hàng">
+            <select id="admin-problem-kind" aria-label="Phân loại bài">
+                <option value="all">Tất cả bài</option>
+                <option value="practice">Bài luyện tập</option>
+                <option value="exam">Bài thuộc thư viện đề</option>
+            </select>
+        </div>
 
         <div class="toolbar">
             <button type="button" id="save-bank" class="success">
@@ -476,6 +491,14 @@ hr {
     placeholder="Nhập tên tác giả (có thể để trống)"
 >
 
+<label for="problem-exam-set">Phân loại hiển thị</label>
+<select id="problem-exam-set">
+    <option value="">Bài luyện tập thông thường</option>
+    <option value="custom">Thuộc thư viện đề thi (nhập tên đề bên dưới)</option>
+</select>
+<input id="problem-exam-set-name" type="text" placeholder="Ví dụ: Đề HSG Tin học 9 Thanh Hóa 2027" hidden>
+<p class="muted">Bài luyện tập để trống tên đề. Muốn đưa bài vào Thư viện, chọn mục thư viện và nhập đúng tên đề để nhóm các câu cùng đề.</p>
+
 <label for="problem-json">
     Nội dung bài tập dạng JSON
 </label>
@@ -538,6 +561,10 @@ hr {
         const constraintsEditor =
             document.getElementById('subtask-constraints');
         const authorInput = document.getElementById('problem-author');
+        const examSetSelect = document.getElementById('problem-exam-set');
+        const examSetNameInput = document.getElementById('problem-exam-set-name');
+        const adminProblemSearch = document.getElementById('admin-problem-search');
+        const adminProblemKind = document.getElementById('admin-problem-kind');
         const sampleInput = document.getElementById('sample-input');
         const sampleOutput = document.getElementById('sample-output');
         const message = document.getElementById('problem-message');
@@ -557,7 +584,22 @@ hr {
             document.getElementById('refresh-users');
 
         let editingId = null;
+        let adminProblemCache = [];
         const selectedIds = new Set();
+
+        examSetSelect.addEventListener('change', () => {
+            examSetNameInput.hidden = examSetSelect.value !== 'custom';
+            if (examSetSelect.value !== 'custom') examSetNameInput.value = '';
+        });
+        examSetNameInput.addEventListener('input', () => {
+            if (editingId !== null) {
+                try {
+                    const problem = JSON.parse(editor.value);
+                    problem.exam_set = examSetNameInput.value.trim();
+                    editor.value = JSON.stringify(problem, null, 2);
+                } catch {}
+            }
+        });
 
         async function api(url, options = {}) {
             const response = await fetch(url, {
@@ -607,6 +649,9 @@ hr {
     editor.value = '';
     constraintsEditor.value = '';
     authorInput.value = '';
+    examSetSelect.value = '';
+    examSetNameInput.value = '';
+    examSetNameInput.hidden = true;
     sampleInput.value = '';
     sampleOutput.value = '';
 
@@ -760,11 +805,22 @@ hr {
         refreshUsersButton.addEventListener('click', loadUsers);
 
         // QUẢN LÝ BÀI TẬP
-        async function loadProblems() {
-            list.textContent = 'Đang tải danh sách bài...';
+        async function loadProblems(fetchFresh = true) {
+            if (fetchFresh) list.textContent = 'Đang tải danh sách bài...';
 
             try {
-                const problems = await api('/api/admin/problems');
+                if (fetchFresh || !adminProblemCache.length) {
+                    adminProblemCache = await api('/api/admin/problems');
+                }
+                const problems = adminProblemCache;
+                const query = (adminProblemSearch.value || '').trim().toLocaleLowerCase('vi');
+                const kind = adminProblemKind.value;
+                const filteredProblems = problems.filter(problem => {
+                    const hay = `${problem.id || ''} ${problem.title || ''}`.toLocaleLowerCase('vi');
+                    const isExam = Boolean(String(problem.exam_set || '').trim());
+                    return (!query || hay.includes(query))
+                        && (kind === 'all' || (kind === 'exam' ? isExam : !isExam));
+                });
 
                 const existingIds = new Set(
                     problems.map(problem => String(problem.id))
@@ -776,16 +832,18 @@ hr {
                     }
                 }
 
-                count.textContent = `Tổng số bài: ${problems.length}`;
+                const practiceCount = problems.filter(p => !String(p.exam_set || '').trim()).length;
+                const examCount = problems.length - practiceCount;
+                count.textContent = `Tổng ${problems.length} bài · ${practiceCount} bài luyện tập · ${examCount} câu thuộc thư viện · Đang hiển thị ${filteredProblems.length}`;
                 list.replaceChildren();
 
-                if (problems.length === 0) {
-                    list.textContent = 'Chưa có bài tập nào.';
+                if (filteredProblems.length === 0) {
+                    list.textContent = problems.length ? 'Không có bài phù hợp với bộ lọc.' : 'Chưa có bài tập nào.';
                     updateSelectedCount();
                     return;
                 }
 
-                for (const problem of problems) {
+                for (const problem of filteredProblems) {
                     const row = document.createElement('div');
                     row.className = 'section-heading';
 
@@ -824,7 +882,10 @@ hr {
                     detail.className = 'muted';
                     detail.textContent =
                         `${problem.total_score} điểm · ` +
-                        `${(problem.subtasks || []).length} subtasks`;
+                        `${(problem.subtasks || []).length} subtasks · ` +
+                        (String(problem.exam_set || '').trim()
+                            ? `Thư viện: ${problem.exam_set}`
+                            : 'Bài luyện tập');
 
                     textInfo.append(heading, detail);
                     info.append(checkbox, textInfo);
@@ -898,6 +959,9 @@ hr {
                 count.textContent = 'Không tải được ngân hàng đề.';
             }
         }
+
+        adminProblemSearch.addEventListener('input', () => loadProblems(false));
+        adminProblemKind.addEventListener('change', () => loadProblems(false));
 
         selectAllButton.addEventListener('click', async () => {
             try {
@@ -1002,6 +1066,16 @@ hr {
                 return;
             }
             problem.author = authorInput.value.trim();
+            if (examSetSelect.value === 'custom') {
+                const examName = examSetNameInput.value.trim();
+                if (!examName) {
+                    showMessage('Hãy nhập tên đề thi để đưa bài vào Thư viện.', true);
+                    return;
+                }
+                problem.exam_set = examName;
+            } else {
+                delete problem.exam_set;
+            }
 
             if (!Array.isArray(problem.subtasks) || problem.subtasks.length === 0) {
                 showMessage('Bài phải có ít nhất một subtask.', true);
