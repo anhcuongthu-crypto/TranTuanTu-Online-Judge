@@ -942,6 +942,10 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
     @app.get('/')
     def home():
         return render_template('index.html')
+
+    @app.get('/library')
+    def library_page():
+        return render_template('library.html')
     
     @app.get('/problems/<pid>')
     def problem_page(pid):
@@ -967,7 +971,9 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 'category': p.get('category', ''),
                 'difficulty': p.get('difficulty', ''),
                 'tags': p.get('tags', []),
-                'total_score': p['total_score']
+                'total_score': p['total_score'],
+                'subtasks_count': len(p.get('subtasks', [])),
+                'time_limit': p.get('time_limit', 1)
             }
             for p in problems()
         ])
