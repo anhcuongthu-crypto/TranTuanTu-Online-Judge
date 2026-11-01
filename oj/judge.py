@@ -2,6 +2,7 @@
 import time
 import base64
 import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class JudgeError(RuntimeError):
@@ -234,64 +235,82 @@ class Judge0:
         if not tests:
             return []
 
-        tokens = []
+        # Gửi nhiều test song song thay vì chờ từng request Judge0.
+        # Giới hạn 8 luồng để tránh tạo tải quá lớn lên Judge0 công cộng.
+        workers = min(8, len(tests))
+        tokens = [None] * len(tests)
 
-        for test in tests:
-            token = self._create_submission(
-                source,
-                language_id,
-                test['input'],
-                test['output'],
-                time_limit,
-                memory_limit
-            )
-            tokens.append(token)
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {
+                executor.submit(
+                    self._create_submission,
+                    source,
+                    language_id,
+                    test['input'],
+                    test['output'],
+                    time_limit,
+                    memory_limit
+                ): i
+                for i, test in enumerate(tests)
+            }
 
-        deadline = time.monotonic() + 60
+            for future in as_completed(futures):
+                tokens[futures[future]] = future.result()
+
+        deadline = time.monotonic() + 90
         results = [None] * len(tokens)
         pending = set(range(len(tokens)))
         errors = [0] * len(tokens)
-        delay = 0.5
+        delay = 0.6
 
-        while pending and time.monotonic() < deadline:
-            for i in list(pending):
-                try:
-                    result = self._get_submission(tokens[i])
-                    errors[i] = 0
-                    status = result['status']
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            while pending and time.monotonic() < deadline:
+                futures = {
+                    executor.submit(
+                        self._get_submission,
+                        tokens[i]
+                    ): i
+                    for i in pending
+                }
 
-                    print(
-                        'Judge0 test', i + 1,
-                        'status:', status,
-                        flush=True
-                    )
+                for future in as_completed(futures):
+                    i = futures[future]
 
-                    if status not in ('In Queue', 'Processing'):
-                        results[i] = result
-                        pending.remove(i)
+                    try:
+                        result = future.result()
+                        errors[i] = 0
+                        status = result['status']
 
-                except JudgeError as exc:
-                    errors[i] += 1
-                    print(
-                        'Judge0 test', i + 1,
-                        'poll error:', str(exc),
-                        flush=True
-                    )
+                        print(
+                            'Judge0 test', i + 1,
+                            'status:', status,
+                            flush=True
+                        )
 
-                    if errors[i] >= 5:
-                        results[i] = {
-                            'status': 'Judge Unavailable',
-                            'message': str(exc)
-                        }
-                        pending.remove(i)
+                        if status not in ('In Queue', 'Processing'):
+                            results[i] = result
+                            pending.discard(i)
 
-            if pending:
-                remaining = deadline - time.monotonic()
+                    except JudgeError as exc:
+                        errors[i] += 1
+                        print(
+                            'Judge0 test', i + 1,
+                            'poll error:', str(exc),
+                            flush=True
+                        )
 
-                if remaining > 0:
-                    time.sleep(min(delay, remaining))
+                        if errors[i] >= 5:
+                            results[i] = {
+                                'status': 'Judge Unavailable',
+                                'message': str(exc)
+                            }
+                            pending.discard(i)
 
-                delay = min(delay * 1.5, 2.0)
+                if pending:
+                    remaining = deadline - time.monotonic()
+                    if remaining > 0:
+                        time.sleep(min(delay, remaining))
+                    delay = min(delay * 1.4, 1.8)
 
         for i in pending:
             results[i] = {
@@ -299,4 +318,4 @@ class Judge0:
                 'message': 'Hết thời gian chờ kết quả từ Judge0.'
             }
 
-        return results
+        return resultss
