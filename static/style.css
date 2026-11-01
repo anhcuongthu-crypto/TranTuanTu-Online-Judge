@@ -3119,3 +3119,169 @@ main .button-ghost, main .button-glass, main .btn:not(.btn-primary) {
   border-color:#cbd9e5 !important;
 }
 footer { background:#ffffff !important; color:#71869a !important; border-color:#dce6ef !important; }
+
+
+/* =========================================================
+   TRAN TU OJ — UNIFIED BLUE & WHITE THEME (FINAL OVERRIDE)
+   Keep every page light; no dark panels or black code areas.
+   ========================================================= */
+:root {
+  color-scheme: light !important;
+  --ink: #183b5b !important;
+  --muted: #66819a !important;
+  --line: #d7e6f2 !important;
+  --paper: #f3f8fc !important;
+  --white: #ffffff !important;
+  --primary: #2879bd !important;
+  --shadow: 0 8px 28px rgba(34, 91, 135, .08) !important;
+}
+html, body {
+  color-scheme: light !important;
+  background: #f3f8fc !important;
+  background-image: none !important;
+  color: #183b5b !important;
+}
+body { font-family: 'Be Vietnam Pro', system-ui, sans-serif !important; }
+.ambient { display: none !important; }
+.topbar {
+  background: rgba(255,255,255,.97) !important;
+  color: #183b5b !important;
+  border-bottom: 1px solid #dce8f2 !important;
+  box-shadow: 0 2px 12px rgba(34,91,135,.05) !important;
+  backdrop-filter: blur(14px) !important;
+}
+.topbar nav a, .top-user, .topbar nav summary { color: #426783 !important; }
+.topbar nav a:hover, .topbar nav a[aria-current="page"],
+.text-link, .breadcrumbs a { color: #176eaf !important; }
+.brand, .brand-gradient { color: #176eaf !important; }
+.brand small { color: #7893aa !important; }
+.brand-mark {
+  color: #fff !important;
+  background: linear-gradient(135deg,#176eaf,#54a6df) !important;
+  box-shadow: 0 5px 16px rgba(40,121,189,.2) !important;
+}
+main { color: #183b5b !important; }
+main, main section, main article { background-color: transparent; }
+.hero, .about-hero, .admin-hero, .problem-hero {
+  color: #183b5b !important;
+  background: linear-gradient(120deg,#ffffff 0%,#eef7ff 100%) !important;
+  border: 1px solid #d8e8f5 !important;
+  box-shadow: 0 10px 32px rgba(34,91,135,.07) !important;
+}
+.hero h1, .about-hero h1, .admin-hero h1, .problem-hero h1,
+main h1, main h2, main h3, main h4, main strong { color: #183b5b !important; }
+.hero p, .about-hero p, .section-heading p, .problem-content p { color: #607d96 !important; }
+.eyebrow, .heading-symbol, .notice { color: #247bb8 !important; }
+.gradient-text {
+  background: linear-gradient(90deg,#176eaf,#56a5dc) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+.glass-card, .auth-card, .table-card, .problem, .contest-card,
+.contest-stat, .contest-admin, .submission-card, .profile-card,
+.leaderboard-card, .panel, .card, .admin-card, .stat-card,
+.history-card, .detail-card, .result-card, .sample-card {
+  background: #ffffff !important;
+  color: #244761 !important;
+  border: 1px solid #dce8f2 !important;
+  box-shadow: 0 4px 16px rgba(34,91,135,.055) !important;
+  backdrop-filter: none !important;
+}
+.problem:hover, .contest-card:hover, .submission-card:hover {
+  background: #f5faff !important;
+  border-color: #9fc8e7 !important;
+}
+.problem-title, .problem small, .subtask-row, .admin-user { color: #315773 !important; }
+.problem-code, .card-icon, .trophy, .profile-avatar {
+  background: #e7f3fc !important;
+  color: #2475b2 !important;
+  box-shadow: none !important;
+}
+.pill, .pill-purple, .pill-green {
+  background: #e8f3fb !important;
+  color: #276b9e !important;
+}
+label { color: #365d79 !important; }
+input, select, textarea,
+main input, main select, main textarea {
+  color: #244761 !important;
+  background: #ffffff !important;
+  border: 1px solid #cbddea !important;
+  color-scheme: light !important;
+}
+input::placeholder, textarea::placeholder { color: #91a7b9 !important; }
+input:focus, select:focus, textarea:focus {
+  border-color: #69a9d5 !important;
+  box-shadow: 0 0 0 3px rgba(55,135,194,.13) !important;
+}
+.button-primary, .button-primary:visited, button.primary, .btn-primary {
+  color: #ffffff !important;
+  background: #2879bd !important;
+  border: 1px solid #2879bd !important;
+  box-shadow: 0 4px 12px rgba(40,121,189,.16) !important;
+}
+.button-dark, .button-glass, .button-ghost, .btn:not(.btn-primary) {
+  color: #28658f !important;
+  background: #edf6fc !important;
+  border: 1px solid #d2e4f1 !important;
+}
+.button:hover { filter: brightness(.98); }
+.code-window, .code-window pre, .window-bar, .code-status,
+.sample-grid pre, .result-box, pre, code, .code-content,
+.source-code, .submission-code, .editor, .editor-container,
+.CodeMirror, .CodeMirror-gutters, .cm-editor, .cm-scroller,
+.monaco-editor, .monaco-editor .margin, .monaco-editor-background {
+  background: #f0f6fb !important;
+  color: #294c67 !important;
+  border-color: #d8e6f1 !important;
+  box-shadow: none !important;
+}
+.code-window { transform: none !important; }
+.code-window em, .code-purple, .code-orange, .code-green,
+.code-status span, .code-status b { color: #2879bd !important; }
+.window-bar label, .code-status { color: #6b879e !important; }
+.table-card table, table { color: #294c67 !important; background: #fff !important; }
+th, .table-card th, table th {
+  color: #365d79 !important;
+  background: #eaf3fa !important;
+  border-color: #dce8f2 !important;
+}
+td, .table-card td, table td {
+  color: #36566f !important;
+  background: #fff !important;
+  border-color: #e4edf4 !important;
+}
+tbody tr:nth-child(even) td { background: #f7fafc !important; }
+tbody tr:hover td { background: #edf6fc !important; }
+.callout { color: #315e7c !important; background: #edf6fc !important; border-color: #d4e6f2 !important; }
+.breadcrumbs, .helper, .muted, .subtask-row small, .admin-user small,
+.hero-stats span, .problem small { color: #718ba0 !important; }
+.nav-dropdown-menu {
+  background: #ffffff !important;
+  color: #244761 !important;
+  border: 1px solid #dce8f2 !important;
+  box-shadow: 0 8px 24px rgba(34,91,135,.12) !important;
+}
+.nav-dropdown-menu a { color: #315773 !important; }
+.language-switch .lang-btn {
+  background: #edf6fc !important;
+  border: 1px solid #d2e4f1 !important;
+  color: #28658f !important;
+}
+.language-switch .lang-btn.active {
+  background: #dceefa !important;
+  border-color: #86b9dd !important;
+}
+footer {
+  background: #ffffff !important;
+  color: #718ba0 !important;
+  border-top: 1px solid #dce8f2 !important;
+}
+.footer-brand, .footer-brand span { color: #2879bd !important; }
+hr { border-top-color: #dce8f2 !important; }
+option { background: #ffffff !important; color: #244761 !important; }
+::selection { color: #ffffff !important; background: #2879bd !important; }
+@media (prefers-color-scheme: dark) {
+  html, body { color-scheme: light !important; background: #f3f8fc !important; color: #183b5b !important; }
+}
