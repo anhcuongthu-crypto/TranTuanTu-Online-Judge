@@ -214,11 +214,32 @@ hr {
 #problem-exam-set-name { margin-top:8px; }
 @media(max-width:650px) { .admin-bank-filters { grid-template-columns:1fr; } .admin-bank-links { width:100%; } }
 
+
+.admin-header { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:18px 0 24px; border-bottom:1px solid var(--line); }
+.admin-header h1 { margin:5px 0; font-size:28px; letter-spacing:-.5px; }
+.admin-header p { margin:0; }
+.admin-header-links { display:flex; flex-wrap:wrap; gap:9px; }
+.admin-header-links a { display:inline-flex; padding:8px 11px; border:1px solid var(--line); border-radius:7px; color:#cbd5e1; text-decoration:none; font-size:12px; }
+.admin-header-links a:hover { border-color:var(--cyan); color:var(--cyan); }
+@media(max-width:650px) { .admin-header { align-items:flex-start; flex-direction:column; } }
+
 </style>
 </head>
 <body>
 
-    <h1>Quản trị Online Judge</h1>
+    <header class="admin-header">
+        <div>
+            <span class="muted">TRANTU OJ · CONTROL CENTER</span>
+            <h1>Quản trị hệ thống</h1>
+            <p class="muted">Quản lý bài tập, thư viện đề, kỳ thi và tài khoản học sinh.</p>
+        </div>
+        <nav class="admin-header-links" aria-label="Điều hướng quản trị">
+            <a href="/">Trang chủ ↗</a>
+            <a href="/problems">Bài tập ↗</a>
+            <a href="/library">Thư viện đề ↗</a>
+            <a href="/contests">Kỳ thi ↗</a>
+        </nav>
+    </header>
 
     <!-- QUẢN LÝ TÀI KHOẢN -->
     <section class="panel">
