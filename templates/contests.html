@@ -453,6 +453,39 @@
     .contest-grid { grid-template-columns: 1fr !important; }
 }
 
+
+/* ClueOJ-like light contest directory */
+.contest-page {
+ color:#273746 !important; color-scheme:light !important;
+ --ct-panel:#ffffff; --ct-line:#dfe5eb; --ct-text:#273746; --ct-muted:#687b8d;
+ --ct-purple:#286da8; --ct-purple-light:#286da8; --ct-cyan:#286da8;
+}
+.contest-hero,.contest-stat,.contest-card,.contest-admin {
+ background:#ffffff !important; color:#273746 !important;
+ border:1px solid #dfe5eb !important; box-shadow:0 1px 3px rgba(20,40,60,.045) !important;
+ backdrop-filter:none !important;
+}
+.contest-hero h1,.contest-heading h2,.contest-card h3,.contest-admin h2,
+.contest-admin h3 { color:#263e54 !important; }
+.contest-hero p,.contest-muted,.contest-card p,.contest-stat small { color:#687b8d !important; }
+.contest-stat strong { color:#286da8 !important; }
+.contest-page input:not([type="checkbox"]),.contest-page textarea,.contest-page select {
+ background:#ffffff !important; color:#273746 !important; -webkit-text-fill-color:#273746 !important;
+ border:1px solid #cbd5df !important; color-scheme:light !important;
+}
+.contest-page input::placeholder,.contest-page textarea::placeholder { color:#8795a3 !important; -webkit-text-fill-color:#8795a3 !important; }
+.contest-page label,.contest-checkitem span,.contest-admin p { color:#40566b !important; }
+.contest-checkitem { background:#f8fafc !important; border-color:#dfe5eb !important; }
+.contest-checkitem:hover { background:#eef5fa !important; border-color:#b9cddd !important; }
+.contest-btn { background:#286da8 !important; border-color:#245f91 !important; color:#ffffff !important; }
+.contest-btn.secondary { background:#ffffff !important; color:#286da8 !important; border-color:#cbd5df !important; }
+.contest-badge { background:#eef5fa !important; border-color:#d7e5f0 !important; color:#286da8 !important; }
+.contest-badge.running { background:#e8f6ee !important; color:#187044 !important; border-color:#cdebd9 !important; }
+.contest-badge.upcoming { background:#fff5df !important; color:#8a5b00 !important; border-color:#f3e2b7 !important; }
+.contest-badge.ended { background:#f1f3f5 !important; color:#687b8d !important; }
+.contest-empty { background:#ffffff !important; color:#687b8d !important; border-color:#dfe5eb !important; }
+#message { color:#187044 !important; }
+
 </style>
 
 
