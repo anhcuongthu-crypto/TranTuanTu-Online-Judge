@@ -1444,7 +1444,7 @@ hr {
             }
 
             const customConstraintLines =
-                customProblemSubtaskConstraints.value.split(/\\r?\\n/);
+                customProblemSubtaskConstraints.value.split(/\r?\n/);
             for (let i = 0; i < subtasks.length; i++) {
                 subtasks[i].constraints =
                     (customConstraintLines[i] || '').trim();
