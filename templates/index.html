@@ -40,17 +40,31 @@
             </p>
         </div>
 
-        <div class="search-wrap">
-            <span>⌕</span>
-            <input
-                id="search"
-                type="search"
-                placeholder="Tìm bài tập..."
-                aria-label="Tìm theo mã bài, tên bài hoặc chủ đề"
-            >
+        <div class="problem-toolbar">
+            <div class="search-wrap">
+                <span>⌕</span>
+                <input
+                    id="search"
+                    type="search"
+                    placeholder="Tìm mã bài, tên bài..."
+                    aria-label="Tìm theo mã bài, tên bài hoặc chủ đề"
+                >
+            </div>
+            <select id="filter-category" aria-label="Lọc theo chủ đề">
+                <option value="">Tất cả chủ đề</option>
+            </select>
+            <select id="filter-difficulty" aria-label="Lọc theo độ khó">
+                <option value="">Mọi độ khó</option>
+            </select>
+            <button type="button" class="button button-ghost" id="reset-problem-filters">Đặt lại</button>
+            <button type="button" class="button button-primary" id="random-problem">Bài ngẫu nhiên ↗</button>
         </div>
     </div>
 
+    <div class="problem-list-meta">
+        <span id="problem-result-count">Đang tải danh sách bài tập...</span>
+        <span>Sắp xếp bằng cách bấm tiêu đề cột</span>
+    </div>
     <div class="glass-card table-card" id="problems">
         Đang tải danh sách...
     </div>
