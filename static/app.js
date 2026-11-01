@@ -44,11 +44,14 @@ async function initProblemLibrary() {
         });
 
         grid.innerHTML = [...groups.entries()].map(([exam, questions]) => `
-            <section class="exam-group">
-                <div class="exam-group-heading">
-                    <div><span class="eyebrow">KỲ THI</span><h2>${escapeHtml(exam)}</h2></div>
-                    <span class="exam-question-count">${questions.length} câu hỏi</span>
-                </div>
+            <details class="exam-group">
+                <summary class="exam-group-heading">
+                    <div class="exam-group-title">
+                        <span class="eyebrow">KỲ THI</span>
+                        <h2>${escapeHtml(exam)}</h2>
+                    </div>
+                    <span class="exam-group-action">${questions.length} câu hỏi <span class="exam-group-arrow">⌄</span></span>
+                </summary>
                 <div class="exam-question-list">
                     ${questions.map((p, index) => `
                         <article class="library-card exam-question-card">
@@ -66,7 +69,7 @@ async function initProblemLibrary() {
                         </article>
                     `).join('')}
                 </div>
-            </section>
+            </details>
         `).join('');
     }
 
