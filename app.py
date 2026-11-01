@@ -1461,6 +1461,93 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         )
 
 
+    @app.get('/api/my-analytics')
+    def my_analytics():
+        user = current_user()
+        if not user:
+            return jsonify(error='Cần đăng nhập.'), 401
+
+        bank = problems()
+        problem_by_id = {str(p.get('id')): p for p in bank}
+
+        with connect(app.config['DATABASE_PATH']) as db:
+            solve_rows = db.execute(
+                '''SELECT problem_id, best_score
+                   FROM solves
+                   WHERE user_id=?''',
+                (user['id'],)
+            ).fetchall()
+            submission_rows = db.execute(
+                '''SELECT created_at, verdict, score, max_score
+                   FROM submissions
+                   WHERE user_id=? AND contest_id IS NULL
+                   ORDER BY id DESC
+                   LIMIT 500''',
+                (user['id'],)
+            ).fetchall()
+
+        solved_by_category = {}
+        attempted_by_category = {}
+        solved_by_tag = {}
+        solved_ids = set()
+        attempted_ids = set()
+
+        for row in solve_rows:
+            pid = str(row['problem_id'])
+            problem = problem_by_id.get(pid)
+            if not problem:
+                continue
+            attempted_ids.add(pid)
+            maximum = float(problem.get('total_score') or 0)
+            score = float(row['best_score'] or 0)
+            category = str(problem.get('category') or 'Khác')
+            attempted_by_category[category] = attempted_by_category.get(category, 0) + 1
+            if maximum > 0 and score >= maximum:
+                solved_ids.add(pid)
+                solved_by_category[category] = solved_by_category.get(category, 0) + 1
+                for tag in problem.get('tags', []):
+                    solved_by_tag[tag] = solved_by_tag.get(tag, 0) + 1
+
+        today = datetime.now().date()
+        daily = {}
+        for offset in range(13, -1, -1):
+            day = (today - timedelta(days=offset)).isoformat()
+            daily[day] = 0
+
+        verdict_counts = {}
+        for row in submission_rows:
+            verdict = str(row['verdict'] or 'Khác')
+            verdict_counts[verdict] = verdict_counts.get(verdict, 0) + 1
+            raw_date = str(row['created_at'] or '')[:10]
+            if raw_date in daily:
+                daily[raw_date] += 1
+
+        category_rows = []
+        for category, attempted in attempted_by_category.items():
+            category_rows.append({
+                'category': category,
+                'attempted': attempted,
+                'solved': solved_by_category.get(category, 0)
+            })
+        category_rows.sort(key=lambda item: (-item['solved'], item['category']))
+
+        tag_rows = [
+            {'tag': tag, 'solved': count}
+            for tag, count in sorted(solved_by_tag.items(), key=lambda item: (-item[1], item[0]))
+        ][:10]
+
+        return jsonify(
+            total_solved=len(solved_ids),
+            total_attempted=len(attempted_ids),
+            total_submissions=len(submission_rows),
+            full_rate=round(100 * len(solved_ids) / len(attempted_ids), 1) if attempted_ids else 0,
+            categories=category_rows,
+            tags=tag_rows,
+            daily=[{'date': day, 'count': count} for day, count in daily.items()],
+            verdicts=[{'verdict': verdict, 'count': count} for verdict, count in sorted(verdict_counts.items(), key=lambda item: -item[1])]
+        )
+
+
     @app.get('/api/leaderboard')
     def leaderboard():
         with connect(app.config['DATABASE_PATH']) as db:
