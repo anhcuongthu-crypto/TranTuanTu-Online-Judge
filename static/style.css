@@ -2230,3 +2230,48 @@ footer {
     padding: 0 14px 14px;
 }
 .exam-question-card { background: #0d2033; }
+
+.topbar nav.clue-nav { gap: 19px; }
+.clue-nav > a, .clue-nav .nav-dropdown > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #c2d2e3;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.clue-nav > a:hover, .clue-nav .nav-dropdown > summary:hover,
+.clue-nav .nav-dropdown[open] > summary { color: #7dd3fc; }
+.nav-dropdown { position: relative; }
+.nav-dropdown > summary { list-style: none; }
+.nav-dropdown > summary::-webkit-details-marker { display: none; }
+.nav-dropdown > summary span { color: #8299b1; }
+.nav-dropdown-menu {
+    position: absolute;
+    z-index: 50;
+    top: calc(100% + 12px);
+    left: -12px;
+    min-width: 165px;
+    padding: 6px;
+    border: 1px solid #294866;
+    border-radius: 6px;
+    background: #10243a;
+    box-shadow: 0 12px 28px rgba(0,0,0,.32);
+}
+.nav-dropdown-menu a {
+    display: block;
+    padding: 9px 10px;
+    border-radius: 4px;
+    color: #c2d2e3;
+    font-size: 12px;
+    white-space: nowrap;
+}
+.nav-dropdown-menu a:hover { color: #7dd3fc; background: #193651; }
+@media (max-width: 900px) { .topbar nav.clue-nav { gap: 17px; } }
+@media (max-width: 620px) {
+    .topbar nav.clue-nav { gap: 16px; overflow: visible; }
+    .clue-nav > a, .clue-nav .nav-dropdown > summary { font-size: 11px; }
+    .nav-dropdown-menu { top: calc(100% + 8px); }
+}
