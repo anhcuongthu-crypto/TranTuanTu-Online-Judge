@@ -350,14 +350,26 @@
                 </span>
             </a>
 
-            <nav aria-label="Điều hướng chính">
+            <nav aria-label="Điều hướng chính" class="clue-nav">
                 <a href="/" data-i18n="nav_problems">Bài tập</a>
-                <a href="/library">Đề thi</a>
-                <a href="/contests" data-i18n="nav_contests">Kỳ thi</a>
                 <a href="/submissions" data-i18n="nav_submissions">Bài nộp</a>
-                <a href="/leaderboard" data-i18n="nav_leaderboard">Xếp hạng</a>
-                <a href="/about" data-i18n="nav_about">Thông tin</a>
-                <a href="/profile" data-i18n="nav_profile">Hồ sơ</a>
+                <a href="/contests" data-i18n="nav_contests">Kỳ thi</a>
+                <a href="/library">Thư viện đề thi</a>
+
+                <details class="nav-dropdown">
+                    <summary>Người dùng <span>⌄</span></summary>
+                    <div class="nav-dropdown-menu">
+                        <a href="/leaderboard" data-i18n="nav_leaderboard">Xếp hạng</a>
+                        <a href="/profile" data-i18n="nav_profile">Hồ sơ cá nhân</a>
+                    </div>
+                </details>
+
+                <details class="nav-dropdown">
+                    <summary>Thông tin <span>⌄</span></summary>
+                    <div class="nav-dropdown-menu">
+                        <a href="/about" data-i18n="nav_about">Về TranTu OJ</a>
+                    </div>
+                </details>
 
                 {% if logged_in_user and logged_in_user.is_admin %}
                     <a id="admin-link" href="/admin" data-i18n="nav_admin">Quản trị</a>
