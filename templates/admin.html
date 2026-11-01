@@ -2000,13 +2000,15 @@ async function loadContestTestProblems(
         );
     }
 }
-        async function loadContestTestDetails(problemId) {
+async function loadContestTestDetails(problemId) {
     const problem = contestTestProblems.find(
         p => String(p.id) === String(problemId)
     );
 
     if (!problem) return;
 
+    contestTestCurrentProblem = null;
+    contestTestJson.value = '';
     contestTestJson.disabled = true;
     contestTestSave.disabled = true;
 
@@ -2026,9 +2028,6 @@ async function loadContestTestProblems(
             'Không tải được test: ' + error.message,
             true
         );
-    } finally {
-        contestTestJson.disabled = false;
-        contestTestSave.disabled = false;
     }
 }
 
@@ -2075,14 +2074,31 @@ async function loadContestTestProblems(
             );
         }
 
-        contestTestContest.addEventListener('change', async () => {
-            await loadContestTestProblems(contestTestContest.value);
-        });
+contestTestProblem.addEventListener('change', async () => {
+    const problemId = contestTestProblem.value;
 
-        contestTestProblem.addEventListener('change',async () => {
-            await loadContestTestDetails(contestTestProblem.value);
-        });
+    if (!problemId) {
+        contestTestCurrentProblem = null;
+        contestTestJson.value = '';
+        contestTestJson.disabled = true;
+        contestTestSave.disabled = true;
+        showContestTestMessage('');
+        return;
+    }
 
+    await loadContestTestDetails(problemId);
+});
+contestTestContest.addEventListener('change', async () => {
+    const contestId = contestTestContest.value;
+
+    if (!contestId) {
+        resetContestTestEditor('Chọn Contest trước.');
+        showContestTestMessage('');
+        return;
+    }
+
+    await loadContestTestProblems(contestId);
+});
         // Định dạng JSON.
         contestTestFormat.addEventListener('click', () => {
             try {
