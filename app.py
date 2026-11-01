@@ -1019,18 +1019,35 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         if not p:
             return jsonify(error='Không tìm thấy bài'), 404
 
+        # Dịch toàn bộ nội dung văn bản của đề; giữ nguyên dữ liệu mẫu,
+        # mã bài, điểm số và thông tin định danh.
         fields = [
             'title',
             'statement',
             'input_format',
             'output_format',
-            'explanation'
+            'explanation',
+            'category',
+            'difficulty'
         ]
 
         result = {}
 
         for field in fields:
             result[field] = translate_problem_text(p.get(field, ''))
+
+        # Dịch cả tên và mô tả từng subtask để phần thang điểm không
+        # còn sót tiếng Việt khi người dùng chuyển sang English.
+        result['subtasks'] = []
+        for subtask in p.get('subtasks', []):
+            result['subtasks'].append({
+                'id': subtask.get('id', ''),
+                'name': translate_problem_text(subtask.get('name', '')),
+                'constraints': translate_problem_text(
+                    subtask.get('constraints', '')
+                ),
+                'score': subtask.get('score', 0)
+            })
 
         return jsonify(result)
 
