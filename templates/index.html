@@ -27,6 +27,28 @@
     </div>
 </section>
 
+{% if logged_in_user %}
+<section class="section-block" id="my-progress-section">
+    <div class="my-progress-card glass-card">
+        <div class="my-progress-heading">
+            <div>
+                <span class="eyebrow">YOUR PRACTICE</span>
+                <h2>Tiến độ luyện tập</h2>
+                <p class="muted">Theo dõi những bài bạn đã làm và hoàn thành trên TranTu OJ.</p>
+            </div>
+            <a class="button button-ghost" href="/submissions">Lịch sử bài nộp ↗</a>
+        </div>
+        <div class="my-progress-stats">
+            <div><strong id="progress-solved">—</strong><span>Bài đã FULL</span></div>
+            <div><strong id="progress-attempted">—</strong><span>Bài đã thử</span></div>
+            <div><strong id="progress-total">—</strong><span>Tổng số bài</span></div>
+        </div>
+        <div class="progress-track"><span id="progress-fill"></span></div>
+        <p class="progress-caption" id="progress-caption">Đang tải tiến độ...</p>
+    </div>
+</section>
+{% endif %}
+
 <!-- DANH SÁCH BÀI TẬP -->
 <section class="section-block" id="problem-section">
     <div class="section-heading">
