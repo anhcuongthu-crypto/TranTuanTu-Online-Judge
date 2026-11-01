@@ -2237,6 +2237,55 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             type='bank',
             message='Đã cập nhật test và lưu ngân hàng đề lên GitHub.'
         )
+        # Admin lấy đầy đủ subtasks và tests của bài trong Contest
+    @app.get(
+        '/api/admin/contests/<int:contest_id>/problems/<pid>/tests'
+    )
+    def admin_get_contest_tests(contest_id, pid):
+        if not admin_required():
+            return jsonify(error='Chỉ admin.'), 403
+
+        with connect(app.config['DATABASE_PATH']) as db:
+            member = db.execute(
+                '''SELECT problem_id FROM contest_problems
+                   WHERE contest_id=? AND problem_id=?''',
+                (contest_id, pid)
+            ).fetchone()
+
+            custom = db.execute(
+                '''SELECT subtasks_json, total_score
+                   FROM contest_custom_problems
+                   WHERE contest_id=? AND problem_id=?''',
+                (contest_id, pid)
+            ).fetchone()
+
+        if not member:
+            return jsonify(error='Bài này không thuộc Contest.'), 404
+
+        # Bài riêng của Contest
+        if custom:
+            subtasks = json.loads(custom['subtasks_json'] or '[]')
+            total_score = custom['total_score']
+
+        # Bài lấy từ ngân hàng đề
+        else:
+            bank = problems(refresh=True)
+            problem = next(
+                (p for p in bank if str(p.get('id')) == pid),
+                None
+            )
+
+            if not problem:
+                return jsonify(error='Không tìm thấy bài.'), 404
+
+            subtasks = problem.get('subtasks', [])
+            total_score = problem.get('total_score', 10)
+
+        return jsonify(
+            ok=True,
+            subtasks=subtasks,
+            total_score=total_score
+        )
 
     # ==================== ADMIN PROBLEM API ===================
 
