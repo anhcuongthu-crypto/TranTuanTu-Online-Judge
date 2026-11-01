@@ -1932,72 +1932,74 @@ async function editContestProblem(contestId, problemId) {
         }
 
         // Tải danh sách bài thuộc Contest đã chọn.
-        async function loadContestTestProblems(
-            contestId,
-            preferredProblemId = ''
-        ) {
-            resetContestTestEditor('Đang tải bài...');
-            showContestTestMessage('');
+async function loadContestTestProblems(
+    contestId,
+    preferredProblemId = ''
+) {
+    resetContestTestEditor('Đang tải bài...');
+    showContestTestMessage('');
 
-            if (!contestId) {
-                resetContestTestEditor('Chọn Contest trước.');
-                return;
-            }
+    if (!contestId) {
+        resetContestTestEditor('Chọn Contest trước.');
+        return;
+    }
 
-            contestTestProblem.disabled = true;
+    contestTestProblem.disabled = true;
 
-            try {
-                const data = await api(`/api/contests/${contestId}`);
-                contestTestProblems = Array.isArray(data.problems)
-                    ? data.problems
-                    : [];
+    try {
+        const data = await api(`/api/contests/${contestId}`);
 
-                contestTestProblem.replaceChildren(
-                    new Option('— Chọn bài —', '')
-                );
+        contestTestProblems = Array.isArray(data.problems)
+            ? data.problems
+            : [];
 
-                for (const problem of contestTestProblems) {
-                    const type = problem.is_custom
-                        ? 'Bài riêng'
-                        : 'Bài ngân hàng';
+        contestTestProblem.replaceChildren(
+            new Option('— Chọn bài —', '')
+        );
 
-                    contestTestProblem.add(
-                        new Option(
-                            `${problem.id} — ${problem.title} (${type})`,
-                            String(problem.id)
-                        )
-                    );
-                }
+        for (const problem of contestTestProblems) {
+            const type = problem.is_custom
+                ? 'Bài riêng'
+                : 'Bài ngân hàng';
 
-                contestTestProblem.disabled = false;
+            contestTestProblem.add(
+                new Option(
+                    `${problem.id} — ${problem.title} (${type})`,
+                    String(problem.id)
+                )
+            );
+        }
 
-                if (preferredProblemId &&
-                    contestTestProblems.some(p =>
-                        String(p.id) === String(preferredProblemId)
-                    )) {
-                    await loadContestTestDetails(preferredProblemId);
-                    renderContestTestEditor(preferredProblemId);
-                } else {
-                    contestTestProblem.value = '';
-                    contestTestCurrentProblem = null;
-                    contestTestJson.value = '';
-                    contestTestJson.disabled = true;
-                    contestTestSave.disabled = true;
+        contestTestProblem.disabled = false;
 
-                    if (contestTestProblems.length === 0) {
-                        resetContestTestEditor(
-                            'Contest chưa có bài tập.'
-                        );
-                    }
-                }
-            } catch (error) {
-                resetContestTestEditor('Không tải được bài.');
-                showContestTestMessage(
-                    'Không tải được bài trong Contest: ' + error.message,
-                    true
-                );
+        if (preferredProblemId &&
+            contestTestProblems.some(p =>
+                String(p.id) === String(preferredProblemId)
+            )) {
+
+            contestTestProblem.value = String(preferredProblemId);
+            await loadContestTestDetails(preferredProblemId);
+
+        } else {
+            contestTestProblem.value = '';
+            contestTestCurrentProblem = null;
+            contestTestJson.value = '';
+            contestTestJson.disabled = true;
+            contestTestSave.disabled = true;
+
+            if (contestTestProblems.length === 0) {
+                resetContestTestEditor('Contest chưa có bài tập.');
             }
         }
+
+    } catch (error) {
+        resetContestTestEditor('Không tải được bài.');
+        showContestTestMessage(
+            'Không tải được bài trong Contest: ' + error.message,
+            true
+        );
+    }
+}
         async function loadContestTestDetails(problemId) {
     const problem = contestTestProblems.find(
         p => String(p.id) === String(problemId)
