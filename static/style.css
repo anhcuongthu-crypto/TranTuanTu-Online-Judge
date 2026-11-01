@@ -1756,3 +1756,99 @@ footer {
     .problem-toolbar .button { width: 100%; }
     .problem-list-meta { flex-direction: column; gap: 3px; }
 }
+
+
+/* Submission center — compact judge tables and consistent controls */
+.submissions-page {
+    padding: 4px 0 38px !important;
+    color: #e7edf5 !important;
+}
+.submissions-page .submissions-header { margin-bottom: 16px !important; }
+.submissions-page h1 {
+    margin: 5px 0 !important;
+    font-size: clamp(24px, 3vw, 31px) !important;
+    letter-spacing: -.6px !important;
+}
+.submissions-page .eyebrow {
+    color: #7dd3fc !important;
+    letter-spacing: 1.2px !important;
+}
+.submissions-page .gradient-text {
+    background: none !important;
+    color: #7dd3fc !important;
+}
+.submissions-page .muted { color: #a8b6c8 !important; font-size: 12px; }
+.submissions-page .glass-card {
+    background: #152438 !important;
+    border: 1px solid #2b4058 !important;
+    border-radius: 7px !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+}
+.submissions-page .stats { gap: 10px !important; margin-bottom: 13px !important; }
+.submissions-page .stat-card { padding: 13px 16px !important; }
+.submissions-page .stat-label { color: #a8b6c8 !important; font-size: 11px !important; }
+.submissions-page .stat-value { margin-top: 4px !important; font-size: 22px !important; }
+.submissions-page .toolbar { padding: 11px !important; gap: 8px !important; margin-bottom: 12px !important; }
+.submissions-page input,
+.submissions-page select {
+    min-height: 37px;
+    padding: 8px 10px !important;
+    border: 1px solid #3a506a !important;
+    border-radius: 5px !important;
+    background: #101f31 !important;
+    color: #e7edf5 !important;
+    font-size: 12px !important;
+}
+.submissions-page .action-button,
+.submissions-page .code-button {
+    border: 1px solid #2585b7 !important;
+    border-radius: 5px !important;
+    background: #087db8 !important;
+    box-shadow: none !important;
+    font-size: 11px !important;
+}
+.submissions-page .table-card { overflow: hidden !important; }
+.submissions-page table {
+    background: #152438 !important;
+    min-width: 850px;
+}
+.submissions-page thead th {
+    background: #20344b !important;
+    color: #d8e5f2 !important;
+    border-color: #2b4058 !important;
+    font-size: 11px !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
+.submissions-page th,
+.submissions-page td {
+    padding: 10px 12px !important;
+    border-color: #2b4058 !important;
+    font-size: 11px !important;
+}
+.submissions-page tbody tr,
+.submissions-page tbody tr:nth-child(even) {
+    background: #152438 !important;
+}
+.submissions-page tbody tr:hover { background: #203b55 !important; }
+.submissions-page .verdict { border-radius: 4px !important; padding: 3px 7px !important; }
+.submissions-page .problem-link { color: #7dd3fc !important; }
+.submissions-page .result-count {
+    padding: 10px 13px !important;
+    color: #a8b6c8 !important;
+    border-color: #2b4058 !important;
+    font-size: 11px !important;
+}
+.submissions-page .code-dialog {
+    border: 1px solid #3a506a !important;
+    border-radius: 7px !important;
+    background: #152438 !important;
+}
+.submissions-page .code-header { border-color: #2b4058 !important; }
+.submissions-page .code-content { background: #0d1725 !important; }
+@media(max-width:640px) {
+    .submissions-page .stats { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+    .submissions-page .stat-card { padding: 10px !important; }
+    .submissions-page .stat-value { font-size: 18px !important; }
+}
