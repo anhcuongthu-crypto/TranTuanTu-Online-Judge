@@ -1026,9 +1026,16 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             'statement',
             'input_format',
             'output_format',
+            'input_desc',
+            'output_desc',
             'explanation',
+            'note',
+            'notes',
+            'constraints',
             'category',
-            'difficulty'
+            'difficulty',
+            'author',
+            'created_by'
         ]
 
         result = {}
