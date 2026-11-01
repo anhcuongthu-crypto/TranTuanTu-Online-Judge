@@ -135,7 +135,7 @@
         const translations = {
             vi: {
                 nav_problems: "Bài tập",
-                nav_contests: "🏆 Contest",
+                nav_contests: "🏆 Kỳ thi",
                 nav_submissions: "📝 Các bài nộp",
                 nav_leaderboard: "🏆 Bảng xếp hạng",
                 nav_about: "Giới thiệu",
@@ -367,8 +367,8 @@
                 <details class="nav-dropdown">
                     <summary>Người dùng <span>⌄</span></summary>
                     <div class="nav-dropdown-menu">
-                        <a href="/leaderboard" data-i18n="nav_leaderboard">Xếp hạng</a>
-                        <a href="/profile" data-i18n="nav_profile">Hồ sơ cá nhân</a>
+                        <a href="/leaderboard" data-i18n="nav_leaderboard" {% if request.path == '/leaderboard' %}aria-current="page"{% endif %}>Xếp hạng</a>
+                        <a href="/profile" data-i18n="nav_profile" {% if request.path == '/profile' %}aria-current="page"{% endif %}>Hồ sơ cá nhân</a>
                     </div>
                 </details>
 
