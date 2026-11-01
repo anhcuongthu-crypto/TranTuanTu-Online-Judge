@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -165,6 +164,22 @@ tbody tr:hover { background: var(--hover-bg); }
 #problemDetail h3 { margin-top: 22px; }
 .empty { text-align: center; padding: 22px 10px; color: var(--muted); }
 .header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.subtask-table {
+    margin: 14px 0 20px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+}
+.subtask-table th:last-child,
+.subtask-table td:last-child {
+    text-align: right;
+    width: 110px;
+}
+.subtask-table td {
+    padding: 11px 12px;
+}
+
 @media (max-width: 720px) {
     .grid { grid-template-columns: 1fr; }
     .panel { padding: 16px; }
@@ -332,7 +347,10 @@ const translations = {
         loadFailed: "Không tải được cuộc thi",
         checkRender: "Kiểm tra API và log trên Render.",
         noProblemList: "Không tải được danh sách bài.",
-        notSpecified: "Chưa xác định"
+        notSpecified: "Chưa xác định",
+        subtasks: "Các subtask",
+        subtask: "Subtask",
+        noSubtasks: "Bài này không có thông tin subtask."
     },
     en: {
         backContest: "← Contest list",
@@ -408,7 +426,10 @@ const translations = {
         loadFailed: "Could not load contest",
         checkRender: "Check the API and Render logs.",
         noProblemList: "Could not load the problem list.",
-        notSpecified: "Not specified"
+        notSpecified: "Not specified",
+        subtasks: "Subtasks",
+        subtask: "Subtask",
+        noSubtasks: "No subtask information available."
     }
 };
 
@@ -434,9 +455,7 @@ function translatePage() {
     $("languageToggle").textContent =
         currentLanguage === "vi" ? "🇬🇧 English" : "🇻🇳 Tiếng Việt";
 
-    document.title = currentLanguage === "vi"
-        ? "Contest - TranTu OJ"
-        : "Contest - TranTu OJ";
+    document.title = "Contest - TranTu OJ";
 }
 
 function setLanguage(language) {
@@ -467,7 +486,6 @@ $("languageToggle").addEventListener("click", () => {
     setLanguage(currentLanguage === "vi" ? "en" : "vi");
 });
 
-/* Đồng bộ khi đổi ngôn ngữ ở trang khác trong cùng tab */
 window.addEventListener("storage", event => {
     if (event.key === "oj_language" && translations[event.newValue]) {
         setLanguage(event.newValue);
@@ -671,6 +689,10 @@ async function loadContest() {
     renderContest();
 }
 
+/* =========================
+   CHI TIẾT BÀI + SUBTASK
+========================= */
+
 function showProblem(pid, scroll = true) {
     const p = problemList.find(x => String(x.id) === String(pid));
     if (!p) return;
@@ -698,6 +720,31 @@ function showProblem(pid, scroll = true) {
         p.sample_output ?? p.example_output ?? p.output_example ?? ''
     );
 
+    // Chỉ lấy tên và điểm, không lấy số lượng hoặc nội dung test.
+    const subtasks = Array.isArray(p.subtasks) ? p.subtasks : [];
+
+    const subtaskHtml = subtasks.length ? `
+        <h3>${t("subtasks")}</h3>
+        <div class="table-wrap subtask-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>${t("subtask")}</th>
+                        <th>${t("score")}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${subtasks.map((s, i) => `
+                        <tr>
+                            <td>${esc(s.name || (t("subtask") + " " + (i + 1)))}</td>
+                            <td class="score">${Number(s.score) || 0} ${t("points")}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    ` : '';
+
     $("problemDetailPanel").hidden = false;
     $("problemDetailPanel").style.display = 'block';
 
@@ -707,6 +754,8 @@ function showProblem(pid, scroll = true) {
         <p class="muted">
             ID: ${esc(p.id)} · ${Number(p.total_score) || 0} ${t("points")}
         </p>
+
+        ${subtaskHtml}
 
         <h3>${t("statement")}</h3>
         <div style="white-space:pre-wrap;line-height:1.8">${esc(
@@ -863,6 +912,10 @@ async function editProblem(p) {
     };
 }
 
+/* =========================
+   BẢNG XẾP HẠNG
+========================= */
+
 async function loadLeaderboard() {
     const box = $("leaderboard");
 
@@ -902,6 +955,10 @@ async function loadLeaderboard() {
             `<p class="muted">${t("loadLeaderboardFailed")}${esc(error.message)}</p>`;
     }
 }
+
+/* =========================
+   LỊCH SỬ BÀI NỘP
+========================= */
 
 async function loadContestSubmissions() {
     const box = $("contestSubmissions");
@@ -990,6 +1047,10 @@ $("refreshSubmissions").addEventListener('click', async () => {
         $("refreshSubmissions").disabled = false;
     }
 });
+
+/* =========================
+   NỘP BÀI
+========================= */
 
 $("submitForm").addEventListener('submit', async event => {
     event.preventDefault();
