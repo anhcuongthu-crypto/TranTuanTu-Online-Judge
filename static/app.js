@@ -852,7 +852,7 @@ async function loadMyAnalytics() {
             ).join('') : '<p class="muted">Chưa có lượt nộp nào.</p>';
         }
 
-        if (noteEl) noteEl.textContent = 'Thống kê chỉ tính các bài luyện tập ngoài cuộc thi và tối đa 500 lượt nộp gần nhất.';
+        if (noteEl) noteEl.textContent = 'Thống kê tính cả bài luyện tập và bài trong contest; lịch sử lấy tối đa 500 lượt nộp gần nhất.';
     } catch (err) {
         if (noteEl) noteEl.textContent = 'Không tải được thống kê: ' + err.message;
     }
