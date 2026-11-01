@@ -223,6 +223,33 @@ hr {
 .admin-header-links a:hover { border-color:var(--cyan); color:var(--cyan); }
 @media(max-width:650px) { .admin-header { align-items:flex-start; flex-direction:column; } }
 
+
+/* ClueOJ-like light admin */
+:root {
+ color-scheme: light !important;
+ --bg:#ffffff !important; --panel:#ffffff !important; --line:#dfe5eb !important;
+ --text:#273746 !important; --muted:#687b8d !important;
+ --purple:#286da8 !important; --cyan:#286da8 !important;
+}
+html, body { background:#ffffff !important; color:#273746 !important; color-scheme:light !important; }
+body { background:#ffffff !important; }
+h1,h2,h3,h4 { color:#263e54 !important; }
+p,small,.muted { color:#687b8d !important; }
+.panel, section { background:#ffffff !important; border:1px solid #dfe5eb !important; color:#273746 !important; box-shadow:0 1px 3px rgba(20,40,60,.04) !important; }
+button { background:#286da8 !important; color:#ffffff !important; border:1px solid #245f91 !important; }
+button.secondary { background:#ffffff !important; color:#31536f !important; border-color:#cfd9e2 !important; }
+input:not([type="checkbox"]),select,textarea { background:#ffffff !important; color:#273746 !important; border:1px solid #cbd5df !important; color-scheme:light !important; }
+label { color:#40566b !important; }
+a { color:#286da8 !important; }
+pre,code { background:#f3f6f9 !important; color:#34495d !important; }
+.contest-problem-option,.custom-problem-item,.problem-item { background:#f8fafc !important; border-color:#dfe5eb !important; color:#34495d !important; }
+#problem-list .section-heading { background:#f7f9fb !important; border-color:#dfe5eb !important; }
+.admin-header-links a { color:#31536f !important; border-color:#dfe5eb !important; background:#ffffff !important; }
+.user-status { background:#fff4d6 !important; color:#875b00 !important; }
+.user-status.approved { background:#e7f6ed !important; color:#187044 !important; }
+.error-message { color:#c43d4b !important; }
+.success-message { color:#187044 !important; }
+
 </style>
 </head>
 <body>
