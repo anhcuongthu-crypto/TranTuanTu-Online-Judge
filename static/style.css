@@ -2367,3 +2367,48 @@ footer {
         transition-duration: .01ms !important;
     }
 }
+
+
+/* Final responsive header and form focus pass */
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid #38bdf8;
+    outline-offset: 2px;
+    border-color: #38bdf8;
+}
+@media (max-width: 760px) {
+    .topbar {
+        flex-wrap: wrap !important;
+        align-items: center;
+        gap: 10px 12px;
+    }
+    .topbar nav.clue-nav {
+        order: 5;
+        flex: 0 0 100%;
+        width: 100%;
+        min-width: 0;
+        flex-wrap: wrap;
+        overflow: visible;
+        white-space: normal;
+        gap: 8px 15px;
+        padding: 5px 0 2px;
+    }
+    .clue-nav > a, .clue-nav .nav-dropdown > summary {
+        min-height: 34px;
+    }
+    .nav-dropdown-menu {
+        top: calc(100% + 3px);
+    }
+    .language-switch {
+        margin-left: auto;
+    }
+    .top-user {
+        margin-left: 0;
+    }
+}
+@media (max-width: 420px) {
+    .topbar .brand small { letter-spacing: 1.2px; }
+    .top-user { gap: 6px; }
+    .top-user #user-status { max-width: 112px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .language-switch { gap: 4px; }
+    .lang-btn { padding: 5px 7px; }
+}
