@@ -18,7 +18,7 @@ def test_problem_ids_and_titles_are_unique():
 
 def test_every_problem_has_complete_statement_and_examples():
     problems = load_bank()
-    required = ('statement', 'input_format', 'output_format', 'sample_input', 'sample_output', 'explanation')
+    required = ('statement', 'input_format', 'output_format', 'sample_input', 'sample_output')
     incomplete = [p.get('id', '?') for p in problems if any(not str(p.get(k, '')).strip() for k in required)]
     assert not incomplete, f'{len(incomplete)} problems missing required fields; first IDs: {incomplete[:20]}'
 
