@@ -3329,3 +3329,25 @@ option { background: #ffffff !important; color: #244761 !important; }
 .problem-page-btn:hover:not(:disabled){border-color:#86b9dd;background:#f0f8fd}.problem-page-btn.active{background:#2879bd;color:#fff;border-color:#2879bd}.problem-page-btn:disabled{opacity:.4;cursor:not-allowed}
 @media(max-width:1000px){.problemset-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.problemset-search{grid-column:1/-1}.problemset-filters .button{width:100%}}
 @media(max-width:600px){.problemset-page{padding:12px 0 35px}.problemset-hero{padding:22px 18px;border-radius:13px}.problemset-hero-mark{flex-basis:54px;height:54px;font-size:30px;border-radius:14px}.problemset-heading{padding:18px;align-items:flex-start}.problemset-filters{padding:0 18px 16px;grid-template-columns:1fr 1fr}.problemset-search{grid-column:1/-1}.problemset-table-head{padding:12px 18px}.problemset-pagination{padding:12px 18px;align-items:flex-start;flex-direction:column}.problemset-page-size{font-size:12px}}
+
+/* TRAN TU OJ — unified blue/white final pass */
+:root{color-scheme:light!important;--bg:#f3f8fc!important;--panel:#fff!important;--surface:#fff!important;--line:#dce8f2!important;--text:#183b5b!important;--muted:#718ba0!important;--primary:#2879bd!important;--primary-hover:#176eaf!important;--link:#2879bd!important;--input-bg:#fff!important;--hover-bg:#edf6fc!important;--purple:#2879bd!important;--cyan:#2879bd!important}
+html,body{background:#f3f8fc!important;color:#183b5b!important;color-scheme:light!important}
+.topbar,.clue-nav,.nav-dropdown-menu,.top-user{color:#244761}
+.topbar{background:rgba(255,255,255,.96)!important;border-color:#dce8f2!important;box-shadow:0 4px 18px rgba(34,91,135,.06)!important}
+.clue-nav a,.nav-dropdown summary,.top-user{color:#365d79!important}
+.clue-nav a[aria-current=page],.clue-nav a:hover{background:#eaf3fa!important;color:#176eaf!important}
+.glass-card,.auth-card,.table-card,.problem,.contest-card,.contest-stat,.contest-admin,.submission-card,.profile-card,.leaderboard-card,.panel,.card,.admin-card,.stat-card,.history-card,.detail-card,.result-card,.sample-card{background:#fff!important;color:#244761!important;border-color:#dce8f2!important;box-shadow:0 4px 16px rgba(34,91,135,.055)!important;backdrop-filter:none!important}
+input,select,textarea{background:#fff!important;color:#244761!important;border-color:#cbddea!important;color-scheme:light!important}
+button:not(.lang-btn),.button{border-radius:9px}
+button.primary,.button-primary,.btn-primary{background:#2879bd!important;color:#fff!important;border-color:#2879bd!important}
+button.secondary,.button-ghost,.button-dark,.button-glass,.btn:not(.btn-primary){background:#edf6fc!important;color:#28658f!important;border-color:#d2e4f1!important}
+pre,.json,.source-code,.submission-code,.code-panel,.code-block{background:#f0f6fb!important;color:#294c67!important;border-color:#dce8f2!important}
+table{background:#fff!important;color:#294c67!important}
+th{background:#eaf3fa!important;color:#365d79!important;border-color:#dce8f2!important}
+td{background:#fff!important;color:#36566f!important;border-color:#e4edf4!important}
+tbody tr:nth-child(even) td{background:#f7fafc!important}
+.success,.accepted,.detail-success{color:#18794e!important}
+.error,.wrong-answer,.detail-error{color:#b54752!important}
+footer{background:#fff!important;color:#718ba0!important;border-color:#dce8f2!important}
+@media(prefers-color-scheme:dark){html,body{background:#f3f8fc!important;color:#183b5b!important;color-scheme:light!important}}
