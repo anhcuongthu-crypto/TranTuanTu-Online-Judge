@@ -670,10 +670,18 @@
             setText("problem-difficulty", data.difficulty);
         }
 
+        // Explicitly update the visible problem title as well as the browser tab.
+        if (typeof data.title === "string" && data.title.trim()) {
+            setText("problem-title", data.title);
+            document.title = data.title + " — TranTu OJ";
+        } else {
+            setText("problem-title", original.title);
+            document.title = original.title + " — TranTu OJ";
+        }
+
         translateSubtasks(data);
         setInterface("en");
         document.documentElement.lang = "en";
-        document.title = (data.title || original.title) + " — TranTu OJ";
 
         status.classList.remove("show");
     }
