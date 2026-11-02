@@ -280,7 +280,7 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
 <header>
     <a class="brand" href="/">TranTu OJ</a>
     <div class="header-actions">
-        <a href="/contests" id="backContest">← Danh sách contest</a>
+        <a href="/contests" id="backContest" data-i18n="backContest">← Danh sách contest</a>
         <button type="button" id="languageToggle" class="secondary">🇬🇧 English</button>
     </div>
 </header>
@@ -294,7 +294,7 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
         <div>
             <section class="panel">
                 <h2 data-i18n="problemList">Danh sách bài thi</h2>
-                <div id="problems">Đang tải...</div>
+                <div id="problems" data-i18n="loading">Đang tải...</div>
             </section>
 
             <section class="panel" id="problemDetailPanel" hidden>
@@ -316,7 +316,7 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
 
                     <label for="sourceCode" data-i18n="sourceCode">Mã nguồn</label>
                     <textarea id="sourceCode" maxlength="100000"
-                        required placeholder="Nhập code tại đây..."></textarea>
+                        required placeholder="Nhập code tại đây..." data-i18n-placeholder="sourcePlaceholder"></textarea>
 
                     <button id="submitButton" type="submit" data-i18n="submitButton">Nộp bài</button>
                     <div id="submitMessage" class="status" role="status"></div>
@@ -326,7 +326,7 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
             <section class="panel">
                 <h2 data-i18n="contestSubmissions">Bài nộp trong contest</h2>
                 <p class="muted" data-i18n="submissionHistory">
-                    Lịch sử các lần nộp bài của tài khoản đang đăng nhập.
+                    <span data-i18n="submissionHistory">Lịch sử các lần nộp bài của tài khoản đang đăng nhập.</span>
                 </p>
                 <div id="contestSubmissions">
                     <p class="muted" data-i18n="loadingHistory">Đang tải lịch sử...</p>
@@ -339,12 +339,12 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
         <aside>
             <section class="panel">
                 <h2 data-i18n="contestInfo">Thông tin cuộc thi</h2>
-                <div id="contestInfo" class="muted">Đang tải...</div>
+                <div id="contestInfo" class="muted" data-i18n="loading">Đang tải...</div>
             </section>
 
             <section class="panel">
                 <h2 data-i18n="leaderboard">Bảng xếp hạng</h2>
-                <div id="leaderboard">Đang tải...</div>
+                <div id="leaderboard" data-i18n="loading">Đang tải...</div>
             </section>
         </aside>
     </div>
