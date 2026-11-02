@@ -13,44 +13,44 @@
 .profile-settings-grid label{color:#365d79!important}
 </style>
 <div class="breadcrumbs">
-    <a href="/">Trang chủ</a><span>/</span><span>Hồ sơ cá nhân</span>
+    <a href="/" data-i18n="nav_home">Trang chủ</a><span>/</span><span data-i18n="profile_title">Hồ sơ cá nhân</span>
 </div>
 
 <section class="profile-hero glass-card">
     <div class="profile-avatar" id="profile-avatar">OJ</div>
     <div>
-        <span class="eyebrow">TÀI KHOẢN</span>
-        <h1>Hồ sơ cá nhân</h1>
-        <p class="muted">Thông tin tài khoản và tiến độ luyện tập của bạn.</p>
+        <span class="eyebrow" data-i18n="profile_account">TÀI KHOẢN</span>
+        <h1 data-i18n="profile_title">Hồ sơ cá nhân</h1>
+        <p class="muted" data-i18n="profile_intro">Thông tin tài khoản và tiến độ luyện tập của bạn.</p>
     </div>
 </section>
 
 <section class="profile-analytics" id="profile-analytics">
     <div class="analytics-heading">
         <div>
-            <span class="eyebrow">THỐNG KÊ LUYỆN TẬP</span>
+            <span class="eyebrow" data-i18n="profile_stats">THỐNG KÊ LUYỆN TẬP</span>
             <h2>Tổng quan kết quả</h2>
-            <p class="muted">Thống kê tiến độ trên toàn bộ hệ thống, bao gồm cả bài trong contest.</p>
+            <p class="muted" data-i18n="profile_stats_intro">Thống kê tiến độ trên toàn bộ hệ thống, bao gồm cả bài trong contest.</p>
         </div>
-        <a class="button button-ghost" href="/submissions">Lịch sử bài nộp ↗</a>
+        <a class="button button-ghost" href="/submissions" data-i18n="profile_history">Lịch sử bài nộp ↗</a>
     </div>
     <div class="analytics-summary">
-        <div><strong id="analytics-solved">—</strong><span>Bài FULL</span></div>
-        <div><strong id="analytics-attempted">—</strong><span>Bài đã thử</span></div>
-        <div><strong id="analytics-submissions">—</strong><span>Lượt nộp (tối đa 500)</span></div>
+        <div><strong id="analytics-solved">—</strong><span data-i18n="profile_solved">Bài FULL</span></div>
+        <div><strong id="analytics-attempted">—</strong><span data-i18n="profile_attempted">Bài đã thử</span></div>
+        <div><strong id="analytics-submissions">—</strong><span data-i18n="profile_submissions">Lượt nộp (tối đa 500)</span></div>
         <div><strong id="analytics-rate">—</strong><span>Tỷ lệ FULL</span></div>
     </div>
     <div class="analytics-grid">
         <article class="analytics-panel">
-            <h3>Hoạt động 14 ngày gần nhất</h3>
+            <h3 data-i18n="profile_activity">Hoạt động 14 ngày gần nhất</h3>
             <div id="analytics-daily" class="daily-chart" aria-label="Biểu đồ số lượt nộp 14 ngày"></div>
         </article>
         <article class="analytics-panel">
-            <h3>Kết quả theo chủ đề</h3>
+            <h3 data-i18n="profile_categories">Kết quả theo chủ đề</h3>
             <div id="analytics-categories" class="category-chart"><p class="muted">Đang tải...</p></div>
         </article>
         <article class="analytics-panel">
-            <h3>Tags đã chinh phục</h3>
+            <h3 data-i18n="profile_tags">Tags đã chinh phục</h3>
             <div id="analytics-tags" class="analytics-tags"><p class="muted">Đang tải...</p></div>
         </article>
         <article class="analytics-panel">
@@ -63,21 +63,21 @@
 
 <div class="profile-settings-grid">
     <section class="glass-card profile-form-card">
-        <h2>Chỉnh sửa hồ sơ</h2>
+        <h2 data-i18n="profile_edit">Chỉnh sửa hồ sơ</h2>
         <form id="profile-form">
-            <label for="bio">Giới thiệu về bản thân</label>
-            <textarea id="bio" name="bio" rows="4" maxlength="240" placeholder="Mục tiêu học tập, sở thích lập trình..."></textarea>
-            <label for="avatar_color">Màu avatar</label>
+            <label for="bio" data-i18n="profile_bio">Giới thiệu về bản thân</label>
+            <textarea id="bio" name="bio" rows="4" maxlength="240" placeholder="Mục tiêu học tập, sở thích lập trình..." data-i18n-placeholder="profile_bio_placeholder"></textarea>
+            <label for="avatar_color" data-i18n="profile_avatar">Màu avatar</label>
             <div class="color-row">
                 <input type="color" id="avatar_color" name="avatar_color" value="#168bff">
-                <span>Chọn màu yêu thích của bạn.</span>
+                <span data-i18n="profile_color_hint">Chọn màu yêu thích của bạn.</span>
             </div>
-            <button class="button button-primary">Lưu hồ sơ</button>
+            <button class="button button-primary" data-i18n="profile_save">Lưu hồ sơ</button>
             <p id="profile-notice" class="muted"></p>
         </form>
     </section>
     <section class="glass-card profile-account-card">
-        <h2>Thông tin tài khoản</h2>
+        <h2 data-i18n="profile_account_info">Thông tin tài khoản</h2>
         <div id="profile-details">Đang tải...</div>
     </section>
 </div>
