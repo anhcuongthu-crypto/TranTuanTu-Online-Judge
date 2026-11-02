@@ -323,6 +323,10 @@ def create_app(test_config=None):
         SECRET_KEY=os.getenv('SECRET_KEY', 'dev-change-me'),
         PERMANENT_SESSION_LIFETIME=timedelta(days=365),
         SESSION_REFRESH_EACH_REQUEST=True,
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE='Lax',
+        SESSION_COOKIE_SECURE=os.getenv('RENDER', '').lower() == 'true',
+        MAX_CONTENT_LENGTH=2 * 1024 * 1024,
         DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             'DATABASE_PATH',
             str(Path(app.instance_path) / 'online_judge.sqlite3')
