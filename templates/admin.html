@@ -2630,5 +2630,131 @@ contestTestContest.addEventListener('change', async () => {
         loadProblems();
     </script>
 
+
+<script>
+(() => {
+  const pairs = {"Quản lý bài tập, thư viện đề, kỳ thi và tài khoản học sinh.": "Manage problems, exam archive, contests, and student accounts.",
+"Điều hướng quản trị": "Admin navigation",
+"Bài tập ↗": "Problems ↗",
+"Thư viện đề ↗": "Problem archive ↗",
+"Tài khoản học sinh": "Student accounts",
+"Xem tài khoản và phê duyệt tài khoản đang chờ.": "View accounts and approve pending registrations.",
+"Tải lại danh sách": "Refresh list",
+"Đang tải tài khoản...": "Loading accounts...",
+"Bài nộp học sinh": "Student submissions",
+"Tải lại bài nộp": "Refresh submissions",
+"Đang tải bài nộp...": "Loading submissions...",
+"Mã nguồn": "Source code",
+"Sao chép mã nguồn": "Copy source code",
+"Đóng": "Close",
+"Ngân hàng đề": "Problem bank",
+"Đang tải...": "Loading...",
+"Xem trang Bài tập ↗": "View Problems page ↗",
+"Xem Thư viện đề ↗": "View Problem Archive ↗",
+"Tìm theo mã bài, tên bài...": "Search by problem ID or title...",
+"Tìm bài trong ngân hàng": "Search the problem bank",
+"Phân loại bài": "Problem type",
+"Tất cả bài": "All problems",
+"Bài luyện tập": "Practice problems",
+"Bài thuộc thư viện đề": "Exam archive problems",
+"Lưu ngân hàng đề lên GitHub": "Save problem bank to GitHub",
+"Xóa bài đã chọn (0)": "Delete selected problems (0)",
+"Nút lưu sẽ đồng bộ toàn bộ ngân hàng đề hiện tại lên GitHub.": "The save button syncs the entire current problem bank to GitHub.",
+"Đang tải danh sách bài...": "Loading problem list...",
+"🧪 Sửa test chấm bài bằng JSON": "🧪 Edit judging tests using JSON",
+"Chọn bài và subtask, sửa toàn bộ danh sách test trong một mảng JSON.": "Choose a problem and subtask, then edit all test cases in a JSON array.",
+"Có thể thêm, xóa hoặc sửa nhiều test cùng lúc.": "You can add, delete, or edit multiple test cases at once.",
+"Bài tập": "Problem",
+"Chọn bài trước": "Choose a problem first",
+"Danh sách test (JSON array)": "Test cases (JSON array)",
+"Định dạng JSON": "JSON format",
+"Lưu test lên GitHub": "Save tests to GitHub",
+"🏆 Quản lý Contest": "🏆 Contest management",
+"Tên Contest": "Contest name",
+"Mô tả": "Description",
+"Thời gian bắt đầu": "Start time",
+"Thời gian kết thúc": "End time",
+"Chọn bài từ ngân hàng đề": "Choose problems from the problem bank",
+"Đang tải danh sách bài tập...": "Loading problems...",
+"Thêm bài riêng cho Contest": "Add a custom contest problem",
+"Bài riêng chỉ thuộc Contest này, không thêm vào ngân hàng đề chung.": "Custom problems belong only to this contest and are not added to the shared problem bank.",
+"ID bài riêng": "Custom problem ID",
+"Tên bài": "Problem title",
+"Tên bài tập": "Problem title",
+"Đề bài": "Problem statement",
+"Nhập nội dung đề bài": "Enter the problem statement",
+"Mô tả dữ liệu vào": "Input description",
+"Dữ liệu vào": "Input data",
+"Mô tả dữ liệu ra": "Output description",
+"Tổng điểm": "Total score",
+"Giới hạn thời gian (giây)": "Time limit (seconds)",
+"Ràng buộc từng Subtask (mỗi dòng tương ứng một Subtask)": "Constraints for each subtask (one line per subtask)",
+"Dòng 1 ứng với Subtask 1, dòng 2 ứng với Subtask 2...": "Line 1 corresponds to Subtask 1, line 2 to Subtask 2...",
+"Subtasks và test (JSON)": "Subtasks and tests (JSON)",
+"Thêm bài riêng vào Contest": "Add custom problem to contest",
+"Hiển thị Contest cho thí sinh": "Make contest visible to contestants",
+"🧪 Sửa test của bài trong Contest": "🧪 Edit tests for a contest problem",
+"Chọn Contest và bài cần sửa. Chỉnh danh sách subtasks và tests": "Choose a contest and problem. Edit the subtasks and tests",
+"trong JSON rồi lưu. Bài riêng chỉ cập nhật trong Contest đó;": "in JSON and save. Custom problems are updated only in that contest;",
+"bài ngân hàng sẽ cập nhật dữ liệu bài chung.": "problem-bank entries update the shared problem data.",
+"Đang tải Contest...": "Loading contests...",
+"Bài cần sửa test": "Problem to edit",
+"Chọn Contest trước": "Choose a contest first",
+"Để trống nếu không có ràng buộc riêng.": "Leave blank if there are no custom constraints."};
+  const reverse = Object.fromEntries(Object.entries(pairs).map(([a,b]) => [b,a]));
+  const getLang = () => localStorage.getItem("oj_language") === "en" ? "en" : "vi";
+  const convert = value => {
+    const source = String(value || "");
+    const trimmed = source.trim();
+    const table = getLang() === "en" ? pairs : reverse;
+    if (table[trimmed] !== undefined) return source.replace(trimmed, table[trimmed]);
+    return source;
+  };
+  function translateNode(node) {
+    if (!node || node.nodeType !== Node.TEXT_NODE) return;
+    const parent = node.parentElement;
+    if (!parent || parent.closest("script,style,textarea,code,pre,input,select,option")) return;
+    const next = convert(node.nodeValue);
+    if (next !== node.nodeValue) node.nodeValue = next;
+  }
+  function apply(root=document) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) translateNode(node);
+    if (root.querySelectorAll) root.querySelectorAll("input[placeholder],textarea[placeholder],button[title]").forEach(el => {
+      for (const attr of ["placeholder","title"]) if (el.hasAttribute(attr)) el.setAttribute(attr, convert(el.getAttribute(attr)));
+    });
+    document.documentElement.lang = getLang();
+    const toggle = document.getElementById("standalone-language-toggle");
+    if (toggle) toggle.textContent = getLang() === "en" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English";
+  }
+  function init() {
+    if (!document.getElementById("standalone-language-toggle")) {
+      const button = document.createElement("button");
+      button.id = "standalone-language-toggle";
+      button.type = "button";
+      button.style.cssText = "position:fixed;right:18px;top:16px;z-index:99999;padding:9px 13px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#1e3a5f;font-weight:700;cursor:pointer;box-shadow:0 4px 16px #0f172a22";
+      button.addEventListener("click", () => {
+        localStorage.setItem("oj_language", getLang() === "en" ? "vi" : "en");
+        apply();
+      });
+      document.body.appendChild(button);
+    }
+    apply();
+    new MutationObserver(records => records.forEach(record => {
+      record.addedNodes.forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE) translateNode(node);
+        else if (node.nodeType === Node.ELEMENT_NODE) apply(node);
+      });
+    })).observe(document.body, {childList:true,subtree:true});
+    window.addEventListener("storage", event => {
+      if (event.key === "oj_language") apply();
+    });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
 </body>
 </html>
