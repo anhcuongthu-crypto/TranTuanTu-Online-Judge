@@ -21,16 +21,10 @@ def setup(tmp_path):
     return app.test_client()
 
 
-def register_and_approve(client, username='tester'):
+def register_and_login(client, username='tester'):
     r = client.post('/api/register', json={'username': username, 'password': '12345678'})
-    assert r.status_code == 202
-    assert r.json['status'] == 'pending_approval'
-    assert client.post('/api/login', json={'username': username, 'password': '12345678'}).status_code == 403
-    assert client.post('/api/login', json={'username': 'root', 'password': 'verysecurepass'}).status_code == 200
-    users = client.get('/api/admin/users')
-    user = next(x for x in users.json if x['username'] == username)
-    assert client.post(f"/api/admin/users/{user['id']}/approve").status_code == 200
-    client.post('/api/logout')
+    assert r.status_code == 201
+    assert r.json['status'] == 'approved'
     assert client.post('/api/login', json={'username': username, 'password': '12345678'}).status_code == 200
 
 
@@ -48,32 +42,36 @@ def test_health_and_problem_details(tmp_path):
     assert detail['subtasks'][0]['score'] == 100
 
 
-def test_registration_requires_admin_approval_and_username_unique(tmp_path):
+def test_registration_is_immediately_approved_and_username_unique(tmp_path):
     c = setup(tmp_path)
     r = c.post('/api/register', json={'username': 'tester', 'password': '12345678'})
-    assert r.status_code == 202
-    assert c.get('/api/me').json['user'] is None
-    assert c.post('/api/register', json={'username': 'tester', 'password': '12345678'}).status_code == 409
-    assert c.post('/api/login', json={'username': 'tester', 'password': '12345678'}).status_code == 403
-    assert c.get('/api/admin/users').status_code == 403
-    assert c.post('/api/login', json={'username': 'root', 'password': 'verysecurepass'}).status_code == 200
-    user = next(x for x in c.get('/api/admin/users').json if x['username'] == 'tester')
-    assert c.post(f"/api/admin/users/{user['id']}/approve").status_code == 200
-    c.post('/api/logout')
+    assert r.status_code == 201
+    assert r.json['status'] == 'approved'
     assert c.post('/api/login', json={'username': 'tester', 'password': '12345678'}).status_code == 200
     assert c.get('/api/me').json['user']['username'] == 'tester'
+    assert c.get('/api/me').json['user']['approved'] == 1
+    assert c.post('/api/register', json={'username': 'tester', 'password': '12345678'}).status_code == 409
+    assert c.post('/api/register', json={'username': 'root', 'password': '12345678'}).status_code == 409
+    assert c.get('/api/admin/users').status_code == 403
 
 
-def test_pending_users_are_not_in_leaderboard(tmp_path):
+def test_new_user_is_approved_but_not_admin(tmp_path):
     c = setup(tmp_path)
-    c.post('/api/register', json={'username': 'pending', 'password': '12345678'})
-    assert all(row['username'] != 'pending' for row in c.get('/api/leaderboard').json)
+    r = c.post('/api/register', json={'username': 'newstudent', 'password': '12345678'})
+    assert r.status_code == 201
+    assert c.post('/api/login', json={'username': 'newstudent', 'password': '12345678'}).status_code == 200
+    assert c.get('/api/admin/users').status_code == 403
+    assert c.post('/api/admin/problems', json={
+        'id': 'X02', 'title': 'Test', 'statement': 'test', 'total_score': 100,
+        'subtasks': [{'id': 'all', 'name': 'all', 'score': 100,
+                      'tests': [{'input': '', 'output': ''}]}]
+    }).status_code == 403
 
 
 def test_submit_requires_login_and_history(tmp_path):
     c = setup(tmp_path)
     assert c.post('/api/submit', json={'problem_id': 'X01', 'source_code': 'int main(){}'}).status_code == 401
-    register_and_approve(c)
+    register_and_login(c)
     assert c.get('/api/submissions').status_code == 200
     assert any(row['username'] == 'tester' for row in c.get('/api/leaderboard').json)
 
