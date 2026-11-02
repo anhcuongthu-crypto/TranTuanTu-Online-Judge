@@ -134,6 +134,27 @@
     (function () {
         const translations = {
             vi: {
+                skip_link: "Bỏ qua điều hướng, đến nội dung chính",
+                brand_aria: "TranTu OJ - Trang chủ",
+                main_nav_aria: "Điều hướng chính",
+                language_aria: "Ngôn ngữ",
+                home_library: "Thư viện đề thi",
+                home_progress_title: "Tiến độ luyện tập",
+                home_progress_desc: "Theo dõi những bài bạn đã làm và hoàn thành trên TranTu OJ.",
+                home_profile: "Hồ sơ cá nhân ↗",
+                home_solved: "Bài đã FULL",
+                home_attempted: "Bài đã thử",
+                home_total: "Tổng số bài",
+                home_progress_loading: "Đang tải tiến độ...",
+                home_start_title: "Bắt đầu hành trình của bạn",
+                home_start_desc: "Chọn khu vực phù hợp với mục tiêu luyện tập.",
+                home_problems: "Bài tập",
+                home_problems_desc: "Luyện thuật toán từ cơ bản đến nâng cao.",
+                home_discover: "Khám phá bài tập →",
+                home_contests_desc: "Thử sức trong các kỳ thi lập trình.",
+                home_archive_desc: "Ôn tập đề tuyển sinh và đề học sinh giỏi.",
+                home_archive_open: "Mở thư viện →",
+                home_leaderboard_desc: "Theo dõi thành tích của cộng đồng.",
                 sub_all_title: "Bài nộp của mọi người.",
                 sub_mine_title: "Bài nộp của tôi.",
                 sub_history_title: "Lịch sử bài nộp.",
@@ -322,6 +343,27 @@
             },
 
             en: {
+                skip_link: "Skip navigation, go to main content",
+                brand_aria: "TranTu OJ - Home",
+                main_nav_aria: "Main navigation",
+                language_aria: "Language",
+                home_library: "Problem archive",
+                home_progress_title: "Your practice progress",
+                home_progress_desc: "Track the problems you have attempted and solved on TranTu OJ.",
+                home_profile: "My profile ↗",
+                home_solved: "Fully solved",
+                home_attempted: "Attempted",
+                home_total: "Total problems",
+                home_progress_loading: "Loading progress...",
+                home_start_title: "Start your journey",
+                home_start_desc: "Choose a section that matches your practice goals.",
+                home_problems: "Problems",
+                home_problems_desc: "Practice algorithms from beginner to advanced level.",
+                home_discover: "Explore problems →",
+                home_contests_desc: "Challenge yourself in programming contests.",
+                home_archive_desc: "Practice entrance exam and informatics olympiad problems.",
+                home_archive_open: "Open archive →",
+                home_leaderboard_desc: "Follow the community achievements.",
                 sub_all_title: "Everyone's submissions.",
                 sub_mine_title: "My submissions.",
                 sub_history_title: "Submission history.",
@@ -635,7 +677,7 @@
 </head>
 
 <body class="{% if request.path == '/login' or request.path == '/login/' %}login-page{% endif %}">
-    <a class="skip-link" href="#main-content">Bỏ qua điều hướng, đến nội dung chính</a>
+    <a class="skip-link" href="#main-content" data-i18n="skip_link">Bỏ qua điều hướng, đến nội dung chính</a>
 
     {% if request.path != '/login' and request.path != '/login/' %}
 
@@ -646,7 +688,7 @@
             <a
                 href="/"
                 class="brand"
-                aria-label="TranTu OJ - Trang chủ"
+                aria-label="TranTu OJ - Trang chủ" data-i18n-aria-label="brand_aria"
             >
                 <span class="brand-mark">λ</span>
 
@@ -656,7 +698,7 @@
                 </span>
             </a>
 
-            <nav aria-label="Điều hướng chính" class="clue-nav">
+            <nav aria-label="Điều hướng chính" data-i18n-aria-label="main_nav_aria" class="clue-nav">
                 <a href="/" data-i18n="nav_home" {% if request.path == '/' %}aria-current="page"{% endif %}>Trang chủ</a>
                 <a href="/problems" data-i18n="nav_problems" {% if request.path == '/problems' or request.path.startswith('/problems/') %}aria-current="page"{% endif %}>Bài tập</a>
                 <a href="/submissions" data-i18n="nav_submissions" {% if request.path.startswith('/submissions') %}aria-current="page"{% endif %}>Bài nộp</a>
@@ -685,7 +727,7 @@
                 {% endif %}
             </nav>
 
-            <div class="language-switch" aria-label="Language">
+            <div class="language-switch" aria-label="Language" data-i18n-aria-label="language_aria">
                 <button
                     type="button"
                     class="lang-btn"
