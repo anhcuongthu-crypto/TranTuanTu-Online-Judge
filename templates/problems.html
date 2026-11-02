@@ -8,8 +8,8 @@
     <section class="problemset-hero">
         <div>
             <span class="eyebrow">TRAN TU OJ · PROBLEMSET</span>
-            <h1>Danh sách bài tập</h1>
-            <p>Khám phá bài tập, rèn luyện thuật toán và theo dõi hành trình chinh phục của bạn.</p>
+            <h1 data-i18n="problemset_title">Danh sách bài tập</h1>
+            <p data-i18n="problemset_intro">Khám phá bài tập, rèn luyện thuật toán và theo dõi hành trình chinh phục của bạn.</p>
         </div>
         <div class="problemset-hero-mark" aria-hidden="true">λ</div>
     </section>
@@ -17,39 +17,39 @@
     <section class="problemset-workspace" id="problem-section">
         <div class="problemset-heading">
             <div>
-                <h2>Kho bài tập</h2>
-                <p class="muted">Tìm kiếm và lọc bài tập theo nhu cầu của bạn.</p>
+                <h2 data-i18n="problemset_bank">Kho bài tập</h2>
+                <p class="muted" data-i18n="problemset_filter_intro">Tìm kiếm và lọc bài tập theo nhu cầu của bạn.</p>
             </div>
-            <div class="problemset-total"><span id="problem-count">—</span><small>bài tập</small></div>
+            <div class="problemset-total"><span id="problem-count">—</span><small data-i18n="common_problems">bài tập</small></div>
         </div>
 
         <div class="problemset-filters">
             <label class="problemset-search">
                 <span aria-hidden="true">⌕</span>
-                <input id="search" type="search" placeholder="Tìm theo mã bài, tên bài hoặc chủ đề..." aria-label="Tìm bài tập">
+                <input id="search" type="search" placeholder="Tìm theo mã bài, tên bài hoặc chủ đề..." data-i18n-placeholder="problemset_search" aria-label="Tìm bài tập" data-i18n-aria-label="problemset_search">
             </label>
             <select id="filter-category" aria-label="Lọc theo chủ đề">
-                <option value="">Tất cả chủ đề</option>
+                <option value="" data-i18n="problemset_all_topics">Tất cả chủ đề</option>
             </select>
             <select id="filter-difficulty" aria-label="Lọc theo độ khó">
-                <option value="">Mọi độ khó</option>
+                <option value="" data-i18n="problemset_all_difficulties">Mọi độ khó</option>
             </select>
             <select id="filter-status" aria-label="Lọc theo trạng thái">
-                <option value="">Mọi trạng thái</option>
-                <option value="solved">Đã FULL</option>
-                <option value="attempted">Đã thử</option>
-                <option value="unsolved">Chưa làm</option>
+                <option value="" data-i18n="problemset_all_statuses">Mọi trạng thái</option>
+                <option value="solved" data-i18n="problemset_solved">Đã FULL</option>
+                <option value="attempted" data-i18n="problemset_attempted">Đã thử</option>
+                <option value="unsolved" data-i18n="problemset_unsolved">Chưa làm</option>
             </select>
-            <button type="button" class="button button-ghost" id="reset-problem-filters">Xóa lọc</button>
-            <button type="button" class="button button-primary" id="random-problem">Bài ngẫu nhiên ↗</button>
+            <button type="button" class="button button-ghost" id="reset-problem-filters" data-i18n="common_clear_filters">Xóa lọc</button>
+            <button type="button" class="button button-primary" id="random-problem" data-i18n="problemset_random">Bài ngẫu nhiên ↗</button>
         </div>
 
         <div class="problemset-table-head">
             <div>
                 <strong id="problem-result-count">Đang tải bài tập...</strong>
-                <span class="muted"> · Chọn tên bài để mở đề</span>
+                <span class="muted" data-i18n="problemset_open_hint"> · Chọn tên bài để mở đề</span>
             </div>
-            <label class="problemset-page-size">Hiển thị
+            <label class="problemset-page-size"><span data-i18n="common_show">Hiển thị</span>
                 <select id="problem-page-size" aria-label="Số bài mỗi trang">
                     <option value="25">25</option>
                     <option value="50">50</option>
