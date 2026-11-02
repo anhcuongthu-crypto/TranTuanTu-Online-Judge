@@ -6,6 +6,18 @@
 {% block meta_description %}Bảng xếp hạng thành viên TranTu OJ.{% endblock %}
 
 {% block content %}
+<style>
+#leaderboard{overflow-x:auto;color:#365d79}
+#leaderboard table{width:100%;border-collapse:collapse;min-width:560px;background:#fff}
+#leaderboard th{background:#eaf3fa;color:#365d79;font-weight:700}
+#leaderboard td,#leaderboard th{padding:14px 16px;border-bottom:1px solid #e4edf4;text-align:left}
+#leaderboard tbody tr:nth-child(even){background:#f7fafc}
+#leaderboard tbody tr:hover{background:#edf6fc}
+#leaderboard td:first-child{font-weight:800;color:#2879bd}
+#leaderboard td:nth-child(3),#leaderboard td:nth-child(4){font-variant-numeric:tabular-nums}
+#refresh-leaderboard{white-space:nowrap}
+@media(max-width:640px){.section-block{padding:14px!important}.section-heading{align-items:flex-start;gap:12px;flex-wrap:wrap}#leaderboard table{min-width:500px}}
+</style>
 <section class="section-block">
     <div class="section-heading">
         <div>
