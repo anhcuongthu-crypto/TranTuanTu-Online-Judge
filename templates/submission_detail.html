@@ -293,6 +293,10 @@
     let finished = false;
     let codeLoaded = false;
 
+    function isEnglish() {
+        return !!(window.OJ_I18N && window.OJ_I18N.getLanguage() === 'en');
+    }
+
     function escapeHTML(value) {
         return String(value ?? '').replace(/[&<>"']/g, function (c) {
             return {
@@ -372,7 +376,7 @@
     function renderTestRow(test, index) {
         const status = formatValue(
             test.status ?? test.verdict ?? test.result,
-            'Chưa có kết quả'
+            (isEnglish() ? 'No result yet' : 'Chưa có kết quả')
         );
 
         const ok = isAccepted(status);
@@ -491,7 +495,7 @@
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || 'Không thể tải mã nguồn.');
+                throw new Error(data.error || (isEnglish() ? 'Could not load source code.' : 'Không thể tải mã nguồn.'));
             }
 
             sourceCodeEl.textContent = data.source_code || '';
@@ -500,7 +504,7 @@
             codeLoaded = true;
         } catch (error) {
             codeMessageEl.textContent =
-                error.message || 'Không thể tải mã nguồn bài nộp.';
+                error.message || (isEnglish() ? 'Could not load submission source code.' : 'Không thể tải mã nguồn bài nộp.');
         }
     }
 
@@ -563,12 +567,12 @@
             }
 
             infoEl.textContent =
-                'Mã bài nộp: #' + submissionId +
+                (isEnglish() ? 'Submission ID: #' : 'Mã bài nộp: #') + submissionId +
                 (data.created_at
-                    ? ' · Thời gian nộp: ' + data.created_at
+                    ? (isEnglish() ? ' · Submitted at: ' : ' · Thời gian nộp: ') + data.created_at
                     : '') +
                 (data.language_id !== undefined
-                    ? ' · Ngôn ngữ ID: ' + data.language_id
+                    ? (isEnglish() ? ' · Language ID: ' : ' · Ngôn ngữ ID: ') + data.language_id
                     : '');
 
             renderTests(data.details);
@@ -578,22 +582,26 @@
             if (isFinished(verdict)) {
                 finished = true;
                 progressEl.style.display = 'none';
-                updateEl.textContent = 'Đã nhận kết quả chấm cuối cùng.';
+                updateEl.textContent = isEnglish() ? 'Final judging result received.' : 'Đã nhận kết quả chấm cuối cùng.';
                 if (timer) clearInterval(timer);
             } else {
                 progressEl.style.display = 'block';
                 updateEl.textContent =
-                    'Bài đang được xử lý. Trang tự kiểm tra lại sau 2 giây.';
+                    (isEnglish() ? 'Your submission is being processed. This page checks again in 2 seconds.' : 'Bài đang được xử lý. Trang tự kiểm tra lại sau 2 giây.');
             }
         } catch (error) {
             updateEl.textContent =
-                (error.message || 'Lỗi kết nối.') +
-                ' Bấm Cập nhật để thử lại.';
+                (error.message || (isEnglish() ? 'Connection error.' : 'Lỗi kết nối.')) +
+                (isEnglish() ? ' Click Refresh to try again.' : ' Bấm Cập nhật để thử lại.');
         } finally {
             loading = false;
             refreshButton.disabled = false;
         }
     }
+
+    document.addEventListener('oj-language-changed', () => {
+        if (!finished) loadDetails();
+    });
 
     refreshButton.addEventListener('click', function () {
         finished = false;
