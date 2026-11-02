@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import sqlite3
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -26,9 +27,45 @@ _IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 try:
     import psycopg
     from psycopg import IntegrityError as _PsycopgIntegrityError
+    from psycopg_pool import ConnectionPool
 except ImportError:
     psycopg = None
+    ConnectionPool = None
     _PsycopgIntegrityError = None
+
+# Mỗi process giữ một pool nhỏ để tránh bắt tay TCP/TLS với Supabase
+# trên từng request. Pool được tạo lười theo DSN, không log thông tin kết nối.
+_POSTGRES_POOLS = {}
+_POSTGRES_POOLS_LOCK = threading.Lock()
+
+
+def _get_postgres_pool(dsn):
+    if ConnectionPool is None:
+        return None
+
+    key = _normalize_dsn(dsn)
+    pool = _POSTGRES_POOLS.get(key)
+    if pool is not None:
+        return pool
+
+    with _POSTGRES_POOLS_LOCK:
+        pool = _POSTGRES_POOLS.get(key)
+        if pool is None:
+            pool = ConnectionPool(
+                conninfo=key,
+                min_size=1,
+                max_size=4,
+                kwargs={
+                    "row_factory": _postgres_row_factory,
+                    "connect_timeout": 15
+                },
+                timeout=10,
+                max_idle=300,
+                open=True
+            )
+            _POSTGRES_POOLS[key] = pool
+
+    return pool
 
 
 DB_INTEGRITY_ERRORS = (
@@ -187,8 +224,9 @@ class _CursorAdapter:
 
 
 class _PostgresConnection:
-    def __init__(self, raw_connection):
+    def __init__(self, raw_connection, pool=None):
         self._connection = raw_connection
+        self._pool = pool
 
     def execute(self, query, parameters=None):
         sql = _qmark_to_pyformat(query)
@@ -252,12 +290,15 @@ class _PostgresConnection:
             else:
                 self._connection.rollback()
         finally:
-            self._connection.close()
+            self.close()
 
         return False
 
     def close(self):
-        self._connection.close()
+        if self._pool is not None:
+            self._pool.putconn(self._connection)
+        else:
+            self._connection.close()
 
 
 def connect(path):
@@ -270,6 +311,12 @@ def connect(path):
                 "Hãy cài các gói trong requirements.txt."
             )
 
+        pool = _get_postgres_pool(path)
+        if pool is not None:
+            raw = pool.getconn()
+            return _PostgresConnection(raw, pool=pool)
+
+        # Fallback an toàn nếu psycopg_pool chưa được cài.
         raw = psycopg.connect(
             _normalize_dsn(path),
             row_factory=_postgres_row_factory,
