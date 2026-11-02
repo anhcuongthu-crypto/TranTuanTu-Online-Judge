@@ -36,6 +36,9 @@ def register_and_approve(client, username='tester'):
 
 def test_health_and_problem_details(tmp_path):
     c = setup(tmp_path)
+    assert c.application.config['SESSION_COOKIE_HTTPONLY'] is True
+    assert c.application.config['SESSION_COOKIE_SAMESITE'] == 'Lax'
+    assert c.application.config['MAX_CONTENT_LENGTH'] == 2 * 1024 * 1024
     assert c.get('/health').json['problem_count'] == 1
     assert c.get('/api/problems').json[0]['id'] == 'X01'
     detail = c.get('/api/problems/X01').json
