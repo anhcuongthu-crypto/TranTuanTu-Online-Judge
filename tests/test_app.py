@@ -33,8 +33,11 @@ def test_health_and_problem_details(tmp_path):
     assert c.application.config['SESSION_COOKIE_HTTPONLY'] is True
     assert c.application.config['SESSION_COOKIE_SAMESITE'] == 'Lax'
     assert c.application.config['MAX_CONTENT_LENGTH'] == 2 * 1024 * 1024
-    assert c.get('/health').json['problem_count'] == 1
+    assert c.get('/health').json['ok'] is True
     assert c.get('/api/problems').json[0]['id'] == 'X01'
+    health = c.get('/health').json
+    assert health['problem_bank_loaded'] is True
+    assert health['problem_count'] == 1
     detail = c.get('/api/problems/X01').json
     assert detail['sample_input'] == '1 2\n'
     assert detail['sample_output'] == '3\n'
