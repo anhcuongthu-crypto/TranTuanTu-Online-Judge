@@ -1,7 +1,12 @@
 
 {% extends "base.html" %}
 
-{% block title %}Kỳ thi lập trình — TranTu OJ<style id="trantu-contest-light-theme">
+{% block title %}Kỳ thi lập trình — TranTu OJ
+{% endblock %}
+{% block meta_description %}Danh sách kỳ thi lập trình trên TranTu OJ. Tham gia contest, luyện tập theo thời gian và xem bảng xếp hạng.{% endblock %}
+
+{% block content %}
+<style id="trantu-contest-light-theme">
 .contest-page { color:#29465f !important; color-scheme:light !important; }
 .contest-page .contest-hero,.contest-page .contest-stat,.contest-page .contest-card,.contest-page .contest-admin {
  background:#fff !important; color:#29465f !important; border:1px solid #dce8f2 !important;
@@ -32,10 +37,7 @@
 .contest-page #message { color:#187044 !important; }
 @media(max-width:650px) { .contest-page { padding:0 12px !important; } .contest-page .contest-hero { padding:20px !important; } }
 </style>
-{% endblock %}
-{% block meta_description %}Danh sách kỳ thi lập trình trên TranTu OJ. Tham gia contest, luyện tập theo thời gian và xem bảng xếp hạng.{% endblock %}
 
-{% block content %}
 <style>
 .contest-page {
   --ct-purple: #8b5cf6;
