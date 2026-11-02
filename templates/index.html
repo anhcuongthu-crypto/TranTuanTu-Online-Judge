@@ -12,7 +12,7 @@
         <div class="hero-actions">
             <a class="button button-primary" href="/problems"><span data-i18n="home_explore">Khám phá bài tập</span> <span>→</span></a>
             <a class="button button-glass" href="/contests" data-i18n="home_join_contest">Tham gia kỳ thi</a>
-            <a class="button button-ghost" href="/library">Thư viện đề thi</a>
+            <a class="button button-ghost" href="/library" data-i18n="home_library">Thư viện đề thi</a>
         </div>
         <div class="hero-stats">
             <div><b id="problem-count">—</b><span data-i18n="home_stats_problems">bài tập</span></div>
@@ -76,18 +76,18 @@
         <div class="my-progress-heading">
             <div>
                 <span class="eyebrow">YOUR PRACTICE</span>
-                <h2>Tiến độ luyện tập</h2>
-                <p class="muted">Theo dõi những bài bạn đã làm và hoàn thành trên TranTu OJ.</p>
+                <h2 data-i18n="home_progress_title">Tiến độ luyện tập</h2>
+                <p class="muted" data-i18n="home_progress_desc">Theo dõi những bài bạn đã làm và hoàn thành trên TranTu OJ.</p>
             </div>
-            <a class="button button-ghost" href="/profile">Hồ sơ cá nhân ↗</a>
+            <a class="button button-ghost" href="/profile" data-i18n="home_profile">Hồ sơ cá nhân ↗</a>
         </div>
         <div class="my-progress-stats">
-            <div><strong id="progress-solved">—</strong><span>Bài đã FULL</span></div>
-            <div><strong id="progress-attempted">—</strong><span>Bài đã thử</span></div>
-            <div><strong id="progress-total">—</strong><span>Tổng số bài</span></div>
+            <div><strong id="progress-solved">—</strong><span data-i18n="home_solved">Bài đã FULL</span></div>
+            <div><strong id="progress-attempted">—</strong><span data-i18n="home_attempted">Bài đã thử</span></div>
+            <div><strong id="progress-total">—</strong><span data-i18n="home_total">Tổng số bài</span></div>
         </div>
         <div class="progress-track"><span id="progress-fill"></span></div>
-        <p class="progress-caption" id="progress-caption">Đang tải tiến độ...</p>
+        <p class="progress-caption" id="progress-caption" data-i18n="home_progress_loading">Đang tải tiến độ...</p>
     </div>
 </section>
 {% endif %}
@@ -96,33 +96,33 @@
     <div class="section-heading">
         <div>
             <span class="eyebrow">START LEARNING</span>
-            <h2>Bắt đầu hành trình của bạn</h2>
-            <p class="muted">Chọn khu vực phù hợp với mục tiêu luyện tập.</p>
+            <h2 data-i18n="home_start_title">Bắt đầu hành trình của bạn</h2>
+            <p class="muted" data-i18n="home_start_desc">Chọn khu vực phù hợp với mục tiêu luyện tập.</p>
         </div>
     </div>
     <div class="home-shortcut-grid">
         <a class="home-shortcut-card" href="/problems">
             <span class="home-shortcut-icon">⌘</span>
-            <span class="home-shortcut-title">Bài tập</span>
-            <span class="home-shortcut-desc">Luyện thuật toán từ cơ bản đến nâng cao.</span>
-            <span class="home-shortcut-link">Khám phá bài tập →</span>
+            <span class="home-shortcut-title" data-i18n="home_problems">Bài tập</span>
+            <span class="home-shortcut-desc" data-i18n="home_problems_desc">Luyện thuật toán từ cơ bản đến nâng cao.</span>
+            <span class="home-shortcut-link" data-i18n="home_discover">Khám phá bài tập →</span>
         </a>
         <a class="home-shortcut-card" href="/contests">
             <span class="home-shortcut-icon">◷</span>
             <span class="home-shortcut-title">Kỳ thi</span>
-            <span class="home-shortcut-desc">Thử sức trong các kỳ thi lập trình.</span>
+            <span class="home-shortcut-desc" data-i18n="home_contests_desc">Thử sức trong các kỳ thi lập trình.</span>
             <span class="home-shortcut-link">Xem kỳ thi →</span>
         </a>
         <a class="home-shortcut-card" href="/library">
             <span class="home-shortcut-icon">▤</span>
-            <span class="home-shortcut-title">Thư viện đề thi</span>
-            <span class="home-shortcut-desc">Ôn tập đề tuyển sinh và đề học sinh giỏi.</span>
-            <span class="home-shortcut-link">Mở thư viện →</span>
+            <span class="home-shortcut-title" data-i18n="home_library">Thư viện đề thi</span>
+            <span class="home-shortcut-desc" data-i18n="home_archive_desc">Ôn tập đề tuyển sinh và đề học sinh giỏi.</span>
+            <span class="home-shortcut-link" data-i18n="home_archive_open">Mở thư viện →</span>
         </a>
         <a class="home-shortcut-card" href="/leaderboard">
             <span class="home-shortcut-icon">♛</span>
             <span class="home-shortcut-title">Xếp hạng</span>
-            <span class="home-shortcut-desc">Theo dõi thành tích của cộng đồng.</span>
+            <span class="home-shortcut-desc" data-i18n="home_leaderboard_desc">Theo dõi thành tích của cộng đồng.</span>
             <span class="home-shortcut-link">Xem bảng xếp hạng →</span>
         </a>
     </div>
