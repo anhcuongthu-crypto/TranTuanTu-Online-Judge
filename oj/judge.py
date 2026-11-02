@@ -146,7 +146,7 @@ class Judge0:
 
         except requests.RequestException as exc:
             raise JudgeError(
-                'Không gửi được submission tới Judge0: '
+                'Không kết nối được Judge0 khi gửi bài: '
                 + str(exc)
             ) from exc
 
