@@ -359,6 +359,7 @@
             </a>
 
             <nav aria-label="Điều hướng chính" class="clue-nav">
+                <a href="/" {% if request.path == '/' %}aria-current="page"{% endif %}>Trang chủ</a>
                 <a href="/problems" data-i18n="nav_problems" {% if request.path == '/problems' or request.path.startswith('/problems/') %}aria-current="page"{% endif %}>Bài tập</a>
                 <a href="/submissions" data-i18n="nav_submissions" {% if request.path.startswith('/submissions') %}aria-current="page"{% endif %}>Bài nộp</a>
                 <a href="/contests" data-i18n="nav_contests" {% if request.path.startswith('/contests') %}aria-current="page"{% endif %}>Kỳ thi</a>
