@@ -29,6 +29,7 @@
     <label for="language" data-i18n="submit_language">Ngôn ngữ</label>
     <select id="language">
         <option value="54">C++ (GCC 9.2.0)</option>
+        <option value="71">Python 3</option>
     </select>
 
     <label for="source" data-i18n="submit_source">Mã nguồn</label>
@@ -74,6 +75,39 @@ int main() {
     const source = document.getElementById('source');
     const language = document.getElementById('language');
     const result = document.getElementById('result');
+
+    const starterCode = {
+        "54": `#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    return 0;
+}`,
+        "71": `# Đọc dữ liệu đầu vào
+# Viết lời giải của bạn tại đây
+
+def main():
+    pass
+
+if __name__ == "__main__":
+    main()
+`
+    };
+
+    let userHasEditedCode = false;
+    source.addEventListener('input', () => {
+        userHasEditedCode = true;
+    });
+
+    language.addEventListener('change', () => {
+        if (!userHasEditedCode || !source.value.trim()) {
+            source.value = starterCode[language.value] || '';
+            userHasEditedCode = false;
+        }
+    });
 
     button.addEventListener('click', async () => {
         const code = source.value;
