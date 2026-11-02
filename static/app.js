@@ -228,7 +228,7 @@ function getFilteredProblems() {
         document.querySelector('#search')?.value || ''
     ).trim().toLocaleLowerCase('vi');
     const category = document.querySelector('#filter-category')?.value || '';
-    const difficulty = document.querySelector('#filter-difficulty')?.value || '';
+    const difficulty = document.querySelector('#filter-difficulty')?.value || '';\n    const status = document.querySelector('#filter-status')?.value || '';
 
     return items.filter(p => {
         const matchesQuery = `${p.id ?? ''} ${p.title ?? ''} ${p.category ?? ''} ${p.difficulty ?? ''}`
@@ -236,9 +236,12 @@ function getFilteredProblems() {
             .includes(query);
         const matchesCategory = !category || String(p.category ?? '') === category;
         const matchesDifficulty = !difficulty || String(p.difficulty ?? '') === difficulty;
-        return matchesQuery && matchesCategory && matchesDifficulty;
+        const progress = mySolvedProblems[String(p.id)];\n        const actualStatus = progress?.solved ? 'solved' : progress ? 'attempted' : 'unsolved';\n        const matchesStatus = !status || actualStatus === status;\n        return matchesQuery && matchesCategory && matchesDifficulty && matchesStatus;
     });
 }
+
+let problemPage = 1;
+let problemPageSize = 25;
 
 function renderProblems(items) {
     const el = document.querySelector('#problems');
@@ -246,7 +249,7 @@ function renderProblems(items) {
 
     const columns = [
         ['id', 'Mã bài'],
-        ['title', 'Tên bài'],
+        ['title', 'Bài tập'],
         ['category', 'Chủ đề'],
         ['difficulty', 'Độ khó'],
         ['total_score', 'Điểm'],
@@ -256,119 +259,87 @@ function renderProblems(items) {
     const sorted = [...items].sort((a, b) => {
         let x = a[sortColumn] ?? '';
         let y = b[sortColumn] ?? '';
-
         if (sortColumn === 'total_score') {
-            x = Number(x) || 0;
-            y = Number(y) || 0;
+            x = Number(x) || 0; y = Number(y) || 0;
             return sortAscending ? x - y : y - x;
         }
-
         if (sortColumn === 'status') {
-            x = mySolvedProblems[String(a.id)]?.solved ? 2
-                : mySolvedProblems[String(a.id)] ? 1 : 0;
-            y = mySolvedProblems[String(b.id)]?.solved ? 2
-                : mySolvedProblems[String(b.id)] ? 1 : 0;
+            x = mySolvedProblems[String(a.id)]?.solved ? 2 : mySolvedProblems[String(a.id)] ? 1 : 0;
+            y = mySolvedProblems[String(b.id)]?.solved ? 2 : mySolvedProblems[String(b.id)] ? 1 : 0;
             return sortAscending ? x - y : y - x;
         }
-
-        const result = String(x).localeCompare(
-            String(y),
-            'vi',
-            { numeric: true, sensitivity: 'base' }
-        );
+        const result = String(x).localeCompare(String(y), 'vi', {numeric:true, sensitivity:'base'});
         return sortAscending ? result : -result;
     });
 
-    const resultCount = document.querySelector('#problem-result-count');
-    if (resultCount) {
-        let total = 0;
-        try { total = JSON.parse(el.dataset.items || '[]').length; } catch {}
-        resultCount.textContent = `Hiển thị ${sorted.length} / ${total} bài tập`;
-    }
+    const total = (() => { try { return JSON.parse(el.dataset.items || '[]').length; } catch { return 0; } })();
+    const count = document.querySelector('#problem-result-count');
+    if (count) count.textContent = `Hiển thị ${sorted.length} / ${total} bài tập`;
+
+    const pages = Math.max(1, Math.ceil(sorted.length / problemPageSize));
+    problemPage = Math.min(problemPage, pages);
+    const from = (problemPage - 1) * problemPageSize;
+    const visible = sorted.slice(from, from + problemPageSize);
 
     if (!sorted.length) {
-        el.innerHTML = '<div class="problem-empty">Không tìm thấy bài phù hợp. Hãy thử đổi từ khóa hoặc bộ lọc.</div>';
-        return;
+        el.innerHTML = '<div class="problemset-empty"><strong>Không tìm thấy bài tập</strong><span>Thử thay đổi từ khóa hoặc bộ lọc để xem thêm kết quả.</span></div>';
+    } else {
+        el.innerHTML = `
+            <div class="problemset-scroll">
+                <table class="problemset-table">
+                    <thead><tr>
+                        ${columns.map(([key,label]) => `<th><button type="button" class="problem-sort sort-problems" data-column="${key}">${label}<span>${sortColumn===key?(sortAscending?'↑':'↓'):'↕'}</span></button></th>`).join('')}
+                    </tr></thead>
+                    <tbody>
+                        ${visible.map(p => {
+                            const progress = mySolvedProblems[String(p.id)];
+                            const solved = !!progress?.solved;
+                            const attempted = !!progress && !solved;
+                            const status = solved
+                                ? '<span class="problem-pill is-solved">✓ Đã FULL</span>'
+                                : attempted ? '<span class="problem-pill is-attempted">Đã thử</span>'
+                                : '<span class="problem-pill is-unsolved">Chưa làm</span>';
+                            return `<tr>
+                                <td><a class="problem-id-link" href="/problems/${encodeURIComponent(p.id ?? '')}">${escapeHtml(p.id || '—')}</a></td>
+                                <td><a class="problem-title-link" href="/problems/${encodeURIComponent(p.id ?? '')}">${escapeHtml(p.title || 'Chưa có tiêu đề')}</a><small>${escapeHtml(p.short_description || '')}</small></td>
+                                <td><span class="problem-category-tag">${escapeHtml(p.category || 'Khác')}</span></td>
+                                <td>${escapeHtml(p.difficulty || '—')}</td>
+                                <td class="problem-points">${formatScore(p.total_score)}</td>
+                                <td>${status}</td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>`;
     }
 
-    el.innerHTML = `
-        <div style="overflow-x:auto">
-            <table>
-                <thead>
-                    <tr>
-                        ${columns.map(([key, label]) => `
-                            <th>
-                                <button
-                                    type="button"
-                                    class="text-link sort-problems"
-                                    data-column="${key}"
-                                    style="font:inherit;cursor:pointer"
-                                >
-                                    ${label}
-                                    ${
-                                        sortColumn === key
-                                            ? (sortAscending ? ' ↑' : ' ↓')
-                                            : ' ↕'
-                                    }
-                                </button>
-                            </th>
-                        `).join('')}
-                    </tr>
-                </thead>
+    const pagination = document.querySelector('#problem-pagination');
+    if (pagination) {
+        if (sorted.length <= problemPageSize) pagination.innerHTML = '';
+        else {
+            const button = (label, page, disabled, active=false) => `<button type="button" class="problem-page-btn ${active?'active':''}" data-page="${page}" ${disabled?'disabled':''}>${label}</button>`;
+            const nums = [];
+            const first = Math.max(1, problemPage - 2);
+            const last = Math.min(pages, problemPage + 2);
+            if (first > 1) nums.push(button('1',1,false), '<span class="problem-page-dots">…</span>');
+            for (let p=first;p<=last;p++) nums.push(button(String(p),p,false,p===problemPage));
+            if (last < pages) nums.push('<span class="problem-page-dots">…</span>',button(String(pages),pages,false));
+            pagination.innerHTML = `<span class="problem-page-info">Trang ${problemPage} / ${pages}</span><div class="problem-page-actions">${button('←',problemPage-1,problemPage===1)}${nums.join('')}${button('→',problemPage+1,problemPage===pages)}</div>`;
+            pagination.querySelectorAll('[data-page]').forEach(b => b.addEventListener('click', () => {
+                problemPage = Number(b.dataset.page);
+                renderProblems(getFilteredProblems());
+                document.querySelector('#problem-section')?.scrollIntoView({behavior:'smooth',block:'start'});
+            }));
+        }
+    }
 
-                <tbody>
-                    ${sorted.map(p => `
-                        <tr>
-                            <td>
-                                <a
-                                    class="text-link"
-                                    href="/problems/${encodeURIComponent(p.id ?? '')}"
-                                >
-                                    ${escapeHtml(p.id)}
-                                </a>
-                            </td>
-
-                            <td>
-                                <a
-                                    class="text-link"
-                                    href="/problems/${encodeURIComponent(p.id ?? '')}"
-                                >
-                                    ${escapeHtml(p.title)}
-                                </a>
-                            </td>
-
-                            <td>${escapeHtml(p.category)}</td>
-                            <td>${escapeHtml(p.difficulty)}</td>
-                            <td>${formatScore(p.total_score)}</td>
-                            <td>
-                                ${mySolvedProblems[String(p.id)]?.solved
-                                    ? '<span class="problem-status solved">✓ Đã FULL</span>'
-                                    : mySolvedProblems[String(p.id)]
-                                        ? '<span class="problem-status attempted">Đã thử</span>'
-                                        : '<span class="problem-status unsolved">Chưa làm</span>'}
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-
-    // Bấm tiêu đề để đổi cột sắp xếp.
-    el.querySelectorAll('.sort-problems').forEach(button => {
-        button.addEventListener('click', () => {
-            const column = button.dataset.column;
-
-            if (sortColumn === column) {
-                sortAscending = !sortAscending;
-            } else {
-                sortColumn = column;
-                sortAscending = true;
-            }
-
-            renderProblems(getFilteredProblems());
-        });
-    });
+    el.querySelectorAll('.sort-problems').forEach(button => button.addEventListener('click', () => {
+        const column = button.dataset.column;
+        if (sortColumn === column) sortAscending = !sortAscending;
+        else { sortColumn = column; sortAscending = true; }
+        problemPage = 1;
+        renderProblems(getFilteredProblems());
+    }));
 }
 
 // ==================== BẢNG BÀI NỘP ====================
@@ -1121,10 +1092,10 @@ document.querySelector('#refresh-submissions')
     });
 
 // Bộ lọc kho bài tập.
-['#search', '#filter-category', '#filter-difficulty'].forEach(selector => {
+['#search', '#filter-category', '#filter-difficulty', '#filter-status'].forEach(selector => {
     document.querySelector(selector)?.addEventListener(
         selector === '#search' ? 'input' : 'change',
-        () => renderProblems(getFilteredProblems())
+        () => { problemPage = 1; renderProblems(getFilteredProblems()); }
     );
 });
 
@@ -1138,7 +1109,7 @@ document.querySelector('#reset-problem-filters')?.addEventListener('click', () =
     renderProblems(getFilteredProblems());
 });
 
-document.querySelector('#random-problem')?.addEventListener('click', () => {
+document.querySelector('#problem-page-size')?.addEventListener('change', event => {\n    problemPageSize = Number(event.target.value) || 25;\n    problemPage = 1;\n    renderProblems(getFilteredProblems());\n});\n\ndocument.querySelector('#random-problem')?.addEventListener('click', () => {
     const items = getFilteredProblems();
     if (!items.length) {
         note('Không có bài tập phù hợp để chọn ngẫu nhiên.');
