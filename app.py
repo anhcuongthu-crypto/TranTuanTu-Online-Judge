@@ -507,7 +507,7 @@ def create_app(test_config=None):
             problem_translation_cache[text] = translated
             return translated
 
-        # Preserve code blocks, inline code, and HTML tags.
+        # Protect code, inline code, and HTML tags from machine translation.
         protected_parts = []
 
         def protect(match):
@@ -534,29 +534,58 @@ def create_app(test_config=None):
         translated_chunks = []
         for chunk in chunks:
             translated_chunk = chunk
-            try:
-                url = "https://api.mymemory.translated.net/get?" + urlencode({
-                    "q": chunk,
-                    "langpair": "vi|en"
-                })
-                req = urllib.request.Request(
-                    url,
-                    headers={"User-Agent": "TranTu-OJ-Studio/1.1"}
-                )
-                with urllib.request.urlopen(req, timeout=20) as response:
-                    payload = json.loads(response.read().decode("utf-8"))
 
-                response_data = payload.get("responseData") or {}
-                candidate = response_data.get("translatedText")
-                if str(payload.get("responseStatus")) == "200" and candidate:
-                    translated_chunk = candidate
-                else:
-                    app.logger.warning(
-                        "MyMemory could not translate a problem chunk (status=%s)",
-                        payload.get("responseStatus")
-                    )
+            # Google Translate endpoint first; MyMemory is a fallback.
+            try:
+                google_url = "https://translate.googleapis.com/translate_a/single?" + urlencode({
+                    "client": "gtx",
+                    "sl": "vi",
+                    "tl": "en",
+                    "dt": "t",
+                    "q": chunk
+                })
+                google_req = urllib.request.Request(
+                    google_url,
+                    headers={"User-Agent": "Mozilla/5.0 TranTu-OJ-Studio/1.2"}
+                )
+                with urllib.request.urlopen(google_req, timeout=12) as response:
+                    google_payload = json.loads(response.read().decode("utf-8"))
+
+                segments = google_payload[0] if google_payload else []
+                google_candidate = "".join(
+                    str(segment[0])
+                    for segment in segments
+                    if segment and segment[0]
+                )
+                if google_candidate.strip() and google_candidate.strip() != chunk.strip():
+                    translated_chunk = google_candidate
             except Exception:
-                app.logger.exception("Problem translation chunk failed")
+                app.logger.warning("Google translation failed; trying MyMemory")
+
+            if translated_chunk == chunk:
+                try:
+                    memory_url = "https://api.mymemory.translated.net/get?" + urlencode({
+                        "q": chunk,
+                        "langpair": "vi|en"
+                    })
+                    memory_req = urllib.request.Request(
+                        memory_url,
+                        headers={"User-Agent": "TranTu-OJ-Studio/1.2"}
+                    )
+                    with urllib.request.urlopen(memory_req, timeout=12) as response:
+                        memory_payload = json.loads(response.read().decode("utf-8"))
+
+                    memory_candidate = (
+                        (memory_payload.get("responseData") or {}).get("translatedText")
+                    )
+                    if (
+                        str(memory_payload.get("responseStatus")) == "200"
+                        and memory_candidate
+                        and memory_candidate.strip() != chunk.strip()
+                    ):
+                        translated_chunk = memory_candidate
+                except Exception:
+                    app.logger.exception("Both translation providers failed for a problem chunk")
 
             translated_chunks.append(translated_chunk)
 
