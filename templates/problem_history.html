@@ -364,5 +364,88 @@ document.getElementById('next').addEventListener('click',()=>{
 
 loadHistory();
 </script>
+
+<script>
+(() => {
+  const pairs = {"Lịch sử ngân hàng đề": "Problem bank history",
+"Xem các thao tác đã lưu, so sánh dữ liệu trước/sau và khôi phục trạng thái trước một thao tác.": "Review saved operations, compare before-and-after data, and restore the state from before an operation.",
+"Đổi tên hàng loạt": "Bulk rename",
+"Các thao tác": "Operations",
+"Đang tải...": "Loading...",
+"Mới hơn": "Newer",
+"Cũ hơn": "Older",
+"Chi tiết thao tác": "Operation details",
+"Chọn một thao tác ở danh sách bên trái.": "Select an operation from the list on the left.",
+"Xóa bài trùng": "Remove duplicates",
+"Xóa bài": "Delete problem",
+"Khôi phục lịch sử": "Restore history",
+"Thao tác": "Operation",
+"Phản hồi máy chủ không hợp lệ.": "Invalid server response.",
+"Yêu cầu thất bại (": "Request failed (",
+"Chưa có lịch sử thao tác.": "No operation history yet.",
+"Không tải được lịch sử.": "Could not load history.",
+"Đang tải chi tiết...": "Loading details...",
+"Khôi phục trạng thái trước thao tác": "Restore state before this operation",
+"Dữ liệu trước thao tác": "Data before operation",
+"Dữ liệu sau thao tác": "Data after operation",
+"Các bài đã bị loại": "Removed problems",
+"Trạng thái hiện tại sẽ được lưu thành một bản ghi lịch sử mới.": "The current state will be saved as a new history record.",
+"Khôi phục thành công.": "Successfully restored.",
+"Đã khôi phục. Chọn một thao tác để xem chi tiết.": "Restored. Select an operation to view its details."};
+  const reverse = Object.fromEntries(Object.entries(pairs).map(([a,b]) => [b,a]));
+  const getLang = () => localStorage.getItem("oj_language") === "en" ? "en" : "vi";
+  const convert = value => {
+    const source = String(value || "");
+    const trimmed = source.trim();
+    const table = getLang() === "en" ? pairs : reverse;
+    if (table[trimmed] !== undefined) return source.replace(trimmed, table[trimmed]);
+    return source;
+  };
+  function translateNode(node) {
+    if (!node || node.nodeType !== Node.TEXT_NODE) return;
+    const parent = node.parentElement;
+    if (!parent || parent.closest("script,style,textarea,code,pre,input,select,option")) return;
+    const next = convert(node.nodeValue);
+    if (next !== node.nodeValue) node.nodeValue = next;
+  }
+  function apply(root=document) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) translateNode(node);
+    if (root.querySelectorAll) root.querySelectorAll("input[placeholder],textarea[placeholder],button[title]").forEach(el => {
+      for (const attr of ["placeholder","title"]) if (el.hasAttribute(attr)) el.setAttribute(attr, convert(el.getAttribute(attr)));
+    });
+    document.documentElement.lang = getLang();
+    const toggle = document.getElementById("standalone-language-toggle");
+    if (toggle) toggle.textContent = getLang() === "en" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English";
+  }
+  function init() {
+    if (!document.getElementById("standalone-language-toggle")) {
+      const button = document.createElement("button");
+      button.id = "standalone-language-toggle";
+      button.type = "button";
+      button.style.cssText = "position:fixed;right:18px;top:16px;z-index:99999;padding:9px 13px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#1e3a5f;font-weight:700;cursor:pointer;box-shadow:0 4px 16px #0f172a22";
+      button.addEventListener("click", () => {
+        localStorage.setItem("oj_language", getLang() === "en" ? "vi" : "en");
+        apply();
+      });
+      document.body.appendChild(button);
+    }
+    apply();
+    new MutationObserver(records => records.forEach(record => {
+      record.addedNodes.forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE) translateNode(node);
+        else if (node.nodeType === Node.ELEMENT_NODE) apply(node);
+      });
+    })).observe(document.body, {childList:true,subtree:true});
+    window.addEventListener("storage", event => {
+      if (event.key === "oj_language") apply();
+    });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
 </body>
 </html>
