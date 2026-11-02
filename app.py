@@ -1535,10 +1535,6 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
     @app.get('/api/my-progress')
     def my_progress():
-        user = current_user()
-        if not user:
-            return jsonify(error='Đăng nhập để xem tiến độ luyện tập.'), 401
-
         bank = problems()
         maximum_scores = {
             str(p.get('id')): float(p.get('total_score') or 0)
@@ -1546,6 +1542,10 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         }
 
         with connect(app.config['DATABASE_PATH']) as db:
+            user = current_user(db=db)
+            if not user:
+                return jsonify(error='Đăng nhập để xem tiến độ luyện tập.'), 401
+
             rows = db.execute(
                 '''SELECT problem_id, best_score
                    FROM solves
@@ -1728,8 +1728,8 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
     @app.get('/api/contests')
     def api_contests():
-        user = current_user()
         with connect(app.config['DATABASE_PATH']) as db:
+            user = current_user(db=db)
             if user and user['is_admin']:
                 rows = db.execute(
                     'SELECT * FROM contests ORDER BY start_time DESC, id DESC'
