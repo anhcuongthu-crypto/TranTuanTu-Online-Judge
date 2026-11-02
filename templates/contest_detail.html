@@ -1263,20 +1263,27 @@ async function init() {
     }
 
     try {
-        await loadAdmin();
-        await loadContest();
+        // Tải quyền quản trị và nội dung kỳ thi song song, không chờ tuần tự.
+        await Promise.all([
+            loadAdmin(),
+            loadContest()
+        ]);
 
         openProblemFromUrl();
 
-        await Promise.allSettled([
+        // Hai bảng phụ tải song song, không chặn phần đề thi.
+        Promise.allSettled([
             loadLeaderboard(),
             loadContestSubmissions()
         ]);
 
+        // Giảm tải DB: chỉ làm mới khi tab đang mở và mỗi 60 giây.
         submissionRefreshTimer = setInterval(() => {
-            loadContestSubmissions();
-            loadLeaderboard();
-        }, 15000);
+            if (document.visibilityState === 'visible') {
+                loadContestSubmissions();
+                loadLeaderboard();
+            }
+        }, 60000);
 
     } catch (error) {
         $("contestHeader").innerHTML = `
