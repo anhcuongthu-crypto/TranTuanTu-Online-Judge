@@ -1103,7 +1103,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 db.execute(
                     '''INSERT INTO users
                        (username, password_hash, is_admin, approved)
-                       VALUES (?, ?, 0, 0)''',
+                       VALUES (?, ?, 0, 1)''',
                     (username, generate_password_hash(password))
                 )
         except DB_INTEGRITY_ERRORS:
@@ -1112,9 +1112,9 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             app.logger.exception('Lỗi đăng ký tài khoản')
             return jsonify(error='Có lỗi khi đăng ký tài khoản.'), 500
         return jsonify(
-            status='pending_approval',
-            message='Đăng ký thành công! Tài khoản đang chờ quản trị viên duyệt.'
-        ), 202
+            status='approved',
+            message='Đăng ký thành công! Bạn có thể đăng nhập ngay.'
+        ), 201
 
     @app.post('/api/login')
     def login():
