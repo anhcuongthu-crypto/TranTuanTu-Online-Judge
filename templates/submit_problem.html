@@ -12,7 +12,7 @@
 @media(max-width:650px){.submit-workspace .submit-editor{min-height:320px;font-size:12px}}
 </style>
 <div class="breadcrumbs">
-    <a href="/problems/{{ problem.id }}">← Quay lại đề bài</a>
+    <a href="/problems/{{ problem.id }}"><span data-i18n="submit_back">← Quay lại đề bài</span></a>
     <span>/</span>
     <span>Nộp bài</span>
 </div>
@@ -22,16 +22,16 @@
     <h1>{{ problem.id }} · {{ problem.title }}</h1>
 
     <p class="muted">
-        Đọc kỹ đề bài trước khi nộp.
-        <a href="/problems/{{ problem.id }}">Xem đề bài</a>
+        <span data-i18n="submit_read_problem">Đọc kỹ đề bài trước khi nộp.</span>
+        <a href="/problems/{{ problem.id }}" data-i18n="submit_view_problem">Xem đề bài</a>
     </p>
 
-    <label for="language">Ngôn ngữ</label>
+    <label for="language" data-i18n="submit_language">Ngôn ngữ</label>
     <select id="language">
         <option value="54">C++ (GCC 9.2.0)</option>
     </select>
 
-    <label for="source">Mã nguồn</label>
+    <label for="source" data-i18n="submit_source">Mã nguồn</label>
     <textarea
         id="source"
         class="submit-editor"
@@ -56,7 +56,7 @@ int main() {
             data-problem="{{ problem.id }}"
             type="button"
         >
-            Nộp bài <span>↗</span>
+            <span data-i18n="common_submit">Nộp bài</span> <span>↗</span>
         </button>
     </div>
 
@@ -65,7 +65,7 @@ int main() {
         class="result-box submit-result"
         aria-live="polite"
         style="white-space:pre-wrap;overflow-wrap:anywhere;margin-top:20px;"
-    >Sẵn sàng nộp bài.</pre>
+     data-i18n="submit_ready">Sẵn sàng nộp bài.</pre>
 </section>
 
 <script>
