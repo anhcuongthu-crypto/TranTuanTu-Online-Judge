@@ -1,58 +1,65 @@
 {% extends 'base.html' %}
 
-{% block title %}Bài tập lập trình — TranTu OJ{% endblock %}
-{% block meta_description %}Danh sách bài tập lập trình C++ trên TranTu OJ. Tìm kiếm, lọc theo chủ đề và độ khó, theo dõi trạng thái giải và gửi bài chấm tự động.{% endblock %}
+{% block title %}Bài tập — TranTu OJ{% endblock %}
+{% block meta_description %}Kho bài tập lập trình TranTu OJ: tìm kiếm, lọc chủ đề, độ khó, theo dõi trạng thái giải và luyện thuật toán.{% endblock %}
 
 {% block content %}
-<div class="page-heading">
-    <div>
-        <span class="eyebrow">PROBLEMSET</span>
-        <h1>Danh sách bài tập</h1>
-        <p class="muted">Tìm bài, chọn chủ đề và luyện tập theo tiến độ của bạn.</p>
-    </div>
-</div>
-<!-- DANH SÁCH BÀI TẬP -->
-<section class="section-block" id="problem-section">
-    <div class="section-heading">
+<div class="problemset-page">
+    <section class="problemset-hero">
         <div>
-            <span class="eyebrow">PRACTICE LIBRARY</span>
-            <h2>Kho bài tập lập trình C++</h2>
-            <p class="muted">
-                Luyện thuật toán, thực hành Tin học và chuẩn bị cho
-                các kỳ thi học sinh giỏi. Tìm theo mã bài, tên bài
-                hoặc chủ đề. Bấm tiêu đề cột để sắp xếp.
-            </p>
+            <span class="eyebrow">TRAN TU OJ · PROBLEMSET</span>
+            <h1>Danh sách bài tập</h1>
+            <p>Khám phá bài tập, rèn luyện thuật toán và theo dõi hành trình chinh phục của bạn.</p>
+        </div>
+        <div class="problemset-hero-mark" aria-hidden="true">λ</div>
+    </section>
+
+    <section class="problemset-workspace" id="problem-section">
+        <div class="problemset-heading">
+            <div>
+                <h2>Kho bài tập</h2>
+                <p class="muted">Tìm kiếm và lọc bài tập theo nhu cầu của bạn.</p>
+            </div>
+            <div class="problemset-total"><span id="problem-count">—</span><small>bài tập</small></div>
         </div>
 
-        <div class="problem-toolbar">
-            <div class="search-wrap">
-                <span>⌕</span>
-                <input
-                    id="search"
-                    type="search"
-                    placeholder="Tìm mã bài, tên bài..."
-                    aria-label="Tìm theo mã bài, tên bài hoặc chủ đề"
-                >
-            </div>
+        <div class="problemset-filters">
+            <label class="problemset-search">
+                <span aria-hidden="true">⌕</span>
+                <input id="search" type="search" placeholder="Tìm theo mã bài, tên bài hoặc chủ đề..." aria-label="Tìm bài tập">
+            </label>
             <select id="filter-category" aria-label="Lọc theo chủ đề">
                 <option value="">Tất cả chủ đề</option>
             </select>
             <select id="filter-difficulty" aria-label="Lọc theo độ khó">
                 <option value="">Mọi độ khó</option>
             </select>
-            <button type="button" class="button button-ghost" id="reset-problem-filters">Đặt lại</button>
+            <select id="filter-status" aria-label="Lọc theo trạng thái">
+                <option value="">Mọi trạng thái</option>
+                <option value="solved">Đã FULL</option>
+                <option value="attempted">Đã thử</option>
+                <option value="unsolved">Chưa làm</option>
+            </select>
+            <button type="button" class="button button-ghost" id="reset-problem-filters">Xóa lọc</button>
             <button type="button" class="button button-primary" id="random-problem">Bài ngẫu nhiên ↗</button>
         </div>
-    </div>
 
-    <div class="problem-list-meta">
-        <span id="problem-result-count">Đang tải danh sách bài tập...</span>
-        <span>Sắp xếp bằng cách bấm tiêu đề cột</span>
-    </div>
-    <div class="glass-card table-card" id="problems">
-        Đang tải danh sách...
-    </div>
-</section>
+        <div class="problemset-table-head">
+            <div>
+                <strong id="problem-result-count">Đang tải bài tập...</strong>
+                <span class="muted"> · Chọn tên bài để mở đề</span>
+            </div>
+            <label class="problemset-page-size">Hiển thị
+                <select id="problem-page-size" aria-label="Số bài mỗi trang">
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </label>
+        </div>
 
-
+        <div class="problemset-table-wrap" id="problems">Đang tải danh sách bài tập...</div>
+        <div class="problemset-pagination" id="problem-pagination" aria-label="Phân trang"></div>
+    </section>
+</div>
 {% endblock %}
