@@ -601,6 +601,10 @@
 
     let submissions = [];
 
+    function isEnglish() {
+        return !!(window.OJ_I18N && window.OJ_I18N.getLanguage() === 'en');
+    }
+
     function escapeHTML(value) {
         return String(value ?? '').replace(/[&<>"']/g, function (char) {
             return {
@@ -659,7 +663,7 @@
         const date = new Date(value);
         if (Number.isNaN(date.getTime())) return String(value);
 
-        return date.toLocaleString('vi-VN');
+        return date.toLocaleString(isEnglish() ? 'en-US' : 'vi-VN');
     }
 
     function render() {
@@ -704,8 +708,8 @@
             body.innerHTML =
                 '<tr><td colspan="9" class="empty-state">' +
                 (submissions.length
-                    ? 'Không tìm thấy bài nộp phù hợp.'
-                    : 'Chưa có bài nộp nào.') +
+                    ? (isEnglish() ? 'No matching submissions found.' : 'Không tìm thấy bài nộp phù hợp.')
+                    : (isEnglish() ? 'No submissions yet.' : 'Chưa có bài nộp nào.')) +
                 '</td></tr>';
         } else {
             body.innerHTML = filtered.map(function (item) {
@@ -717,15 +721,15 @@
                     : item.score +
                       (item.max_score == null ? '' : ' / ' + item.max_score);
 
-                const username = item.username || 'Không rõ';
+                const username = item.username || (isEnglish() ? 'Unknown' : 'Không rõ');
 
                 const mine = item.is_mine
                     ? '<span class="mine-label">(Bạn)</span>'
                     : '';
 
                 const codeLabel = item.is_mine
-                    ? 'Code của tôi'
-                    : 'Xem code';
+                    ? (isEnglish() ? 'My code' : 'Code của tôi')
+                    : (isEnglish() ? 'View code' : 'Xem code');
 
                 const problemId = item.problem_id;
 
@@ -779,7 +783,7 @@ if (problemId != null && String(problemId) !== '') {
                     '<td colspan="9">' +
                         '<div class="detail-panel" id="detail-content-' +
                             escapeHTML(item.id) + '">' +
-                            'Đang tải chi tiết...' +
+                            (isEnglish() ? 'Loading judging details...' : 'Đang tải chi tiết...') +
                         '</div>' +
                     '</td>' +
                 '</tr>';
@@ -787,13 +791,13 @@ if (problemId != null && String(problemId) !== '') {
         }
 
         document.getElementById('result-count').textContent =
-            'Hiển thị ' + filtered.length + ' / ' +
-            submissions.length + ' bài nộp';
+            (isEnglish() ? 'Showing ' : 'Hiển thị ') + filtered.length + ' / ' +
+            submissions.length + (isEnglish() ? ' submissions' : ' bài nộp');
     }
 
     async function loadSubmissions() {
         refreshButton.disabled = true;
-        refreshButton.textContent = 'Đang tải...';
+        refreshButton.textContent = isEnglish() ? 'Loading...' : 'Đang tải...';
 
         try {
 const params = new URLSearchParams();
@@ -848,7 +852,7 @@ const response = await fetch(
                 'Không thể tải dữ liệu bài nộp.';
         } finally {
             refreshButton.disabled = false;
-            refreshButton.textContent = '↻ Làm mới';
+            refreshButton.textContent = isEnglish() ? '↻ Refresh' : '↻ Làm mới';
         }
     }
 
@@ -899,7 +903,7 @@ const response = await fetch(
             }
 
             codeMessage.textContent =
-                'Bài tập: ' + (data.problem_id || '—');
+                (isEnglish() ? 'Problem: ' : 'Bài tập: ') + (data.problem_id || '—');
 
             // Hiển thị mã nguồn dạng văn bản, không thực thi HTML.
             codeContent.textContent = data.source_code || '';
@@ -951,8 +955,7 @@ const response = await fetch(
 
             if (!details.length) {
                 panel.textContent =
-                    'Chưa có dữ liệu chi tiết từng test. ' +
-                    'Có thể bài đang được chấm hoặc server chưa lưu chi tiết.';
+                    (isEnglish() ? 'No per-test judging details are available. The submission may still be processing, or the server did not save the details.' : 'Chưa có dữ liệu chi tiết từng test. Có thể bài đang được chấm hoặc server chưa lưu chi tiết.');
                 return;
             }
 
@@ -1061,6 +1064,7 @@ const response = await fetch(
         }
     });
 
+    document.addEventListener('oj-language-changed', loadSubmissions);
     loadSubmissions();
 })();
 </script>
