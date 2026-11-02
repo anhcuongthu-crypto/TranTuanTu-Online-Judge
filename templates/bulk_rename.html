@@ -291,5 +291,84 @@ saveButton.addEventListener('click', async () => {
 
 loadProblems();
 </script>
+
+<script>
+(() => {
+  const pairs = {"Đổi tên bài hàng loạt": "Bulk rename problems",
+"Sửa tên các bài rồi nhấn lưu. ID và dữ liệu bài tập được giữ nguyên.": "Edit problem titles and save. IDs and problem data will remain unchanged.",
+"Lịch sử thao tác": "Operation history",
+"Tìm theo ID hoặc tên bài...": "Search by ID or problem title...",
+"Lưu thay đổi": "Save changes",
+"Đang tải...": "Loading...",
+"Tên hiện tại": "Current title",
+"Tên mới": "New title",
+"Tên mới của bài ": "New title for problem ",
+"Hiển thị ": "Showing ",
+" bài có thay đổi": " problems changed",
+"Không có quyền admin.": "Administrator access required.",
+"Không tải được danh sách bài.": "Could not load the problem list.",
+"Đã tải danh sách bài.": "Problem list loaded.",
+"Không tải được dữ liệu.": "Could not load data.",
+"Không có tên nào thay đổi.": "No titles have been changed.",
+"Tên mới phải từ 1 đến 200 ký tự.": "New titles must contain 1 to 200 characters.",
+"Lưu thay đổi tên của ": "Save title changes for ",
+" bài?": " problems?",
+"Không thể lưu thay đổi.": "Could not save changes.",
+"Đã lưu thành công.": "Saved successfully."};
+  const reverse = Object.fromEntries(Object.entries(pairs).map(([a,b]) => [b,a]));
+  const getLang = () => localStorage.getItem("oj_language") === "en" ? "en" : "vi";
+  const convert = value => {
+    const source = String(value || "");
+    const trimmed = source.trim();
+    const table = getLang() === "en" ? pairs : reverse;
+    if (table[trimmed] !== undefined) return source.replace(trimmed, table[trimmed]);
+    return source;
+  };
+  function translateNode(node) {
+    if (!node || node.nodeType !== Node.TEXT_NODE) return;
+    const parent = node.parentElement;
+    if (!parent || parent.closest("script,style,textarea,code,pre,input,select,option")) return;
+    const next = convert(node.nodeValue);
+    if (next !== node.nodeValue) node.nodeValue = next;
+  }
+  function apply(root=document) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) translateNode(node);
+    if (root.querySelectorAll) root.querySelectorAll("input[placeholder],textarea[placeholder],button[title]").forEach(el => {
+      for (const attr of ["placeholder","title"]) if (el.hasAttribute(attr)) el.setAttribute(attr, convert(el.getAttribute(attr)));
+    });
+    document.documentElement.lang = getLang();
+    const toggle = document.getElementById("standalone-language-toggle");
+    if (toggle) toggle.textContent = getLang() === "en" ? "🇻🇳 Tiếng Việt" : "🇬🇧 English";
+  }
+  function init() {
+    if (!document.getElementById("standalone-language-toggle")) {
+      const button = document.createElement("button");
+      button.id = "standalone-language-toggle";
+      button.type = "button";
+      button.style.cssText = "position:fixed;right:18px;top:16px;z-index:99999;padding:9px 13px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#1e3a5f;font-weight:700;cursor:pointer;box-shadow:0 4px 16px #0f172a22";
+      button.addEventListener("click", () => {
+        localStorage.setItem("oj_language", getLang() === "en" ? "vi" : "en");
+        apply();
+      });
+      document.body.appendChild(button);
+    }
+    apply();
+    new MutationObserver(records => records.forEach(record => {
+      record.addedNodes.forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE) translateNode(node);
+        else if (node.nodeType === Node.ELEMENT_NODE) apply(node);
+      });
+    })).observe(document.body, {childList:true,subtree:true});
+    window.addEventListener("storage", event => {
+      if (event.key === "oj_language") apply();
+    });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
 </body>
 </html>
