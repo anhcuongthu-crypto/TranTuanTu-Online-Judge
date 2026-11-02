@@ -212,32 +212,32 @@
 
 <div class="submission-detail">
     <span class="eyebrow">SUBMISSION DETAILS</span>
-    <h1>Bài nộp <span class="gradient-text">#{{ submission_id }}</span></h1>
+    <h1><span data-i18n="detail_title">Bài nộp</span> <span class="gradient-text">#{{ submission_id }}</span></h1>
     <p class="muted">
-        Theo dõi trạng thái chấm, điểm số và kết quả từng test của bài nộp.
+        <span data-i18n="detail_intro">Theo dõi trạng thái chấm, điểm số và kết quả từng test của bài nộp.</span>
     </p>
 
     <div class="summary">
         <div class="panel">
-            <div class="stat-label">Trạng thái</div>
+            <div class="stat-label" data-i18n="detail_status">Trạng thái</div>
             <div class="stat-value">
-                <span id="verdict" class="status pending">Đang tải...</span>
+                <span id="verdict" class="status pending" data-i18n="detail_loading">Đang tải...</span>
             </div>
         </div>
         <div class="panel">
-            <div class="stat-label">Điểm đạt được</div>
+            <div class="stat-label" data-i18n="detail_score">Điểm đạt được</div>
             <div class="stat-value" id="score">—</div>
         </div>
         <div class="panel">
-            <div class="stat-label">Mã bài tập</div>
+            <div class="stat-label" data-i18n="detail_problem">Mã bài tập</div>
             <div class="stat-value" id="problem-id">—</div>
         </div>
     </div>
 
     <div class="panel">
-        <strong>Thông tin bài chấm</strong>
-        <p class="notice" id="submission-info">Đang tải thông tin...</p>
-        <p class="notice" id="update-info">Đang kết nối hệ thống chấm bài...</p>
+        <strong data-i18n="detail_info">Thông tin bài chấm</strong>
+        <p class="notice" id="submission-info" data-i18n="detail_loading_info">Đang tải thông tin...</p>
+        <p class="notice" id="update-info" data-i18n="detail_connecting">Đang kết nối hệ thống chấm bài...</p>
         <div id="progress" class="progress">
             <div class="progress-inner"></div>
         </div>
@@ -245,14 +245,14 @@
 
     <div class="panel">
         <span class="eyebrow">TEST RESULTS</span>
-        <h2>Kết quả từng test</h2>
+        <h2 data-i18n="detail_results">Kết quả từng test</h2>
         <div id="test-results" class="notice">
-            Đang tải kết quả...
+            <span data-i18n="detail_loading_results">Đang tải kết quả...</span>
         </div>
     </div>
 
     <div class="panel">
-        <h2>Mã nguồn đã nộp</h2>
+        <h2 data-i18n="detail_source">Mã nguồn đã nộp</h2>
         <p class="notice" id="code-message">Đang tải mã nguồn...</p>
         <pre id="source-code" style="display:none;overflow:auto;padding:15px;border-radius:10px;background:#080d1b;color:#dbeafe;font-size:13px;"></pre>
     </div>
@@ -264,9 +264,9 @@
         <a class="btn" id="contest-link" href="/contests" style="display:none">
             Quay lại contest
         </a>
-        <a class="btn" href="/submissions">Lịch sử bài nộp</a>
+        <a class="btn" href="/submissions" data-i18n="detail_history">Lịch sử bài nộp</a>
         <button class="btn" id="refresh-detail" type="button">
-            ↻ Cập nhật
+            <span data-i18n="detail_refresh">↻ Cập nhật</span>
         </button>
     </div>
 </div>
