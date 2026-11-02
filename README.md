@@ -43,7 +43,7 @@ Mặc định `JUDGE0_URL=https://ce.judge0.com` và language ID `54` (C++ GCC 9
 python -m pytest -q
 ```
 
-`tests/test_problem_bank_reference.py` đối chiếu 2.500 test dữ liệu với lời giải tham chiếu độc lập. Các test route cần Flask được cài từ `requirements.txt`; test kết nối Judge0 thật cần endpoint có thể truy cập.
+`tests/test_problem_bank.py` kiểm tra cấu trúc ngân hàng đề, điểm subtask và giới hạn thời gian; `tests/test_problem_bank_reference.py` kiểm tra dữ liệu test ẩn có định dạng hợp lệ. Các kiểm thử này không thay thế việc nộp thử trên Judge0 thật.
 
 ## Lưu ý quan trọng về ngân hàng đề
 Dữ liệu `data/problems.json` trên nhánh `main` hiện có 16 bài. Số bài thực tế trên máy chủ còn phụ thuộc cấu hình `GITHUB_OWNER`, `GITHUB_REPO`, `GITHUB_BRANCH` và `PROBLEMS_PATH`. Không nên coi số lượng bài hiển thị trên giao diện là số đề thi chính thức đã được thẩm định nguồn.
