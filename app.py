@@ -15,7 +15,7 @@ from pathlib import Path
 
 from flask import (
     Flask, jsonify, request, render_template,
-    session, redirect, url_for
+    session, redirect, url_for, g
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from authlib.integrations.flask_client import OAuth
@@ -624,9 +624,16 @@ def create_app(test_config=None):
                 )
 
     def current_user():
+        # Cache trong phạm vi một request để context processor,
+        # route và admin_required không mở DB lặp lại.
+        if hasattr(g, '_trantu_current_user'):
+            return g._trantu_current_user
+
         uid = session.get('user_id')
         if not uid:
+            g._trantu_current_user = None
             return None
+
         with connect(app.config['DATABASE_PATH']) as db:
             row = db.execute(
                 '''SELECT id, username, is_admin, approved,
@@ -634,9 +641,13 @@ def create_app(test_config=None):
                    FROM users WHERE id=?''',
                 (uid,)
             ).fetchone()
+
         if not row or not row['approved']:
-            return None
-        return dict(row)
+            g._trantu_current_user = None
+        else:
+            g._trantu_current_user = dict(row)
+
+        return g._trantu_current_user
 
     def safe_next_url(value):
         value = str(value or '').strip()
