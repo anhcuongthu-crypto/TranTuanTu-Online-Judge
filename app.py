@@ -9,6 +9,7 @@ import os
 import re
 import shutil
 import threading
+import time
 import unicodedata
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -344,6 +345,27 @@ def create_app(test_config=None):
 
     if test_config:
         app.config.update(test_config)
+
+    # Ghi nhận request backend chậm để xác định điểm nghẽn trên Render.
+    # Không ghi query string, cookie, session hay dữ liệu người dùng.
+    @app.before_request
+    def _trantu_start_request_timer():
+        g._trantu_request_started = time.perf_counter()
+
+    @app.after_request
+    def _trantu_log_slow_request(response):
+        started = getattr(g, '_trantu_request_started', None)
+        if started is not None:
+            elapsed_ms = (time.perf_counter() - started) * 1000
+            if elapsed_ms >= 500:
+                app.logger.warning(
+                    'SLOW_REQUEST method=%s path=%s status=%s elapsed_ms=%.1f',
+                    request.method,
+                    request.path,
+                    response.status_code,
+                    elapsed_ms
+                )
+        return response
     # ==================== GOOGLE OAUTH ====================
 
     oauth = OAuth(app)
