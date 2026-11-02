@@ -17,23 +17,23 @@
 @media(max-width:650px){.library-header{padding:18px!important}.library-tools{display:grid;grid-template-columns:1fr!important}.library-tools>*{width:100%;min-width:0}}
 </style>
 
-<div class="breadcrumbs"><a href="/">Trang chủ</a><span>/</span><span>Thư viện đề thi</span></div>
+<div class="breadcrumbs"><a href="/" data-i18n="nav_home">Trang chủ</a><span>/</span><span data-i18n="lib_title">Thư viện đề thi</span></div>
 <section class="library-header">
     <div>
         <span class="eyebrow">EXAM ARCHIVE</span>
-        <h1>Thư viện đề thi</h1>
-        <p>Nơi lưu trữ các câu hỏi thuộc đề tuyển sinh và đề thi học sinh giỏi. Các bài luyện tập C++ hằng ngày nằm riêng tại mục Bài tập.</p>
+        <h1 data-i18n="lib_title">Thư viện đề thi</h1>
+        <p data-i18n="lib_intro">Nơi lưu trữ các câu hỏi thuộc đề tuyển sinh và đề thi học sinh giỏi. Các bài luyện tập C++ hằng ngày nằm riêng tại mục Bài tập.</p>
     </div>
-    <div class="library-total"><strong id="library-total">—</strong><span>câu hỏi từ đề thi</span></div>
+    <div class="library-total"><strong id="library-total">—</strong><span data-i18n="lib_count">câu hỏi từ đề thi</span></div>
 </section>
 <section class="library-tools glass-card">
-    <div class="library-search"><span>⌕</span><input id="library-search" type="search" placeholder="Tìm kỳ thi, năm hoặc tên câu hỏi..."></div>
+    <div class="library-search"><span>⌕</span><input id="library-search" type="search" placeholder="Tìm kỳ thi, năm hoặc tên câu hỏi..." data-i18n-placeholder="lib_search"></div>
     <select id="library-exam"><option value="">Tất cả kỳ thi</option></select>
-    <select id="library-sort"><option value="exam">Sắp xếp theo kỳ thi</option><option value="title">Tên câu hỏi: A → Z</option><option value="difficulty">Độ khó</option></select>
-    <button type="button" class="button button-ghost" id="library-reset">Đặt lại</button>
+    <select id="library-sort"><option value="exam" data-i18n="lib_sort_exam">Sắp xếp theo kỳ thi</option><option value="title" data-i18n="lib_sort_title">Tên câu hỏi: A → Z</option><option value="difficulty" data-i18n="lib_sort_diff">Độ khó</option></select>
+    <button type="button" class="button button-ghost" id="library-reset" data-i18n="lib_reset">Đặt lại</button>
 </section>
 <section class="library-results">
-    <div class="library-results-head"><strong id="library-result-count">Đang tải đề thi...</strong><span>Chọn câu hỏi để mở đề và nộp bài</span></div>
-    <div id="library-grid" class="library-grid"><div class="glass-card library-empty">Đang tải thư viện...</div></div>
+    <div class="library-results-head"><strong id="library-result-count" data-i18n="lib_loading">Đang tải đề thi...</strong><span data-i18n="lib_open">Chọn câu hỏi để mở đề và nộp bài</span></div>
+    <div id="library-grid" class="library-grid"><div class="glass-card library-empty" data-i18n="lib_loading_grid">Đang tải thư viện...</div></div>
 </section>
 {% endblock %}
