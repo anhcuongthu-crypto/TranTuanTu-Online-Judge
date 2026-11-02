@@ -629,7 +629,9 @@ def create_app(test_config=None):
             return None
         with connect(app.config['DATABASE_PATH']) as db:
             row = db.execute(
-                'SELECT id, username, is_admin, approved FROM users WHERE id=?',
+                '''SELECT id, username, is_admin, approved,
+                          avatar_color, bio, created_at
+                   FROM users WHERE id=?''',
                 (uid,)
             ).fetchone()
         if not row or not row['approved']:
@@ -1170,14 +1172,8 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         user = current_user()
         if not user:
             return jsonify(user=None)
-        with connect(app.config['DATABASE_PATH']) as db:
-            row = db.execute(
-                '''SELECT username, is_admin, approved,
-                          avatar_color, bio, created_at
-                   FROM users WHERE id=?''',
-                (user['id'],)
-            ).fetchone()
-        return jsonify(user=dict(row) if row else None)
+        # current_user() đã lấy đủ dữ liệu hồ sơ trong một kết nối DB.
+        return jsonify(user=user)
 
     @app.route('/profile', methods=['GET'])
     def profile_page():
