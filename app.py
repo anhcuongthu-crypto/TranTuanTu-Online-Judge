@@ -2715,6 +2715,55 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
         except Exception as e:
             return jsonify(error=str(e)), 400
+    @app.delete('/api/admin/problems/<pid>')
+    def admin_delete_problem(pid):
+        if not admin_required():
+            return jsonify(error='Chỉ admin.'), 403
+
+        try:
+            old = problems(refresh=True)
+            idx = next(
+                (i for i, problem in enumerate(old)
+                 if str(problem.get('id')) == str(pid)),
+                None
+            )
+
+            if idx is None:
+                return jsonify(error='Không tìm thấy bài.'), 404
+
+            with connect(app.config['DATABASE_PATH']) as db:
+                linked = db.execute(
+                    'SELECT COUNT(*) AS n FROM contest_problems WHERE problem_id=?',
+                    (pid,)
+                ).fetchone()['n']
+
+            if linked:
+                return jsonify(
+                    error='Bài đang được sử dụng trong Contest. Hãy gỡ bài khỏi Contest trước.'
+                ), 409
+
+            removed = old[idx]
+            new = old[:idx] + old[idx + 1:]
+
+            save_history(
+                app.config['DATABASE_PATH'],
+                'delete_problem',
+                old,
+                new,
+                [removed]
+            )
+            save_problems(new, app.config['PROBLEMS_PATH'])
+            update_problems_cache(new)
+
+            return jsonify(
+                ok=True,
+                id=pid,
+                message='Đã xóa bài tập và lưu lịch sử khôi phục.'
+            )
+        except Exception as e:
+            app.logger.exception('Lỗi xóa bài tập')
+            return jsonify(error=str(e)), 500
+
     # XÓA CÁC BÀI TRÙNG NỘI DUNG
     @app.post('/api/admin/problems/remove-duplicates')
     def admin_remove_duplicates():
