@@ -1,7 +1,38 @@
 
 {% extends "base.html" %}
 
-{% block title %}Kỳ thi lập trình — TranTu OJ{% endblock %}
+{% block title %}Kỳ thi lập trình — TranTu OJ<style id="trantu-contest-light-theme">
+.contest-page { color:#29465f !important; color-scheme:light !important; }
+.contest-page .contest-hero,.contest-page .contest-stat,.contest-page .contest-card,.contest-page .contest-admin {
+ background:#fff !important; color:#29465f !important; border:1px solid #dce8f2 !important;
+ border-radius:12px !important; box-shadow:0 3px 14px rgba(34,91,135,.055) !important; backdrop-filter:none !important;
+}
+.contest-page .contest-hero { background:linear-gradient(120deg,#fff,#eef7ff) !important; }
+.contest-page .contest-hero h1,.contest-page .contest-heading h2,.contest-page .contest-card h3,
+.contest-page .contest-admin h2,.contest-page .contest-admin h3,.contest-page .contest-admin label,
+.contest-page .contest-admin p,.contest-page .contest-stat strong { color:#234966 !important; }
+.contest-page .contest-hero p,.contest-page .contest-muted,.contest-page .contest-stat small,
+.contest-page .contest-card p,.contest-page .contest-admin .contest-muted { color:#71879a !important; }
+.contest-page .contest-badge { color:#286da8 !important; background:#eaf4fb !important; border:1px solid #d6e8f5 !important; }
+.contest-page .contest-badge.running { color:#187044 !important; background:#e7f6ed !important; border-color:#ccebd8 !important; }
+.contest-page .contest-badge.upcoming { color:#875b00 !important; background:#fff5df !important; border-color:#f3e3b7 !important; }
+.contest-page .contest-badge.ended { color:#687b8d !important; background:#f1f4f7 !important; border-color:#dfe5eb !important; }
+.contest-page .contest-card-foot { border-color:#e5edf4 !important; }
+.contest-page .contest-btn { color:#fff !important; background:#2879bd !important; border:1px solid #2879bd !important; border-radius:8px !important; }
+.contest-page .contest-btn.secondary { color:#28658f !important; background:#edf6fc !important; border-color:#d2e4f1 !important; }
+.contest-page input:not([type="checkbox"]),.contest-page textarea,.contest-page select {
+ background:#fff !important; color:#29465f !important; -webkit-text-fill-color:#29465f !important;
+ border:1px solid #cbddea !important; color-scheme:light !important;
+}
+.contest-page input::placeholder,.contest-page textarea::placeholder { color:#91a7b9 !important; -webkit-text-fill-color:#91a7b9 !important; }
+.contest-page .contest-checkitem { color:#365d79 !important; background:#f7fafc !important; border-color:#dce8f2 !important; }
+.contest-page .contest-checkitem span { color:#365d79 !important; }
+.contest-page .contest-checkitem:hover { background:#edf6fc !important; }
+.contest-page .contest-empty { color:#71879a !important; background:#fff !important; border-color:#cbddea !important; }
+.contest-page #message { color:#187044 !important; }
+@media(max-width:650px) { .contest-page { padding:0 12px !important; } .contest-page .contest-hero { padding:20px !important; } }
+</style>
+{% endblock %}
 {% block meta_description %}Danh sách kỳ thi lập trình trên TranTu OJ. Tham gia contest, luyện tập theo thời gian và xem bảng xếp hạng.{% endblock %}
 
 {% block content %}
