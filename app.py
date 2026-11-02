@@ -485,16 +485,13 @@ def create_app(test_config=None):
 
     def translate_problem_text(text):
         text = str(text or "")
-
         if not text.strip():
             return ""
 
         if text in problem_translation_cache:
             return problem_translation_cache[text]
 
-        # Bản dịch chuẩn cho ví dụ đề hình chữ nhật; ưu tiên bản dịch
-        # đã kiểm duyệt để không phụ thuộc dịch vụ bên ngoài.
-        normalized_text = re.sub(r"\\s+", " ", text).strip()
+        normalized_text = re.sub(r"\s+", " ", text).strip()
         known_translations = {
             "Cho bốn số nguyên dương a, b, c, d. Biết rằng a, b là độ dài hai cạnh của hình chữ nhật thứ nhất; c, d là độ dài hai cạnh của hình chữ nhật thứ hai. Yêu cầu: Hãy tìm diện tích của hai hình chữ nhật và đưa ra diện tích lớn nhất.": (
                 "Given four positive integers a, b, c, and d. "
@@ -510,74 +507,66 @@ def create_app(test_config=None):
             problem_translation_cache[text] = translated
             return translated
 
-        try:
-            # Giữ nguyên các đoạn code nằm trong dấu `...`
-            code_parts = []
+        # Preserve code blocks, inline code, and HTML tags.
+        protected_parts = []
 
-            def protect_code(match):
-                code_parts.append(match.group(0))
-                return f" OJCODE{len(code_parts) - 1}END "
+        def protect(match):
+            protected_parts.append(match.group(0))
+            return f" OJKEEP{len(protected_parts) - 1}TOKEN "
 
-            protected = re.sub(r"`[^`]*`", protect_code, text)
+        protected = re.sub(
+            r"\x60{3}[\s\S]*?\x60{3}|\x60[^\x60\n]*\x60|</?[A-Za-z][^>]*>",
+            protect,
+            text
+        )
 
-            # Chia văn bản thành các đoạn nhỏ, giữ nguyên xuống dòng.
-            words = re.findall(r"\S+\s*", protected)
-            chunks = []
-            current = ""
-
-            for word in words:
-                if current and len(
-                    (current + word).encode("utf-8")
-                ) > 450:
-                    chunks.append(current)
-                    current = ""
-
-                current += word
-
-            if current:
+        words = re.findall(r"\S+\s*", protected)
+        chunks = []
+        current = ""
+        for word in words:
+            if current and len((current + word).encode("utf-8")) > 350:
                 chunks.append(current)
+                current = ""
+            current += word
+        if current:
+            chunks.append(current)
 
-            translated_chunks = []
-
-            for chunk in chunks:
+        translated_chunks = []
+        for chunk in chunks:
+            translated_chunk = chunk
+            try:
                 url = "https://api.mymemory.translated.net/get?" + urlencode({
                     "q": chunk,
                     "langpair": "vi|en"
                 })
-
                 req = urllib.request.Request(
                     url,
-                    headers={
-                        "User-Agent": "TranTu-OJ-Studio/1.0"
-                    }
+                    headers={"User-Agent": "TranTu-OJ-Studio/1.1"}
                 )
+                with urllib.request.urlopen(req, timeout=20) as response:
+                    payload = json.loads(response.read().decode("utf-8"))
 
-                with urllib.request.urlopen(req, timeout=15) as response:
-                    data = json.loads(
-                        response.read().decode("utf-8")
+                response_data = payload.get("responseData") or {}
+                candidate = response_data.get("translatedText")
+                if str(payload.get("responseStatus")) == "200" and candidate:
+                    translated_chunk = candidate
+                else:
+                    app.logger.warning(
+                        "MyMemory could not translate a problem chunk (status=%s)",
+                        payload.get("responseStatus")
                     )
+            except Exception:
+                app.logger.exception("Problem translation chunk failed")
 
-                if data.get("responseStatus") != 200:
-                    return text
+            translated_chunks.append(translated_chunk)
 
-                translated_chunks.append(
-                    data["responseData"]["translatedText"]
-                )
+        translated = "".join(translated_chunks)
+        for i, part in enumerate(protected_parts):
+            translated = translated.replace(f"OJKEEP{i}TOKEN", part)
 
-            translated = "".join(translated_chunks)
-
-            # Khôi phục các đoạn code ban đầu.
-            for i, code in enumerate(code_parts):
-                translated = translated.replace(
-                    f"OJCODE{i}END", code
-                )
-
+        if translated != text:
             problem_translation_cache[text] = translated
-            return translated
-
-        except Exception:
-            app.logger.exception("Lỗi dịch đề bài")
-            return text    
+        return translated
 
     admin2_username = os.getenv('ADMIN2_USERNAME', '').strip()
     admin2_password = os.getenv('ADMIN2_PASSWORD', '')
