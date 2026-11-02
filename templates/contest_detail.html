@@ -563,6 +563,13 @@ function setLanguage(language) {
     }));
 }
 
+document.addEventListener("oj-language-changed", event => {
+    const language = event.detail && event.detail.language;
+    if (language && translations[language] && language !== currentLanguage) {
+        setLanguage(language);
+    }
+});
+
 $("languageToggle").addEventListener("click", () => {
     setLanguage(currentLanguage === "vi" ? "en" : "vi");
 });
