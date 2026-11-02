@@ -228,7 +228,8 @@ function getFilteredProblems() {
         document.querySelector('#search')?.value || ''
     ).trim().toLocaleLowerCase('vi');
     const category = document.querySelector('#filter-category')?.value || '';
-    const difficulty = document.querySelector('#filter-difficulty')?.value || '';\n    const status = document.querySelector('#filter-status')?.value || '';
+    const difficulty = document.querySelector('#filter-difficulty')?.value || '';
+    const status = document.querySelector('#filter-status')?.value || '';
 
     return items.filter(p => {
         const matchesQuery = `${p.id ?? ''} ${p.title ?? ''} ${p.category ?? ''} ${p.difficulty ?? ''}`
@@ -236,7 +237,10 @@ function getFilteredProblems() {
             .includes(query);
         const matchesCategory = !category || String(p.category ?? '') === category;
         const matchesDifficulty = !difficulty || String(p.difficulty ?? '') === difficulty;
-        const progress = mySolvedProblems[String(p.id)];\n        const actualStatus = progress?.solved ? 'solved' : progress ? 'attempted' : 'unsolved';\n        const matchesStatus = !status || actualStatus === status;\n        return matchesQuery && matchesCategory && matchesDifficulty && matchesStatus;
+        const progress = mySolvedProblems[String(p.id)];
+        const actualStatus = progress?.solved ? 'solved' : progress ? 'attempted' : 'unsolved';
+        const matchesStatus = !status || actualStatus === status;
+        return matchesQuery && matchesCategory && matchesDifficulty && matchesStatus;
     });
 }
 
