@@ -1105,11 +1105,20 @@ document.querySelector('#reset-problem-filters')?.addEventListener('click', () =
     const difficulty = document.querySelector('#filter-difficulty');
     if (search) search.value = '';
     if (category) category.value = '';
+    const status = document.querySelector('#filter-status');
     if (difficulty) difficulty.value = '';
+    if (status) status.value = '';
+    problemPage = 1;
     renderProblems(getFilteredProblems());
 });
 
-document.querySelector('#problem-page-size')?.addEventListener('change', event => {\n    problemPageSize = Number(event.target.value) || 25;\n    problemPage = 1;\n    renderProblems(getFilteredProblems());\n});\n\ndocument.querySelector('#random-problem')?.addEventListener('click', () => {
+document.querySelector('#problem-page-size')?.addEventListener('change', event => {
+    problemPageSize = Number(event.target.value) || 25;
+    problemPage = 1;
+    renderProblems(getFilteredProblems());
+});
+
+document.querySelector('#random-problem')?.addEventListener('click', () => {
     const items = getFilteredProblems();
     if (!items.length) {
         note('Không có bài tập phù hợp để chọn ngẫu nhiên.');
