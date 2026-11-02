@@ -645,9 +645,8 @@ def create_app(test_config=None):
                     )
                 )
 
-    def current_user():
-        # Cache trong phạm vi một request để context processor,
-        # route và admin_required không mở DB lặp lại.
+    def current_user(db=None):
+        # Cho phép route truyền kết nối đang mở để tránh mở DB lần thứ hai.
         if hasattr(g, '_trantu_current_user'):
             return g._trantu_current_user
 
@@ -656,13 +655,14 @@ def create_app(test_config=None):
             g._trantu_current_user = None
             return None
 
-        with connect(app.config['DATABASE_PATH']) as db:
-            row = db.execute(
-                '''SELECT id, username, is_admin, approved,
+        query = '''SELECT id, username, is_admin, approved,
                           avatar_color, bio, created_at
-                   FROM users WHERE id=?''',
-                (uid,)
-            ).fetchone()
+                   FROM users WHERE id=?'''
+        if db is None:
+            with connect(app.config['DATABASE_PATH']) as conn:
+                row = conn.execute(query, (uid,)).fetchone()
+        else:
+            row = db.execute(query, (uid,)).fetchone()
 
         if not row or not row['approved']:
             g._trantu_current_user = None
@@ -716,34 +716,40 @@ def create_app(test_config=None):
     
 
 
-    def get_contest_data(contest_id, allow_hidden=False):
-        with connect(app.config['DATABASE_PATH']) as db:
-            contest = db.execute(
-                'SELECT * FROM contests WHERE id=?',
-                (contest_id,)
-            ).fetchone()
+    def get_contest_data(contest_id, allow_hidden=False, db=None):
+        # Dùng lại kết nối của route nếu có; tránh mở thêm kết nối DB.
+        if db is None:
+            with connect(app.config['DATABASE_PATH']) as conn:
+                return get_contest_data(
+                    contest_id, allow_hidden=allow_hidden, db=conn
+                )
 
-            if not contest:
-                return None
+        contest = db.execute(
+            'SELECT * FROM contests WHERE id=?',
+            (contest_id,)
+        ).fetchone()
 
-            if not contest['is_visible'] and not allow_hidden:
-                return None
+        if not contest:
+            return None
 
-            ids = db.execute(
-                '''SELECT problem_id, total_score FROM contest_problems
-                   WHERE contest_id=?
-                   ORDER BY position, problem_id''',
-                (contest_id,)
-            ).fetchall()
+        if not contest['is_visible'] and not allow_hidden:
+            return None
 
-            custom_rows = db.execute(
-                '''SELECT problem_id, title, statement,
-                          input_desc, output_desc, total_score,
-                          sample_input, sample_output, subtasks_json
-                   FROM contest_custom_problems
-                   WHERE contest_id=?''',
-                (contest_id,)
-            ).fetchall()
+        ids = db.execute(
+            '''SELECT problem_id, total_score FROM contest_problems
+               WHERE contest_id=?
+               ORDER BY position, problem_id''',
+            (contest_id,)
+        ).fetchall()
+
+        custom_rows = db.execute(
+            '''SELECT problem_id, title, statement,
+                      input_desc, output_desc, total_score,
+                      sample_input, sample_output, subtasks_json
+               FROM contest_custom_problems
+               WHERE contest_id=?''',
+            (contest_id,)
+        ).fetchall()
 
         item = dict(contest)
         item['is_visible'] = bool(item['is_visible'])
@@ -1759,9 +1765,8 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         
     @app.get('/api/contests/<int:contest_id>/leaderboard')
     def contest_leaderboard(contest_id):
-        user = current_user()
-
         with connect(app.config['DATABASE_PATH']) as db:
+            user = current_user(db=db)
             contest = db.execute(
                 'SELECT id, is_visible FROM contests WHERE id=?',
                 (contest_id,)
@@ -1811,12 +1816,12 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
     @app.get('/api/contests/<int:contest_id>/submissions')
     def contest_submissions_history(contest_id):
-        user = current_user()
-
-        if not user:
-            return jsonify(error='Cần đăng nhập.'), 401
-
         with connect(app.config['DATABASE_PATH']) as db:
+            user = current_user(db=db)
+
+            if not user:
+                return jsonify(error='Cần đăng nhập.'), 401
+
             contest = db.execute(
                 'SELECT id, is_visible FROM contests WHERE id=?',
                 (contest_id,)
@@ -1842,10 +1847,12 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 (contest_id,)
             ).fetchall()
 
-        # Lấy tên đề để giao diện hiển thị dễ hiểu hơn.
-        contest_data = get_contest_data(
-            contest_id, allow_hidden=bool(user['is_admin'])
-        )
+            # Tái sử dụng cùng kết nối cho dữ liệu bài trong cuộc thi.
+            contest_data = get_contest_data(
+                contest_id,
+                allow_hidden=bool(user['is_admin']),
+                db=db
+            )
 
         problem_titles = {}
         if contest_data:
