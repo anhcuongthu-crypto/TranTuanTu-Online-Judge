@@ -134,6 +134,32 @@
     (function () {
         const translations = {
             vi: {
+                nav_home: "Trang chủ",
+                nav_library: "Thư viện đề thi",
+                nav_users: "Người dùng",
+                nav_information: "Thông tin",
+                problemset_title: "Danh sách bài tập",
+                problemset_intro: "Khám phá bài tập, rèn luyện thuật toán và theo dõi hành trình chinh phục của bạn.",
+                problemset_bank: "Kho bài tập",
+                problemset_filter_intro: "Tìm kiếm và lọc bài tập theo nhu cầu của bạn.",
+                common_problems: "bài tập",
+                problemset_search: "Tìm theo mã bài, tên bài hoặc chủ đề...",
+                problemset_all_topics: "Tất cả chủ đề",
+                problemset_all_difficulties: "Mọi độ khó",
+                problemset_all_statuses: "Mọi trạng thái",
+                problemset_solved: "Đã FULL",
+                problemset_attempted: "Đã thử",
+                problemset_unsolved: "Chưa làm",
+                common_clear_filters: "Xóa lọc",
+                problemset_random: "Bài ngẫu nhiên ↗",
+                problemset_open_hint: " · Chọn tên bài để mở đề",
+                common_show: "Hiển thị",
+                submit_back: "← Quay lại đề bài",
+                submit_read_problem: "Đọc kỹ đề bài trước khi nộp.",
+                submit_view_problem: "Xem đề bài",
+                submit_language: "Ngôn ngữ",
+                submit_source: "Mã nguồn",
+                submit_ready: "Sẵn sàng nộp bài.",
                 nav_problems: "Bài tập",
                 nav_contests: "🏆 Kỳ thi",
                 nav_submissions: "📝 Các bài nộp",
@@ -173,6 +199,32 @@
             },
 
             en: {
+                nav_home: "Home",
+                nav_library: "Problem archive",
+                nav_users: "Users",
+                nav_information: "Information",
+                problemset_title: "Problem Set",
+                problemset_intro: "Explore problems, sharpen your algorithmic skills, and track your progress.",
+                problemset_bank: "Problem Library",
+                problemset_filter_intro: "Search and filter problems to match your needs.",
+                common_problems: "problems",
+                problemset_search: "Search by problem ID, title, or topic...",
+                problemset_all_topics: "All topics",
+                problemset_all_difficulties: "All difficulties",
+                problemset_all_statuses: "All statuses",
+                problemset_solved: "Solved",
+                problemset_attempted: "Attempted",
+                problemset_unsolved: "Not started",
+                common_clear_filters: "Clear filters",
+                problemset_random: "Random problem ↗",
+                problemset_open_hint: " · Select a problem title to open it",
+                common_show: "Show",
+                submit_back: "← Back to problem",
+                submit_read_problem: "Read the problem carefully before submitting.",
+                submit_view_problem: "View problem",
+                submit_language: "Language",
+                submit_source: "Source code",
+                submit_ready: "Ready to submit.",
                 nav_problems: "Problems",
                 nav_contests: "🏆 Contests",
                 nav_submissions: "📝 Submissions",
@@ -359,14 +411,14 @@
             </a>
 
             <nav aria-label="Điều hướng chính" class="clue-nav">
-                <a href="/" {% if request.path == '/' %}aria-current="page"{% endif %}>Trang chủ</a>
+                <a href="/" data-i18n="nav_home" {% if request.path == '/' %}aria-current="page"{% endif %}>Trang chủ</a>
                 <a href="/problems" data-i18n="nav_problems" {% if request.path == '/problems' or request.path.startswith('/problems/') %}aria-current="page"{% endif %}>Bài tập</a>
                 <a href="/submissions" data-i18n="nav_submissions" {% if request.path.startswith('/submissions') %}aria-current="page"{% endif %}>Bài nộp</a>
                 <a href="/contests" data-i18n="nav_contests" {% if request.path.startswith('/contests') %}aria-current="page"{% endif %}>Kỳ thi</a>
-                <a href="/library" {% if request.path == '/library' %}aria-current="page"{% endif %}>Thư viện đề thi</a>
+                <a href="/library" data-i18n="nav_library" {% if request.path == '/library' %}aria-current="page"{% endif %}>Thư viện đề thi</a>
 
                 <details class="nav-dropdown">
-                    <summary>Người dùng <span>⌄</span></summary>
+                    <summary><span data-i18n="nav_users">Người dùng</span> <span>⌄</span></summary>
                     <div class="nav-dropdown-menu">
                         <a href="/leaderboard" data-i18n="nav_leaderboard" {% if request.path == '/leaderboard' %}aria-current="page"{% endif %}>Xếp hạng</a>
                         <a href="/profile" data-i18n="nav_profile" {% if request.path == '/profile' %}aria-current="page"{% endif %}>Hồ sơ cá nhân</a>
@@ -374,7 +426,7 @@
                 </details>
 
                 <details class="nav-dropdown">
-                    <summary>Thông tin <span>⌄</span></summary>
+                    <summary><span data-i18n="nav_information">Thông tin</span> <span>⌄</span></summary>
                     <div class="nav-dropdown-menu">
                         <a href="/about" data-i18n="nav_about">Về TranTu OJ</a>
                     </div>
