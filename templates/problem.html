@@ -666,6 +666,10 @@
             setText("problem-category-badge", data.category);
         }
 
+        if (data.difficulty !== undefined) {
+            setText("problem-difficulty", data.difficulty);
+        }
+
         translateSubtasks(data);
         setInterface("en");
         document.documentElement.lang = "en";
@@ -709,7 +713,7 @@
 
         const currentRequest = ++requestVersion;
 
-        status.textContent = "Translating problem...";
+        status.textContent = "Translating the complete problem statement...";
         status.classList.add("show");
 
         try {
@@ -726,7 +730,7 @@
             if (currentRequest !== requestVersion) return;
 
             status.textContent =
-                "Translation unavailable. Please try again later.";
+                "Automatic translation is temporarily unavailable. Please try again later.";
             status.classList.add("show");
         }
     }
