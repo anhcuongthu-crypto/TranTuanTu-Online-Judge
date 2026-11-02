@@ -4,10 +4,10 @@ Giao diện luyện lập trình bằng tiếng Việt, Flask + SQLite, chấm q
 
 ## Chức năng có trong mã nguồn
 - Danh sách bài tập được nạp từ `data/problems.json` hoặc ngân hàng đề GitHub đã cấu hình; tìm kiếm theo mã/tên/chủ đề; trang bài có Input/Output, ví dụ, giải thích, giới hạn và subtasks.
-- Đăng ký với username duy nhất; mật khẩu được băm. Tài khoản mới ở trạng thái chờ duyệt, cần liên hệ Trần Tuấn Tú và được admin phê duyệt trước khi đăng nhập.
+- Đăng ký tự do với username duy nhất; tài khoản mới được kích hoạt ngay và có thể đăng nhập. Mật khẩu được băm; tài khoản thường không có quyền admin.
 - Đăng nhập/đăng xuất, hồ sơ với giới thiệu và màu avatar.
 - Nộp C++ qua Judge0, chấm từng test theo subtask, lưu mã nguồn/lịch sử/chi tiết verdict; cập nhật điểm tốt nhất vào bảng xếp hạng.
-- Khu vực admin tại `/admin`, duyệt tài khoản; API admin thêm/sửa/xóa bài được tách trong `oj/admin.py` và các route admin của `app.py`.
+- Khu vực admin tại `/admin`; API quản trị thêm/sửa/xóa bài được tách trong `oj/admin.py` và các route admin của `app.py`. Quyền quản trị chỉ được gán qua cấu hình bootstrap admin.
 - `/health` báo tình trạng tải ngân hàng đề.
 
 ## Cài đặt và chạy local
