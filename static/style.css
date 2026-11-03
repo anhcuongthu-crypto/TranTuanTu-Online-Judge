@@ -3475,3 +3475,48 @@ footer{background:#fff!important;color:#718ba0!important;border-color:#dce8f2!im
     75%, 95% { transform: rotateX(90deg) translateZ(66px) rotateZ(90deg); }
     100% { transform: rotateX(90deg) translateZ(66px) rotateZ(0deg); }
 }
+
+
+/* Rubik: visibly scrambled stickers resolve into three uniform solved faces. */
+.hero-showcase .rubik-cube {
+    animation: none !important;
+    transform: rotateX(-22deg) rotateY(-32deg) !important;
+}
+.hero-showcase .cube-front,
+.hero-showcase .cube-right,
+.hero-showcase .cube-top {
+    animation: none !important;
+}
+.hero-showcase .cube-face i {
+    animation-duration: 1s;
+    animation-timing-function: cubic-bezier(.2,.7,.25,1);
+    animation-fill-mode: forwards;
+    animation-iteration-count: infinite;
+}
+.hero-showcase .cube-front i { animation-name: solve-blue; }
+.hero-showcase .cube-right i { animation-name: solve-orange; }
+.hero-showcase .cube-top i { animation-name: solve-white; }
+
+/* The mixed starting stickers converge one by one, then stay solved briefly. */
+.hero-showcase .cube-face i:nth-child(1) { animation-delay: 0s; }
+.hero-showcase .cube-face i:nth-child(2) { animation-delay: .07s; }
+.hero-showcase .cube-face i:nth-child(3) { animation-delay: .14s; }
+.hero-showcase .cube-face i:nth-child(4) { animation-delay: .21s; }
+.hero-showcase .cube-face i:nth-child(5) { animation-delay: .28s; }
+.hero-showcase .cube-face i:nth-child(6) { animation-delay: .35s; }
+.hero-showcase .cube-face i:nth-child(7) { animation-delay: .42s; }
+.hero-showcase .cube-face i:nth-child(8) { animation-delay: .49s; }
+.hero-showcase .cube-face i:nth-child(9) { animation-delay: .56s; }
+
+@keyframes solve-blue {
+    0%, 12% { background: linear-gradient(145deg,#ff4d4d,#c41427); }
+    100% { background: linear-gradient(145deg,#19a9f5,#0757b8); }
+}
+@keyframes solve-orange {
+    0%, 12% { background: linear-gradient(145deg,#74d34a,#238c35); }
+    100% { background: linear-gradient(145deg,#ff9d26,#d94b08); }
+}
+@keyframes solve-white {
+    0%, 12% { background: linear-gradient(145deg,#19a9f5,#0757b8); }
+    100% { background: linear-gradient(145deg,#fff,#c9d7e7); }
+}
