@@ -18,7 +18,10 @@ from flask import (
     Flask, jsonify, request, render_template,
     session, redirect, url_for, g
 )
-from flask_compress import Compress
+try:
+    from flask_compress import Compress
+except ImportError:
+    Compress = None
 from werkzeug.security import generate_password_hash, check_password_hash
 from authlib.integrations.flask_client import OAuth
 
@@ -352,7 +355,8 @@ def create_app(test_config=None):
         app.config.update(test_config)
 
     # Nén HTML/JSON lớn để giảm thời gian truyền dữ liệu tới trình duyệt.
-    Compress(app)
+    if Compress is not None:
+        Compress(app)
 
     # Ghi nhận request backend chậm để xác định điểm nghẽn trên Render.
     # Không ghi query string, cookie, session hay dữ liệu người dùng.
