@@ -430,6 +430,11 @@ def create_app(test_config=None):
     problems_cache_lock = threading.Lock()
     problems_refreshing = False
 
+    # Cache bảng xếp hạng contest trong thời gian ngắn để tránh chạy lại
+    # truy vấn GROUP BY trên toàn bộ submissions ở mỗi lần polling.
+    contest_leaderboard_cache = {}
+    contest_leaderboard_cache_lock = threading.Lock()
+
     def _refresh_problem_bank_in_background():
         nonlocal problems_cache, problems_refreshing
 
@@ -1779,6 +1784,14 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             ):
                 return jsonify(error='Không tìm thấy cuộc thi.'), 404
 
+            # Leaderboard được polling thường xuyên ở trang contest.
+            # Dữ liệu chậm tối đa 3 giây để giảm truy vấn aggregate nặng.
+            now = time.monotonic()
+            with contest_leaderboard_cache_lock:
+                cached = contest_leaderboard_cache.get(contest_id)
+                if cached and now - cached['time'] < 3:
+                    return jsonify(cached['rows'])
+
             rows = db.execute(
                 '''SELECT u.username,
                           COALESCE(SUM(best.score), 0) AS score,
@@ -1807,7 +1820,14 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 (contest_id,)
             ).fetchall()
 
-        return jsonify([dict(row) for row in rows])
+            result = [dict(row) for row in rows]
+            with contest_leaderboard_cache_lock:
+                contest_leaderboard_cache[contest_id] = {
+                    'time': time.monotonic(),
+                    'rows': result
+                }
+
+        return jsonify(result)
 
 
     
