@@ -3351,3 +3351,32 @@ tbody tr:nth-child(even) td{background:#f7fafc!important}
 .error,.wrong-answer,.detail-error{color:#b54752!important}
 footer{background:#fff!important;color:#718ba0!important;border-color:#dce8f2!important}
 @media(prefers-color-scheme:dark){html,body{background:#f3f8fc!important;color:#183b5b!important;color-scheme:light!important}}
+
+
+/* 3D rotating hero showcase */
+.hero-showcase{isolation:isolate;min-height:330px;overflow:hidden;border-radius:24px;perspective:900px}
+.showcase-glow{position:absolute;inset:8% 7%;border-radius:50%;background:radial-gradient(ellipse,rgba(29,145,255,.25),rgba(10,60,110,.08) 52%,transparent 72%);filter:blur(12px)}
+.showcase-slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(14px) scale(.96);transition:opacity .75s ease,transform .85s cubic-bezier(.2,.75,.2,1);pointer-events:none}
+.showcase-slide.is-active{opacity:1;transform:translateY(0) scale(1)}
+.scene-caption{position:absolute;top:18px;left:18px;display:flex;align-items:center;gap:8px;color:#b8dfff;font:800 9px 'JetBrains Mono',monospace;letter-spacing:2px}
+.scene-dot{width:7px;height:7px;border-radius:50%;background:#38bdf8;box-shadow:0 0 12px #38bdf8}
+.whale-model{width:min(100%,470px);height:auto;overflow:visible;filter:drop-shadow(0 25px 22px rgba(0,0,0,.35));animation:whale-float 5s ease-in-out infinite}
+@keyframes whale-float{0%,100%{transform:translateY(5px) rotate(-3deg)}50%{transform:translateY(-12px) rotate(2deg)}}
+.scene-tag{position:absolute;bottom:57px;right:18px;color:#d5edff;font-size:10px;letter-spacing:.8px;padding:8px 12px;border:1px solid #4b8dbb66;border-radius:999px;background:#082443aa;backdrop-filter:blur(8px)}
+.rubik-stage{width:100%;height:260px;display:grid;place-items:center;perspective:700px}
+.rubik-cube{position:relative;width:132px;height:132px;transform-style:preserve-3d;transform:rotateX(-25deg) rotateY(-35deg);animation:cube-turn 12s linear infinite}
+@keyframes cube-turn{0%{transform:rotateX(-25deg) rotateY(-35deg)}50%{transform:rotateX(-25deg) rotateY(145deg)}100%{transform:rotateX(-25deg) rotateY(325deg)}}
+.cube-face{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:5px;padding:5px;border:2px solid #070d16;border-radius:9px;background:#070d16;backface-visibility:hidden}
+.cube-face i{border-radius:5px;border:1px solid #0008;box-shadow:inset 0 2px 4px #fff5,inset 0 -3px 5px #0003}
+.cube-front{transform:translateZ(66px)}.cube-front i{background:linear-gradient(145deg,#19a9f5,#0757b8)}
+.cube-right{transform:rotateY(90deg) translateZ(66px)}.cube-right i{background:linear-gradient(145deg,#ff9d26,#d94b08)}
+.cube-top{transform:rotateX(90deg) translateZ(66px)}.cube-top i{background:linear-gradient(145deg,#fff,#c9d7e7)}
+.cube-front i:nth-child(2),.cube-front i:nth-child(5),.cube-right i:nth-child(1),.cube-right i:nth-child(8){background:linear-gradient(145deg,#ff4d4d,#c41427)}
+.cube-top i:nth-child(3),.cube-top i:nth-child(7){background:linear-gradient(145deg,#74d34a,#238c35)}
+.showcase-controls{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;z-index:5;padding:7px 11px;border:1px solid #3976a566;border-radius:999px;background:#061a30cc;backdrop-filter:blur(10px)}
+.showcase-dot{width:7px;height:7px;padding:0;border:0;border-radius:50%;background:#6485a5;cursor:pointer;transition:.25s}
+.showcase-dot.is-active{width:22px;border-radius:8px;background:#38bdf8}
+.showcase-label{margin-left:5px;color:#a9c9e7;font:10px 'JetBrains Mono',monospace}
+@media(max-width:900px){.hero-showcase{min-height:280px}.rubik-stage{height:225px}.scene-tag{bottom:48px}}
+@media(max-width:560px){.hero-showcase{min-height:245px;margin-top:8px}.whale-model{width:112%;max-width:none}.rubik-stage{height:205px}.rubik-cube{transform:scale(.82) rotateX(-25deg) rotateY(-35deg)}.scene-caption{top:12px;left:12px;font-size:8px}.scene-tag{bottom:48px;right:10px;font-size:9px}}
+@media(prefers-reduced-motion:reduce){.whale-model,.rubik-cube{animation:none!important}.showcase-slide{transition:none}}
