@@ -25,7 +25,10 @@ except ImportError:
 from werkzeug.security import generate_password_hash, check_password_hash
 from authlib.integrations.flask_client import OAuth
 
-from oj.database import connect, init_db, is_postgres_path, DB_INTEGRITY_ERRORS
+from oj.database import (
+    connect, init_db, is_postgres_path,
+    DB_INTEGRITY_ERRORS, DB_POOL_TIMEOUT_ERRORS
+)
 from oj.job_queue import enqueue
 from oj.admin import register_admin_routes
 from oj.history import (
@@ -676,8 +679,18 @@ def create_app(test_config=None):
                           avatar_color, bio, created_at
                    FROM users WHERE id=?'''
         if db is None:
-            with connect(app.config['DATABASE_PATH']) as conn:
-                row = conn.execute(query, (uid,)).fetchone()
+            try:
+                with connect(app.config['DATABASE_PATH']) as conn:
+                    row = conn.execute(query, (uid,)).fetchone()
+            except DB_POOL_TIMEOUT_ERRORS as exc:
+                # Không để pool tạm hết connection làm mọi trang HTML
+                # (kể cả trang danh sách bài) trả về HTTP 500.
+                app.logger.error(
+                    'DATABASE_POOL_TIMEOUT while loading current user: %s',
+                    exc
+                )
+                g._trantu_current_user = None
+                return None
         else:
             row = db.execute(query, (uid,)).fetchone()
 
