@@ -3515,3 +3515,75 @@ footer{background:#fff!important;color:#718ba0!important;border-color:#dce8f2!im
 .hero-showcase .cube-face i {
     animation: none !important;
 }
+
+
+/* Final timing: Rubik solves over one minute; whale swims across and back. */
+.hero-showcase .whale-model {
+    animation: whale-cross-back 10s ease-in-out infinite alternate !important;
+}
+@keyframes whale-cross-back {
+    0%   { transform: translateX(-58px) translateY(0) rotate(-3deg); }
+    50%  { transform: translateX(0) translateY(-5px) rotate(0deg); }
+    100% { transform: translateX(58px) translateY(0) rotate(3deg); }
+}
+
+/* One full 60-second solve cycle. The three visible sides turn in sequence,
+   then their stickers settle into solid solved-face colours. */
+.hero-showcase .rubik-cube {
+    animation: none !important;
+    transform: rotateX(-22deg) rotateY(-32deg) !important;
+}
+.hero-showcase .cube-front {
+    animation: rubik-front-minute 60s ease-in-out infinite !important;
+}
+.hero-showcase .cube-right {
+    animation: rubik-right-minute 60s ease-in-out infinite !important;
+}
+.hero-showcase .cube-top {
+    animation: rubik-top-minute 60s ease-in-out infinite !important;
+}
+@keyframes rubik-front-minute {
+    0%, 8% { transform: translateZ(66px) rotateZ(0); }
+    14%, 20% { transform: translateZ(66px) rotateZ(90deg); }
+    26%, 100% { transform: translateZ(66px) rotateZ(0); }
+}
+@keyframes rubik-right-minute {
+    0%, 26% { transform: rotateY(90deg) translateZ(66px) rotateZ(0); }
+    32%, 38% { transform: rotateY(90deg) translateZ(66px) rotateZ(90deg); }
+    44%, 100% { transform: rotateY(90deg) translateZ(66px) rotateZ(0); }
+}
+@keyframes rubik-top-minute {
+    0%, 44% { transform: rotateX(90deg) translateZ(66px) rotateZ(0); }
+    50%, 56% { transform: rotateX(90deg) translateZ(66px) rotateZ(90deg); }
+    62%, 100% { transform: rotateX(90deg) translateZ(66px) rotateZ(0); }
+}
+.hero-showcase .cube-face i {
+    animation-duration: 60s !important;
+    animation-timing-function: ease-in-out !important;
+    animation-iteration-count: infinite !important;
+    animation-fill-mode: both !important;
+}
+.hero-showcase .cube-front i { animation-name: minute-blue !important; }
+.hero-showcase .cube-right i { animation-name: minute-orange !important; }
+.hero-showcase .cube-top i { animation-name: minute-white !important; }
+.hero-showcase .cube-face i:nth-child(1) { animation-delay: 0s !important; }
+.hero-showcase .cube-face i:nth-child(2) { animation-delay: .5s !important; }
+.hero-showcase .cube-face i:nth-child(3) { animation-delay: 1s !important; }
+.hero-showcase .cube-face i:nth-child(4) { animation-delay: 1.5s !important; }
+.hero-showcase .cube-face i:nth-child(5) { animation-delay: 2s !important; }
+.hero-showcase .cube-face i:nth-child(6) { animation-delay: 2.5s !important; }
+.hero-showcase .cube-face i:nth-child(7) { animation-delay: 3s !important; }
+.hero-showcase .cube-face i:nth-child(8) { animation-delay: 3.5s !important; }
+.hero-showcase .cube-face i:nth-child(9) { animation-delay: 4s !important; }
+@keyframes minute-blue {
+    0%, 78% { background: linear-gradient(145deg,#ff4d4d,#c41427); }
+    100% { background: linear-gradient(145deg,#19a9f5,#0757b8); }
+}
+@keyframes minute-orange {
+    0%, 78% { background: linear-gradient(145deg,#74d34a,#238c35); }
+    100% { background: linear-gradient(145deg,#ff9d26,#d94b08); }
+}
+@keyframes minute-white {
+    0%, 78% { background: linear-gradient(145deg,#19a9f5,#0757b8); }
+    100% { background: linear-gradient(145deg,#fff,#c9d7e7); }
+}
