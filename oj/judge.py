@@ -126,7 +126,7 @@ class Judge0:
                 },
                 json=payload,
                 headers=self._headers(),
-                timeout=(5, 20)
+                timeout=(3, 10)
             )
 
             if not response.ok:
@@ -159,7 +159,7 @@ class Judge0:
                 self.base_url + '/submissions/' + token,
                 params={'base64_encoded': 'true'},
                 headers=self._headers(),
-                timeout=(5, 15)
+                timeout=(3, 5)
             )
 
             if not response.ok:
@@ -230,13 +230,16 @@ class Judge0:
         )
 
         return self._wait_for_submission(
-            token, time.monotonic() + 60
+            token, time.monotonic() + 25
         )
 
     def run_batch(self, source, language_id, tests,
                   time_limit=1.0, memory_limit=256000):
         if not tests:
             return []
+
+        # One shared deadline for submission creation and result polling.
+        deadline = time.monotonic() + 25
 
         # Gửi nhiều test song song thay vì chờ từng request Judge0.
         # Giới hạn 8 luồng để tránh tạo tải quá lớn lên Judge0 công cộng.
@@ -260,7 +263,6 @@ class Judge0:
             for future in as_completed(futures):
                 tokens[futures[future]] = future.result()
 
-        deadline = time.monotonic() + 60
         results = [None] * len(tokens)
         pending = set(range(len(tokens)))
         errors = [0] * len(tokens)
