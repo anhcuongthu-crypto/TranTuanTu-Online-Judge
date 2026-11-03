@@ -41,9 +41,12 @@ class Judge0:
         }
 
         if int(language_id) == 54:
+            # Keep ASan/UBSan to detect out-of-bounds and undefined behavior,
+            # but omit debug symbols: they increase compile time and are not
+            # required for Judge0 to report Runtime Error.
             payload['compiler_options'] = (
                 '-fsanitize=address,undefined '
-                '-fno-omit-frame-pointer -g'
+                '-fno-omit-frame-pointer'
             )
             print("JUDGE COMPILER OPTIONS:",
       payload.get('compiler_options'), flush=True)
@@ -261,7 +264,8 @@ class Judge0:
         results = [None] * len(tokens)
         pending = set(range(len(tokens)))
         errors = [0] * len(tokens)
-        delay = 0.6
+        # Poll sooner so short programs do not wait unnecessarily.
+        delay = 0.3
 
         with ThreadPoolExecutor(max_workers=workers) as executor:
             while pending and time.monotonic() < deadline:
@@ -310,7 +314,7 @@ class Judge0:
                     remaining = deadline - time.monotonic()
                     if remaining > 0:
                         time.sleep(min(delay, remaining))
-                    delay = min(delay * 1.4, 1.8)
+                    delay = min(delay * 1.4, 1.0)
 
         for i in pending:
             results[i] = {
