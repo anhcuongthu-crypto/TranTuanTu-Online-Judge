@@ -1140,33 +1140,3 @@ Promise.allSettled([
     loadAdmin(),
     loadMyProgress()
 ]);
-
-
-// Rotate the 3D whale and Rubik scenes on the home page.
-document.addEventListener('DOMContentLoaded', function () {
-    const showcase = document.querySelector('.hero-showcase');
-    if (!showcase) return;
-    const slides = Array.from(showcase.querySelectorAll('.showcase-slide'));
-    const dots = Array.from(showcase.querySelectorAll('.showcase-dot'));
-    const label = showcase.querySelector('.showcase-label');
-    let active = 0;
-    let timer = null;
-    function show(index) {
-        active = (index + slides.length) % slides.length;
-        slides.forEach((slide, i) => {
-            slide.classList.toggle('is-active', i === active);
-            slide.setAttribute('aria-hidden', i === active ? 'false' : 'true');
-        });
-        dots.forEach((dot, i) => dot.classList.toggle('is-active', i === active));
-        if (label) label.textContent = '0' + (active + 1) + ' / 0' + slides.length;
-    }
-    function restart() {
-        if (timer) clearInterval(timer);
-        timer = setInterval(() => show(active + 1), 6500);
-    }
-    dots.forEach((dot, i) => dot.addEventListener('click', () => { show(i); restart(); }));
-    showcase.addEventListener('mouseenter', () => { if (timer) clearInterval(timer); });
-    showcase.addEventListener('mouseleave', restart);
-    show(0);
-    restart();
-});
