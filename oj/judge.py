@@ -177,12 +177,12 @@ class Judge0:
                 + str(exc)
             ) from exc
 
-    def _wait_for_submission(self, token, deadline):
+    def _wait_for_submission(self, token, deadline=None):
         delay = 0.5
         errors = 0
         last_status = 'Unknown'
 
-        while time.monotonic() < deadline:
+        while True:
             try:
                 result = self._get_submission(token)
                 errors = 0
@@ -206,20 +206,12 @@ class Judge0:
                         'message': str(exc)
                     }
 
-            remaining = deadline - time.monotonic()
-
-            if remaining <= 0:
-                break
-
-            time.sleep(min(delay, remaining))
+            time.sleep(delay)
             delay = min(delay * 1.5, 2.0)
 
         return {
-            'status': 'Judge Timeout',
-            'message': (
-                'Hết thời gian chờ Judge0. '
-                'Trạng thái cuối: ' + last_status
-            )
+            'status': last_status,
+            'message': 'Đang chờ Judge0 trả kết quả.'
         }
 
     def run(self, source, language_id, stdin, expected,
@@ -229,18 +221,14 @@ class Judge0:
             time_limit, memory_limit
         )
 
-        return self._wait_for_submission(
-            token, time.monotonic() + 25
-        )
+        return self._wait_for_submission(token)
 
     def run_batch(self, source, language_id, tests,
                   time_limit=1.0, memory_limit=256000):
         if not tests:
             return []
 
-        # One shared deadline for submission creation and result polling.
-        deadline = time.monotonic() + 25
-
+        # Do not stop waiting just because Judge0 takes longer than 30 seconds.
         # Gửi nhiều test song song thay vì chờ từng request Judge0.
         # Giới hạn 8 luồng để tránh tạo tải quá lớn lên Judge0 công cộng.
         workers = min(8, len(tests))
@@ -270,7 +258,7 @@ class Judge0:
         delay = 0.3
 
         with ThreadPoolExecutor(max_workers=workers) as executor:
-            while pending and time.monotonic() < deadline:
+            while pending:
                 futures = {
                     executor.submit(
                         self._get_submission,
@@ -313,15 +301,7 @@ class Judge0:
                             pending.discard(i)
 
                 if pending:
-                    remaining = deadline - time.monotonic()
-                    if remaining > 0:
-                        time.sleep(min(delay, remaining))
-                    delay = min(delay * 1.4, 1.0)
-
-        for i in pending:
-            results[i] = {
-                'status': 'Judge Timeout',
-                'message': 'Hết thời gian chờ kết quả từ Judge0.'
-            }
+                    time.sleep(delay)
+                    delay = min(delay * 1.4, 2.0)
 
         return results
