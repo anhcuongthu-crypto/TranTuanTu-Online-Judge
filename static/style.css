@@ -3410,3 +3410,68 @@ footer{background:#fff!important;color:#718ba0!important;border-color:#dce8f2!im
     animation: cube-turn .2s linear infinite !important;
     animation-play-state: running !important;
 }
+
+
+/* Natural swimming motion and readable Rubik layer turns. */
+.hero-showcase .whale-model {
+    animation: whale-swim 1s ease-in-out infinite alternate !important;
+    transform-origin: 50% 55%;
+}
+@keyframes whale-swim {
+    from { transform: translate3d(-22px, 0, 0) rotate(-2deg); }
+    to   { transform: translate3d(22px, -3px, 0) rotate(2deg); }
+}
+.hero-showcase .whale-tail {
+    transform-box: view-box;
+    transform-origin: 83% 17%;
+    animation: whale-tail-stroke 1s ease-in-out infinite alternate;
+}
+.hero-showcase .whale-tail-left { transform-origin: 83% 17%; }
+.hero-showcase .whale-tail-right { transform-origin: 83% 17%; }
+@keyframes whale-tail-stroke {
+    from { transform: rotate(-13deg); }
+    to   { transform: rotate(13deg); }
+}
+.hero-showcase .whale-fin {
+    transform-box: view-box;
+    transform-origin: 55% 70%;
+    animation: whale-fin-stroke 1s ease-in-out infinite alternate;
+}
+@keyframes whale-fin-stroke {
+    from { transform: rotate(-5deg); }
+    to   { transform: rotate(8deg); }
+}
+/* Keep the cube readable: turn its visible layers in sequence instead of tumbling wildly. */
+.hero-showcase .rubik-cube {
+    animation: cube-view 4s linear infinite !important;
+}
+@keyframes cube-view {
+    0%, 20% { transform: rotateX(-22deg) rotateY(-32deg); }
+    50% { transform: rotateX(-22deg) rotateY(148deg); }
+    80%, 100% { transform: rotateX(-22deg) rotateY(328deg); }
+}
+.hero-showcase .cube-front {
+    animation: cube-front-turn 1s ease-in-out infinite;
+    transform-origin: center;
+}
+@keyframes cube-front-turn {
+    0%, 15% { transform: translateZ(66px) rotateZ(0deg); }
+    35%, 55% { transform: translateZ(66px) rotateZ(90deg); }
+    75%, 100% { transform: translateZ(66px) rotateZ(0deg); }
+}
+.hero-showcase .cube-right {
+    animation: cube-right-turn 1s ease-in-out infinite;
+}
+@keyframes cube-right-turn {
+    0%, 35% { transform: rotateY(90deg) translateZ(66px) rotateZ(0deg); }
+    55%, 75% { transform: rotateY(90deg) translateZ(66px) rotateZ(90deg); }
+    95%, 100% { transform: rotateY(90deg) translateZ(66px) rotateZ(0deg); }
+}
+.hero-showcase .cube-top {
+    animation: cube-top-turn 1s ease-in-out infinite;
+}
+@keyframes cube-top-turn {
+    0%, 55% { transform: rotateX(90deg) translateZ(66px) rotateZ(0deg); }
+    75%, 95% { transform: rotateX(90deg) translateZ(66px) rotateZ(90deg); }
+    100% { transform: rotateX(90deg) translateZ(66px) rotateZ(0deg); }
+}
