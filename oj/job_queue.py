@@ -314,45 +314,54 @@ def _run_job(
 
         subtasks = problem.get('subtasks', [])
 
+        # Gửi test của tất cả subtasks trong cùng một batch để tránh
+        # phải chờ tuần tự từng subtask.
+        flat_tests = []
+        subtask_ranges = []
         for st in subtasks:
-            subtask_started = time.perf_counter()
             tests = st.get('tests', [])
-            test_scores = _get_test_scores(st)
+            scores = _get_test_scores(st)
+            first = len(flat_tests)
 
-            batch_tests = [
-                {
+            for test in tests:
+                flat_tests.append({
                     'input': test['input'],
                     'output': test['output']
-                }
-                for test in tests
-            ]
+                })
 
-            results = _run_batch_with_retry(
-                judge,
-                code,
-                language,
-                batch_tests,
-                problem.get('time_limit', 1),
-                problem.get('memory_limit', 256000)
-            )
+            subtask_ranges.append((st, first, len(flat_tests), scores))
 
+        batch_started = time.perf_counter()
+        results = _run_batch_with_retry(
+            judge,
+            code,
+            language,
+            flat_tests,
+            problem.get('time_limit', 1),
+            problem.get('memory_limit', 256000),
+            max_attempts=1
+        )
+
+        for st, first, last, test_scores in subtask_ranges:
+            subtask_started = time.perf_counter()
+            tests = st.get('tests', [])
             sub_details = []
             subtask_score = 0
 
             for i, test in enumerate(tests):
-                if i < len(results):
-                    result = results[i] or {}
+                result_index = first + i
+                if result_index < len(results):
+                    result = results[result_index] or {}
                 else:
                     result = {
-                        'status': 'Judge Unavailable',
-                        'message': 'Judge0 không trả đủ kết quả.'
+                        'status': 'Judge Timeout',
+                        'message': 'Hết thời gian chờ kết quả từ Judge0.'
                     }
 
                 status = result.get('status', 'Unknown')
                 statuses.append(status)
 
                 max_test_score = test_scores[i]
-
                 if status == 'Accepted':
                     earned = max_test_score
                     subtask_score += earned
@@ -361,7 +370,6 @@ def _run_job(
 
                 if _is_compile_error(status):
                     compile_error = True
-
                 if _is_judge_error(status):
                     judge_error = True
 
@@ -383,7 +391,6 @@ def _run_job(
                 })
 
             score += subtask_score
-
             details.append({
                 'subtask': st.get('id'),
                 'name': st.get('name', ''),
@@ -399,9 +406,12 @@ def _run_job(
                 flush=True
             )
 
-            # Dừng khi có lỗi biên dịch hoặc lỗi hệ thống chấm.
-            if compile_error or judge_error:
-                break
+        print(
+            f'[OJ SPEED] submission={submission_id} '
+            f'batch_tests={len(flat_tests)} '
+            f'batch_elapsed={time.perf_counter() - batch_started:.2f}s',
+            flush=True
+        )
 
         total_score = float(problem['total_score'])
 
