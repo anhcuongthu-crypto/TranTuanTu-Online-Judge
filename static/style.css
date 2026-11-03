@@ -3587,3 +3587,36 @@ footer{background:#fff!important;color:#718ba0!important;border-color:#dce8f2!im
     0%, 78% { background: linear-gradient(145deg,#19a9f5,#0757b8); }
     100% { background: linear-gradient(145deg,#fff,#c9d7e7); }
 }
+
+
+/* Real 3x3x3 construction: 27 independently rendered cubies. */
+.hero-showcase .rubik-stage { perspective: 900px; overflow: visible; }
+.hero-showcase .rubik-cube-27 {
+    width: 0; height: 0; position: relative;
+    transform-style: preserve-3d;
+    animation: none !important;
+}
+.hero-showcase .rubik-cubie {
+    position: absolute;
+    left: -17.5px; top: -17.5px;
+    width: 35px; height: 35px;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+.hero-showcase .cubie-face {
+    position: absolute; inset: 1px;
+    display: block; border: 2px solid #080d15;
+    border-radius: 4px;
+    background: var(--sticker, #101722);
+    box-shadow: inset 0 1px 3px #ffffff35, inset 0 -2px 3px #0005;
+    backface-visibility: hidden;
+}
+.hero-showcase .cubie-face.front { transform: translateZ(17.5px); }
+.hero-showcase .cubie-face.back { transform: rotateY(180deg) translateZ(17.5px); }
+.hero-showcase .cubie-face.right { transform: rotateY(90deg) translateZ(17.5px); }
+.hero-showcase .cubie-face.left { transform: rotateY(-90deg) translateZ(17.5px); }
+.hero-showcase .cubie-face.top { transform: rotateX(90deg) translateZ(17.5px); }
+.hero-showcase .cubie-face.bottom { transform: rotateX(-90deg) translateZ(17.5px); }
+@media(max-width:560px) {
+    .hero-showcase .rubik-stage { transform: scale(.72); }
+}
