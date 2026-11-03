@@ -27,16 +27,20 @@ _IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 try:
     import psycopg
     from psycopg import IntegrityError as _PsycopgIntegrityError
-    from psycopg_pool import ConnectionPool
+    from psycopg_pool import ConnectionPool, PoolTimeout
 except ImportError:
     psycopg = None
     ConnectionPool = None
+    PoolTimeout = None
     _PsycopgIntegrityError = None
 
 
 DB_INTEGRITY_ERRORS = (
     sqlite3.IntegrityError,
 ) + ((_PsycopgIntegrityError,) if _PsycopgIntegrityError else ())
+
+# Cho phép giao diện xử lý riêng khi pool tạm thời hết kết nối.
+DB_POOL_TIMEOUT_ERRORS = (PoolTimeout,) if PoolTimeout else ()
 
 # Reuse PostgreSQL connections instead of opening a new TCP/TLS connection
 # for every API request. The pool is process-local and bounded.
@@ -221,9 +225,12 @@ class _CursorAdapter:
 
 
 class _PostgresConnection:
-    def __init__(self, raw_connection, pool):
+    def __init__(self, raw_connection, pool, lease):
         self._connection = raw_connection
         self._pool = pool
+        # Dùng context manager chính thức của psycopg_pool để bảo đảm
+        # connection luôn được trả về pool sau khi transaction kết thúc.
+        self._lease = lease
 
     def execute(self, query, parameters=None):
         sql = _qmark_to_pyformat(query)
@@ -281,20 +288,18 @@ class _PostgresConnection:
         return self
 
     def __exit__(self, exc_type, exc, traceback):
-        try:
-            if exc_type is None:
-                self._connection.commit()
-            else:
-                self._connection.rollback()
-        finally:
-            self.close()
+        lease = self._lease
+        self._lease = None
+        self._connection = None
+
+        if lease is not None:
+            return lease.__exit__(exc_type, exc, traceback)
 
         return False
 
     def close(self):
-        if self._connection is not None:
-            self._pool.putconn(self._connection)
-            self._connection = None
+        # Hỗ trợ cả trường hợp caller đóng connection thủ công.
+        self.__exit__(None, None, None)
 
 
 def connect(path):
@@ -309,8 +314,9 @@ def connect(path):
 
         dsn = _normalize_dsn(path)
         pool = _get_postgres_pool(dsn)
-        raw = pool.getconn()
-        return _PostgresConnection(raw, pool)
+        lease = pool.connection()
+        raw = lease.__enter__()
+        return _PostgresConnection(raw, pool, lease)
 
     sqlite_path = str(path)
 
