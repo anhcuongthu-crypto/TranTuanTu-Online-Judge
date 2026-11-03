@@ -3380,3 +3380,22 @@ footer{background:#fff!important;color:#718ba0!important;border-color:#dce8f2!im
 @media(max-width:900px){.hero-showcase{min-height:280px}.rubik-stage{height:225px}.scene-tag{bottom:48px}}
 @media(max-width:560px){.hero-showcase{min-height:245px;margin-top:8px}.whale-model{width:112%;max-width:none}.rubik-stage{height:205px}.rubik-cube{transform:scale(.82) rotateX(-25deg) rotateY(-35deg)}.scene-caption{top:12px;left:12px;font-size:8px}.scene-tag{bottom:48px;right:10px;font-size:9px}}
 @media(prefers-reduced-motion:reduce){.whale-model,.rubik-cube{animation:none!important}.showcase-slide{transition:none}}
+
+
+/* Keep both 3D models visible and animated together; no carousel switching. */
+.hero-showcase{display:grid;grid-template-columns:1.08fr .92fr;align-items:center;gap:0}
+.hero-showcase .showcase-slide{position:relative;inset:auto;min-width:0;width:100%;height:100%;opacity:1;transform:none;pointer-events:auto}
+.hero-showcase .whale-slide{grid-column:1}
+.hero-showcase .cube-slide{grid-column:2}
+.hero-showcase .scene-caption{top:18px}
+.hero-showcase .whale-model{width:115%;max-width:470px}
+.hero-showcase .rubik-stage{height:260px}
+.hero-showcase .scene-tag{bottom:24px;right:10px}
+.hero-showcase .showcase-controls{display:none}
+@media(max-width:560px){
+ .hero-showcase{grid-template-columns:1fr 1fr;gap:0;min-height:230px}
+ .hero-showcase .whale-model{width:145%;max-width:none;margin-left:-15%}
+ .hero-showcase .rubik-stage{height:190px;transform:scale(.82)}
+ .hero-showcase .scene-caption{top:10px;left:7px;font-size:7px;letter-spacing:1px}
+ .hero-showcase .scene-tag{font-size:8px;bottom:18px;right:4px;padding:5px 7px}
+}
