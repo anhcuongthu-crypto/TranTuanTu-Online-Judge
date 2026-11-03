@@ -3477,46 +3477,41 @@ footer{background:#fff!important;color:#718ba0!important;border-color:#dce8f2!im
 }
 
 
-/* Rubik: visibly scrambled stickers resolve into three uniform solved faces. */
+
+/* Visible Rubik face-layer turns: each face rotates around its own center. */
 .hero-showcase .rubik-cube {
     animation: none !important;
     transform: rotateX(-22deg) rotateY(-32deg) !important;
+    transform-style: preserve-3d;
 }
-.hero-showcase .cube-front,
-.hero-showcase .cube-right,
+.hero-showcase .cube-face {
+    transform-origin: 50% 50%;
+    backface-visibility: visible;
+}
+.hero-showcase .cube-front {
+    animation: rubik-front-layer 3s ease-in-out infinite !important;
+}
+.hero-showcase .cube-right {
+    animation: rubik-right-layer 3s ease-in-out infinite !important;
+}
 .hero-showcase .cube-top {
-    animation: none !important;
+    animation: rubik-top-layer 3s ease-in-out infinite !important;
+}
+@keyframes rubik-front-layer {
+    0%, 8% { transform: translateZ(66px) rotateZ(0deg); }
+    23%, 38% { transform: translateZ(66px) rotateZ(90deg); }
+    53%, 100% { transform: translateZ(66px) rotateZ(0deg); }
+}
+@keyframes rubik-right-layer {
+    0%, 38% { transform: rotateY(90deg) translateZ(66px) rotateZ(0deg); }
+    53%, 68% { transform: rotateY(90deg) translateZ(66px) rotateZ(90deg); }
+    83%, 100% { transform: rotateY(90deg) translateZ(66px) rotateZ(0deg); }
+}
+@keyframes rubik-top-layer {
+    0%, 68% { transform: rotateX(90deg) translateZ(66px) rotateZ(0deg); }
+    83%, 94% { transform: rotateX(90deg) translateZ(66px) rotateZ(90deg); }
+    100% { transform: rotateX(90deg) translateZ(66px) rotateZ(0deg); }
 }
 .hero-showcase .cube-face i {
-    animation-duration: 1s;
-    animation-timing-function: cubic-bezier(.2,.7,.25,1);
-    animation-fill-mode: forwards;
-    animation-iteration-count: infinite;
-}
-.hero-showcase .cube-front i { animation-name: solve-blue; }
-.hero-showcase .cube-right i { animation-name: solve-orange; }
-.hero-showcase .cube-top i { animation-name: solve-white; }
-
-/* The mixed starting stickers converge one by one, then stay solved briefly. */
-.hero-showcase .cube-face i:nth-child(1) { animation-delay: 0s; }
-.hero-showcase .cube-face i:nth-child(2) { animation-delay: .07s; }
-.hero-showcase .cube-face i:nth-child(3) { animation-delay: .14s; }
-.hero-showcase .cube-face i:nth-child(4) { animation-delay: .21s; }
-.hero-showcase .cube-face i:nth-child(5) { animation-delay: .28s; }
-.hero-showcase .cube-face i:nth-child(6) { animation-delay: .35s; }
-.hero-showcase .cube-face i:nth-child(7) { animation-delay: .42s; }
-.hero-showcase .cube-face i:nth-child(8) { animation-delay: .49s; }
-.hero-showcase .cube-face i:nth-child(9) { animation-delay: .56s; }
-
-@keyframes solve-blue {
-    0%, 12% { background: linear-gradient(145deg,#ff4d4d,#c41427); }
-    100% { background: linear-gradient(145deg,#19a9f5,#0757b8); }
-}
-@keyframes solve-orange {
-    0%, 12% { background: linear-gradient(145deg,#74d34a,#238c35); }
-    100% { background: linear-gradient(145deg,#ff9d26,#d94b08); }
-}
-@keyframes solve-white {
-    0%, 12% { background: linear-gradient(145deg,#19a9f5,#0757b8); }
-    100% { background: linear-gradient(145deg,#fff,#c9d7e7); }
+    animation: none !important;
 }
