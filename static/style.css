@@ -3399,3 +3399,14 @@ footer{background:#fff!important;color:#718ba0!important;border-color:#dce8f2!im
  .hero-showcase .scene-caption{top:10px;left:7px;font-size:7px;letter-spacing:1px}
  .hero-showcase .scene-tag{font-size:8px;bottom:18px;right:4px;padding:5px 7px}
 }
+
+
+/* Force the requested motion even when the OS prefers reduced motion. */
+.hero-showcase .whale-model {
+    animation: whale-float 2.8s ease-in-out infinite !important;
+    animation-play-state: running !important;
+}
+.hero-showcase .rubik-cube {
+    animation: cube-turn .2s linear infinite !important;
+    animation-play-state: running !important;
+}
