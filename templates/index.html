@@ -1,6 +1,51 @@
 {% extends 'base.html' %}
 
-{% block title %}TranTu OJ — Luyện lập trình C++ và thuật toán{% endblock %}
+{% block title %}TranTu OJ — Luyện lập trình C++ và thuật toán
+<script>
+(() => {
+  const root = document.getElementById('rubik-cube-27');
+  if (!root || root.dataset.ready) return;
+  root.dataset.ready = '1';
+  const colors = {
+    front: '#168ee8', back: '#22b86a', right: '#f28a18',
+    left: '#f0cf28', top: '#f5f7fb', bottom: '#df3348'
+  };
+  const faces = ['front','back','right','left','top','bottom'];
+  const pieces = [];
+  for (let z=0; z<3; z++) for (let y=0; y<3; y++) for (let x=0; x<3; x++) {
+    const piece = document.createElement('div');
+    piece.className = 'rubik-cubie';
+    piece.innerHTML = faces.map(face => '<i class="cubie-face '+face+'"></i>').join('');
+    piece.querySelector('.front').style.setProperty('--sticker', z===0 ? colors.front : '#111923');
+    piece.querySelector('.back').style.setProperty('--sticker', z===2 ? colors.back : '#111923');
+    piece.querySelector('.right').style.setProperty('--sticker', x===2 ? colors.right : '#111923');
+    piece.querySelector('.left').style.setProperty('--sticker', x===0 ? colors.left : '#111923');
+    piece.querySelector('.top').style.setProperty('--sticker', y===0 ? colors.top : '#111923');
+    piece.querySelector('.bottom').style.setProperty('--sticker', y===2 ? colors.bottom : '#111923');
+    root.appendChild(piece);
+    pieces.push({el:piece,x,y,z});
+  }
+  const step = 35, gap = 2;
+  const position = (x,y,z) => `translate3d(${(x-1)*(step+gap)}px,${(y-1)*(step+gap)}px,${(1-z)* (step+gap)}px)`;
+  const shuffled = pieces.slice();
+  for (let i=shuffled.length-1;i>0;i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+  }
+  const start = new Map();
+  shuffled.forEach((p,index) => start.set(p.el, pieces[index]));
+  pieces.forEach((p,index) => {
+    const from = start.get(p.el);
+    const a = (index%4-1.5)*90, b = (index%3-1)*90;
+    p.el.animate([
+      { transform: position(from.x,from.y,from.z)+` rotateX(${a}deg) rotateY(${b}deg)` },
+      { transform: position(p.x,p.y,p.z)+' rotateX(0deg) rotateY(0deg)' }
+    ], {duration:60000, delay:index*35, iterations:Infinity, easing:'cubic-bezier(.18,.7,.25,1)', fill:'both'});
+  });
+})();
+</script>
+
+{% endblock %}
 {% block meta_description %}TranTu OJ là nền tảng luyện lập trình C++ miễn phí, thực hành thuật toán, tham gia kỳ thi và theo dõi tiến độ học tập.{% endblock %}
 
 {% block content %}
@@ -47,11 +92,9 @@
         </div>
         <div class="showcase-slide cube-slide is-active" aria-hidden="false">
             <div class="scene-caption"><span class="scene-dot"></span> ALGORITHM IN MOTION</div>
-            <div class="rubik-stage"><div class="rubik-cube">
-                <div class="cube-face cube-front"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                <div class="cube-face cube-right"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                <div class="cube-face cube-top"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-            </div></div>
+            <div class="rubik-stage">
+                <div class="rubik-cube rubik-cube-27" id="rubik-cube-27" aria-label="Rubik 3x3x3 gồm 27 khối nhỏ"></div>
+            </div>
             <div class="scene-tag">Break it down. Solve it.</div>
         </div>
    </div>
