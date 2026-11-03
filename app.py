@@ -18,6 +18,7 @@ from flask import (
     Flask, jsonify, request, render_template,
     session, redirect, url_for, g
 )
+from flask_compress import Compress
 from werkzeug.security import generate_password_hash, check_password_hash
 from authlib.integrations.flask_client import OAuth
 
@@ -328,6 +329,10 @@ def create_app(test_config=None):
         SESSION_COOKIE_SAMESITE='Lax',
         SESSION_COOKIE_SECURE=os.getenv('RENDER', '').lower() == 'true',
         MAX_CONTENT_LENGTH=2 * 1024 * 1024,
+        SEND_FILE_MAX_AGE_DEFAULT=timedelta(days=1),
+        COMPRESS_MIN_SIZE=500,
+        COMPRESS_LEVEL=6,
+        COMPRESS_ALGORITHM=['gzip'],
         DATABASE_PATH=os.getenv('DATABASE_URL') or os.getenv(
             'DATABASE_PATH',
             str(Path(app.instance_path) / 'online_judge.sqlite3')
@@ -345,6 +350,9 @@ def create_app(test_config=None):
 
     if test_config:
         app.config.update(test_config)
+
+    # Nén HTML/JSON lớn để giảm thời gian truyền dữ liệu tới trình duyệt.
+    Compress(app)
 
     # Ghi nhận request backend chậm để xác định điểm nghẽn trên Render.
     # Không ghi query string, cookie, session hay dữ liệu người dùng.
