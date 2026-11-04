@@ -1419,8 +1419,14 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 sql += ' AND s.user_id = ?'
                 params.append(user['id'])
 
-            sql += ' ORDER BY s.id DESC LIMIT 500'
-            rows = db.execute(sql, params).fetchall()
+            # Trang chủ chỉ cần lịch sử gần đây; các trang lịch sử vẫn giữ mặc định 500.
+            try:
+                limit = int(request.args.get('limit', 500))
+            except (TypeError, ValueError):
+                limit = 500
+            limit = max(1, min(limit, 500))
+            sql += ' ORDER BY s.id DESC LIMIT ?'
+            rows = db.execute(sql, params + [limit]).fetchall()
 
         result = []
         for row in rows:
