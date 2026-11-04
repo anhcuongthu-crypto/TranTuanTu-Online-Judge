@@ -67,7 +67,7 @@ def _get_postgres_pool(dsn):
             pool = ConnectionPool(
                 conninfo=dsn,
                 min_size=1,
-                max_size=5,
+                max_size=8,
                 timeout=10,
                 kwargs={
                     "row_factory": _postgres_row_factory,
@@ -341,7 +341,7 @@ def connect(path):
         pool = _get_postgres_pool(dsn)
 
         try:
-            lease = pool.connection(timeout=3)
+            lease = pool.connection(timeout=5)
             raw = lease.__enter__()
             return _PostgresConnection(raw, pool, lease)
         except PoolTimeout:
