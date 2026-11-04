@@ -223,85 +223,233 @@ class Judge0:
 
         return self._wait_for_submission(token)
 
+    def _create_submissions_batch(self, payloads):
+        try:
+            response = self.session.post(
+                self.base_url + '/submissions/batch',
+                params={'base64_encoded': 'false'},
+                json={'submissions': payloads},
+                headers=self._headers(),
+                timeout=(3, 15)
+            )
+        except requests.RequestException as exc:
+            raise JudgeError(
+                'Không kết nối được Judge0 khi gửi batch: ' + str(exc)
+            ) from exc
+
+        if response.status_code in (404, 405):
+            return None
+
+        if not response.ok:
+            raise JudgeError(
+                'Judge0 tạo batch thất bại: '
+                + str(response.status_code) + ' '
+                + self._get_error_text(response)
+            )
+
+        data = response.json()
+        if isinstance(data, dict):
+            data = data.get('submissions')
+
+        if not isinstance(data, list) or len(data) != len(payloads):
+            raise JudgeError('Judge0 trả về batch token không hợp lệ.')
+
+        tokens = []
+        for item in data:
+            token = item.get('token') if isinstance(item, dict) else None
+            if not token:
+                raise JudgeError(
+                    'Judge0 không tạo được một test trong batch: '
+                    + str(item)[:500]
+                )
+            tokens.append(token)
+
+        return tokens
+
+    def _get_submissions_batch(self, tokens):
+        try:
+            response = self.session.get(
+                self.base_url + '/submissions/batch',
+                params={
+                    'tokens': ','.join(tokens),
+                    'base64_encoded': 'true'
+                },
+                headers=self._headers(),
+                timeout=(3, 8)
+            )
+        except requests.RequestException as exc:
+            raise JudgeError(
+                'Không truy vấn được batch Judge0: ' + str(exc)
+            ) from exc
+
+        if response.status_code in (404, 405):
+            return None
+
+        if not response.ok:
+            raise JudgeError(
+                'Judge0 truy vấn batch thất bại: '
+                + str(response.status_code) + ' '
+                + self._get_error_text(response)
+            )
+
+        data = response.json()
+        if isinstance(data, dict):
+            data = data.get('submissions')
+
+        if not isinstance(data, list):
+            raise JudgeError('Judge0 trả về dữ liệu batch không hợp lệ.')
+
+        return data
+
     def run_batch(self, source, language_id, tests,
                   time_limit=1.0, memory_limit=256000):
         if not tests:
             return []
 
-        # Do not stop waiting just because Judge0 takes longer than 30 seconds.
-        # Gửi nhiều test song song thay vì chờ từng request Judge0.
-        # Giới hạn 8 luồng để tránh tạo tải quá lớn lên Judge0 công cộng.
-        workers = min(8, len(tests))
-        tokens = [None] * len(tests)
+        payloads = [
+            self._payload(
+                source,
+                language_id,
+                test['input'],
+                test['output'],
+                time_limit,
+                memory_limit
+            )
+            for test in tests
+        ]
 
-        with ThreadPoolExecutor(max_workers=workers) as executor:
-            futures = {
-                executor.submit(
-                    self._create_submission,
-                    source,
-                    language_id,
-                    test['input'],
-                    test['output'],
-                    time_limit,
-                    memory_limit
-                ): i
-                for i, test in enumerate(tests)
-            }
+        # Judge0 hỗ trợ tạo và truy vấn nhiều submission trong một HTTP
+        # request. Chia lô tối đa 20 test để phù hợp giới hạn mặc định.
+        tokens = []
+        batch_create_supported = True
+        for first in range(0, len(payloads), 20):
+            chunk = payloads[first:first + 20]
+            created = self._create_submissions_batch(chunk)
 
-            for future in as_completed(futures):
-                tokens[futures[future]] = future.result()
+            if created is None:
+                batch_create_supported = False
+                break
+
+            tokens.extend(created)
+
+        # Tương thích với các Judge0 fork không bật Batch API.
+        if not batch_create_supported:
+            workers = min(8, len(tests))
+            tokens = [None] * len(tests)
+            with ThreadPoolExecutor(max_workers=workers) as executor:
+                futures = {
+                    executor.submit(
+                        self._create_submission,
+                        source,
+                        language_id,
+                        test['input'],
+                        test['output'],
+                        time_limit,
+                        memory_limit
+                    ): i
+                    for i, test in enumerate(tests)
+                }
+                for future in as_completed(futures):
+                    tokens[futures[future]] = future.result()
 
         results = [None] * len(tokens)
         pending = set(range(len(tokens)))
         errors = [0] * len(tokens)
-        # Poll sooner so short programs do not wait unnecessarily.
         delay = 0.3
+        batch_get_supported = True
 
-        with ThreadPoolExecutor(max_workers=workers) as executor:
-            while pending:
-                futures = {
-                    executor.submit(
-                        self._get_submission,
-                        tokens[i]
-                    ): i
-                    for i in pending
-                }
+        while pending:
+            # Poll theo từng nhóm <=20 token, thay vì một GET riêng cho
+            # từng test ở mỗi vòng lặp.
+            pending_list = sorted(pending)
+            chunks = [
+                pending_list[i:i + 20]
+                for i in range(0, len(pending_list), 20)
+            ]
 
-                for future in as_completed(futures):
-                    i = futures[future]
+            for chunk_indices in chunks:
+                chunk_tokens = [tokens[i] for i in chunk_indices]
 
+                if batch_get_supported:
                     try:
-                        result = future.result()
-                        errors[i] = 0
-                        status = result['status']
+                        batch_data = self._get_submissions_batch(chunk_tokens)
+                        if batch_data is None:
+                            batch_get_supported = False
+                            batch_data = None
 
-                        print(
-                            'Judge0 test', i + 1,
-                            'status:', status,
-                            flush=True
-                        )
+                        if batch_data is not None:
+                            by_token = {
+                                item.get('token'): item
+                                for item in batch_data
+                                if isinstance(item, dict) and item.get('token')
+                            }
+                            ordered_data = [
+                                by_token.get(token)
+                                for token in chunk_tokens
+                            ]
 
-                        if status not in ('In Queue', 'Processing'):
-                            results[i] = result
-                            pending.discard(i)
+                            for i, data in zip(chunk_indices, ordered_data):
+                                if data is None:
+                                    errors[i] += 1
+                                    if errors[i] >= 5:
+                                        results[i] = {
+                                            'status': 'Judge Unavailable',
+                                            'message': 'Judge0 không trả kết quả cho test này.'
+                                        }
+                                        pending.discard(i)
+                                    continue
+
+                                result = self._format_result(data)
+                                errors[i] = 0
+                                status = result['status']
+                                if status not in ('In Queue', 'Processing'):
+                                    results[i] = result
+                                    pending.discard(i)
+
+                            continue
 
                     except JudgeError as exc:
-                        errors[i] += 1
-                        print(
-                            'Judge0 test', i + 1,
-                            'poll error:', str(exc),
-                            flush=True
-                        )
+                        for i in chunk_indices:
+                            errors[i] += 1
+                            if errors[i] >= 5:
+                                results[i] = {
+                                    'status': 'Judge Unavailable',
+                                    'message': str(exc)
+                                }
+                                pending.discard(i)
+                        continue
 
-                        if errors[i] >= 5:
-                            results[i] = {
-                                'status': 'Judge Unavailable',
-                                'message': str(exc)
-                            }
-                            pending.discard(i)
+                # Fallback cho Judge0 không hỗ trợ GET batch.
+                with ThreadPoolExecutor(
+                    max_workers=min(8, len(chunk_indices))
+                ) as executor:
+                    futures = {
+                        executor.submit(
+                            self._get_submission,
+                            tokens[i]
+                        ): i
+                        for i in chunk_indices
+                        if i in pending
+                    }
+                    for future in as_completed(futures):
+                        i = futures[future]
+                        try:
+                            result = future.result()
+                            errors[i] = 0
+                            if result['status'] not in ('In Queue', 'Processing'):
+                                results[i] = result
+                                pending.discard(i)
+                        except JudgeError as exc:
+                            errors[i] += 1
+                            if errors[i] >= 5:
+                                results[i] = {
+                                    'status': 'Judge Unavailable',
+                                    'message': str(exc)
+                                }
+                                pending.discard(i)
 
-                if pending:
-                    time.sleep(delay)
-                    delay = min(delay * 1.4, 2.0)
+            if pending:
+                time.sleep(delay)
+                delay = min(delay * 1.4, 2.0)
 
         return results
