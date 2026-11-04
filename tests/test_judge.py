@@ -35,3 +35,72 @@ def test_judge0_network_error_becomes_actionable_judge_error():
         assert 'Không kết nối được Judge0' in str(exc)
     else:
         raise AssertionError('Expected JudgeError')
+
+
+
+def test_judge0_run_batch_uses_batch_create_and_batch_poll():
+    session = Mock()
+
+    created = Mock()
+    created.ok = True
+    created.status_code = 201
+    created.json.return_value = [
+        {'token': 'token-1'},
+        {'token': 'token-2'}
+    ]
+
+    polled = Mock()
+    polled.ok = True
+    polled.status_code = 200
+    polled.json.return_value = {
+        'submissions': [
+            {
+                'token': 'token-1',
+                'status': {'description': 'Accepted'},
+                'stdout': 'MQo=',
+                'stderr': None,
+                'compile_output': None,
+                'message': None,
+                'time': '0.01',
+                'memory': 1024
+            },
+            {
+                'token': 'token-2',
+                'status': {'description': 'Wrong Answer'},
+                'stdout': 'MAo=',
+                'stderr': None,
+                'compile_output': None,
+                'message': None,
+                'time': '0.01',
+                'memory': 1024
+            }
+        ]
+    }
+
+    session.post.return_value = created
+    session.get.return_value = polled
+
+    judge = Judge0(
+        'https://judge.example',
+        session=session
+    )
+
+    tests = [
+        {'input': '1\\n', 'output': '1\\n'},
+        {'input': '2\\n', 'output': '2\\n'}
+    ]
+
+    with patch('oj.judge.time.sleep'):
+        results = judge.run_batch(
+            'int main(){}', 54, tests, 1, 256000
+        )
+
+    assert [item['status'] for item in results] == [
+        'Accepted', 'Wrong Answer'
+    ]
+    assert session.post.call_count == 1
+    assert session.post.call_args.args[0].endswith('/submissions/batch')
+    assert len(session.post.call_args.kwargs['json']['submissions']) == 2
+    assert session.get.call_count == 1
+    assert session.get.call_args.args[0].endswith('/submissions/batch')
+    assert session.get.call_args.kwargs['params']['tokens'] == 'token-1,token-2'
