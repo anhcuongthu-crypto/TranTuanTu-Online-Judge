@@ -47,6 +47,10 @@ DB_POOL_TIMEOUT_ERRORS = (PoolTimeout,) if PoolTimeout else ()
 _POSTGRES_POOLS = {}
 _POSTGRES_POOLS_LOCK = threading.Lock()
 
+# Khi pool đầy, cho phép tối đa một request dùng kết nối dự phòng ngắn hạn.
+# Giới hạn này tránh tạo thêm hàng loạt kết nối ngoài pool.
+_POSTGRES_FALLBACK_SEMAPHORE = threading.BoundedSemaphore(1)
+
 
 def _get_postgres_pool(dsn):
     if ConnectionPool is None:
@@ -225,12 +229,14 @@ class _CursorAdapter:
 
 
 class _PostgresConnection:
-    def __init__(self, raw_connection, pool, lease):
+    def __init__(
+        self, raw_connection, pool, lease, fallback_semaphore=None
+    ):
         self._connection = raw_connection
         self._pool = pool
-        # Dùng context manager chính thức của psycopg_pool để bảo đảm
-        # connection luôn được trả về pool sau khi transaction kết thúc.
+        # Kết nối từ pool được trả lại bằng lease; kết nối dự phòng tự đóng.
         self._lease = lease
+        self._fallback_semaphore = fallback_semaphore
 
     def execute(self, query, parameters=None):
         sql = _qmark_to_pyformat(query)
@@ -290,10 +296,26 @@ class _PostgresConnection:
     def __exit__(self, exc_type, exc, traceback):
         lease = self._lease
         self._lease = None
+        connection = self._connection
         self._connection = None
 
         if lease is not None:
             return lease.__exit__(exc_type, exc, traceback)
+
+        if connection is not None:
+            try:
+                if exc_type is None:
+                    connection.commit()
+                else:
+                    connection.rollback()
+            finally:
+                try:
+                    connection.close()
+                finally:
+                    semaphore = self._fallback_semaphore
+                    self._fallback_semaphore = None
+                    if semaphore is not None:
+                        semaphore.release()
 
         return False
 
@@ -314,9 +336,35 @@ def connect(path):
 
         dsn = _normalize_dsn(path)
         pool = _get_postgres_pool(dsn)
-        lease = pool.connection()
-        raw = lease.__enter__()
-        return _PostgresConnection(raw, pool, lease)
+
+        try:
+            lease = pool.connection(timeout=3)
+            raw = lease.__enter__()
+            return _PostgresConnection(raw, pool, lease)
+        except PoolTimeout:
+            # Pool đầy có thể làm request đăng nhập và API bị treo 10 giây.
+            # Thử một kết nối ngắn hạn, có semaphore giới hạn đúng một kết nối.
+            if not _POSTGRES_FALLBACK_SEMAPHORE.acquire(blocking=False):
+                raise
+
+            try:
+                raw = psycopg.connect(
+                    dsn,
+                    row_factory=_postgres_row_factory,
+                    connect_timeout=8
+                )
+            except Exception:
+                _POSTGRES_FALLBACK_SEMAPHORE.release()
+                raise
+
+            print(
+                "[DATABASE] PostgreSQL pool saturated; using one "
+                "temporary fallback connection.",
+                flush=True
+            )
+            return _PostgresConnection(
+                raw, pool, None, _POSTGRES_FALLBACK_SEMAPHORE
+            )
 
     sqlite_path = str(path)
 
