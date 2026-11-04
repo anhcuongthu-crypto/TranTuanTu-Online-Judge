@@ -457,7 +457,7 @@ async function refresh() {
                     return;
                 }
 
-                const data = await api('/api/submissions');
+                const data = await api('/api/submissions?limit=50');
                 const items = Array.isArray(data)
                     ? data
                     : (data.submissions || []);
