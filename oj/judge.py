@@ -367,59 +367,77 @@ class Judge0:
                 for i in range(0, len(pending_list), 20)
             ]
 
-            for chunk_indices in chunks:
-                chunk_tokens = [tokens[i] for i in chunk_indices]
+            fallback_chunks = []
 
-                if batch_get_supported:
-                    try:
-                        batch_data = self._get_submissions_batch(chunk_tokens)
-                        if batch_data is None:
-                            batch_get_supported = False
-                            batch_data = None
+            if batch_get_supported:
+                # Poll các nhóm <=20 token đồng thời. Trước đây mỗi nhóm
+                # phải chờ nhóm trước xong mới được hỏi, làm tăng độ trễ
+                # rõ rệt khi bài có nhiều hơn 20 test.
+                with ThreadPoolExecutor(
+                    max_workers=min(4, len(chunks))
+                ) as executor:
+                    futures = {
+                        executor.submit(
+                            self._get_submissions_batch,
+                            [tokens[i] for i in chunk_indices]
+                        ): chunk_indices
+                        for chunk_indices in chunks
+                    }
 
-                        if batch_data is not None:
-                            by_token = {
-                                item.get('token'): item
-                                for item in batch_data
-                                if isinstance(item, dict) and item.get('token')
-                            }
-                            ordered_data = [
-                                by_token.get(token)
-                                for token in chunk_tokens
-                            ]
-
-                            for i, data in zip(chunk_indices, ordered_data):
-                                if data is None:
-                                    errors[i] += 1
-                                    if errors[i] >= 5:
-                                        results[i] = {
-                                            'status': 'Judge Unavailable',
-                                            'message': 'Judge0 không trả kết quả cho test này.'
-                                        }
-                                        pending.discard(i)
-                                    continue
-
-                                result = self._format_result(data)
-                                errors[i] = 0
-                                status = result['status']
-                                if status not in ('In Queue', 'Processing'):
-                                    results[i] = result
+                    for future in as_completed(futures):
+                        chunk_indices = futures[future]
+                        try:
+                            batch_data = future.result()
+                        except JudgeError as exc:
+                            for i in chunk_indices:
+                                errors[i] += 1
+                                if errors[i] >= 5:
+                                    results[i] = {
+                                        'status': 'Judge Unavailable',
+                                        'message': str(exc)
+                                    }
                                     pending.discard(i)
-
                             continue
 
-                    except JudgeError as exc:
-                        for i in chunk_indices:
-                            errors[i] += 1
-                            if errors[i] >= 5:
-                                results[i] = {
-                                    'status': 'Judge Unavailable',
-                                    'message': str(exc)
-                                }
-                                pending.discard(i)
-                        continue
+                        if batch_data is None:
+                            # Judge0 fork không hỗ trợ GET batch.
+                            batch_get_supported = False
+                            fallback_chunks.append(chunk_indices)
+                            continue
 
-                # Fallback cho Judge0 không hỗ trợ GET batch.
+                        by_token = {
+                            item.get('token'): item
+                            for item in batch_data
+                            if isinstance(item, dict) and item.get('token')
+                        }
+
+                        chunk_tokens = [tokens[i] for i in chunk_indices]
+                        ordered_data = [
+                            by_token.get(token)
+                            for token in chunk_tokens
+                        ]
+
+                        for i, data in zip(chunk_indices, ordered_data):
+                            if data is None:
+                                errors[i] += 1
+                                if errors[i] >= 5:
+                                    results[i] = {
+                                        'status': 'Judge Unavailable',
+                                        'message': 'Judge0 không trả kết quả cho test này.'
+                                    }
+                                    pending.discard(i)
+                                continue
+
+                            result = self._format_result(data)
+                            errors[i] = 0
+                            if result['status'] not in ('In Queue', 'Processing'):
+                                results[i] = result
+                                pending.discard(i)
+            else:
+                fallback_chunks = chunks
+
+            # Fallback cho Judge0 không hỗ trợ GET batch.
+            for chunk_indices in fallback_chunks:
                 with ThreadPoolExecutor(
                     max_workers=min(8, len(chunk_indices))
                 ) as executor:
