@@ -41,6 +41,9 @@ DB_INTEGRITY_ERRORS = (
 
 # Cho phép giao diện xử lý riêng khi pool tạm thời hết kết nối.
 DB_POOL_TIMEOUT_ERRORS = (PoolTimeout,) if PoolTimeout else ()
+DB_UNAVAILABLE_ERRORS = DB_POOL_TIMEOUT_ERRORS + (
+    (psycopg.OperationalError,) if psycopg else ()
+)
 
 # Reuse PostgreSQL connections instead of opening a new TCP/TLS connection
 # for every API request. The pool is process-local and bounded.
