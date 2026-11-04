@@ -27,7 +27,8 @@ from authlib.integrations.flask_client import OAuth
 
 from oj.database import (
     connect, init_db, is_postgres_path,
-    DB_INTEGRITY_ERRORS, DB_POOL_TIMEOUT_ERRORS
+    DB_INTEGRITY_ERRORS, DB_POOL_TIMEOUT_ERRORS,
+    DB_UNAVAILABLE_ERRORS
 )
 from oj.job_queue import enqueue
 from oj.admin import register_admin_routes
@@ -1208,11 +1209,17 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
     @app.post('/api/login')
     def login():
         d = request.get_json(silent=True) or {}
-        with connect(app.config['DATABASE_PATH']) as db:
-            row = db.execute(
-                'SELECT * FROM users WHERE username=?',
-                (str(d.get('username', '')).strip(),)
-            ).fetchone()
+        try:
+            with connect(app.config['DATABASE_PATH']) as db:
+                row = db.execute(
+                    'SELECT * FROM users WHERE username=?',
+                    (str(d.get('username', '')).strip(),)
+                ).fetchone()
+        except DB_UNAVAILABLE_ERRORS as exc:
+            app.logger.error('DATABASE_UNAVAILABLE during login: %s', exc)
+            return jsonify(
+                error='Cơ sở dữ liệu đang bận hoặc tạm thời không kết nối được. Hãy thử lại sau ít giây.'
+            ), 503
         if not row or not check_password_hash(
             row['password_hash'], str(d.get('password', ''))
         ):
