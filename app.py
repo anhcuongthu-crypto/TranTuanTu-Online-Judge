@@ -751,8 +751,10 @@ def create_app(test_config=None):
                     )
                 )
 
-    # Cache hồ sơ đăng nhập cực ngắn để tránh một SELECT users cho mỗi
-    # API/page request. TTL 2 giây giúp quyền admin/approval vẫn cập nhật nhanh.
+    # Cache hồ sơ đăng nhập trong thời gian ngắn để giảm SELECT users lặp
+    # lại khi người dùng chuyển trang. Thay đổi hồ sơ sẽ xóa cache ngay.
+    _CURRENT_USER_CACHE_TTL = 10.0
+    _CURRENT_USER_CACHE_LIMIT = 1000
     current_user_cache = {}
     current_user_cache_lock = threading.Lock()
 
@@ -769,9 +771,15 @@ def create_app(test_config=None):
         now = time.monotonic()
         with current_user_cache_lock:
             cached = current_user_cache.get(uid)
-            if cached and now - cached['time'] < 2:
+            if cached and now - cached['time'] < _CURRENT_USER_CACHE_TTL:
+                # Dict giữ thứ tự chèn; di chuyển key để dùng làm LRU.
+                current_user_cache.pop(uid, None)
+                current_user_cache[uid] = cached
                 g._trantu_current_user = cached['user']
                 return g._trantu_current_user
+
+            if cached is not None:
+                current_user_cache.pop(uid, None)
 
         query = '''SELECT id, username, is_admin, approved,
                           avatar_color, bio, created_at
@@ -793,17 +801,14 @@ def create_app(test_config=None):
         user = dict(row) if row and row['approved'] else None
         g._trantu_current_user = user
         with current_user_cache_lock:
+            current_user_cache.pop(uid, None)
             current_user_cache[uid] = {
                 'time': time.monotonic(),
                 'user': user
             }
-            if len(current_user_cache) > 1000:
-                expired = [
-                    key for key, value in current_user_cache.items()
-                    if time.monotonic() - value['time'] >= 2
-                ]
-                for key in expired:
-                    current_user_cache.pop(key, None)
+            while len(current_user_cache) > _CURRENT_USER_CACHE_LIMIT:
+                # Xóa key ít được truy cập gần đây nhất để giữ RAM ổn định.
+                current_user_cache.pop(next(iter(current_user_cache)))
 
         return user
 
