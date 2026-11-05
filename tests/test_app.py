@@ -240,3 +240,35 @@ def test_current_user_cache_ttl_and_profile_invalidation(tmp_path, monkeypatch):
     assert refreshed.json['user']['bio'] == 'Updated bio'
     assert refreshed.json['user']['avatar_color'] == '#123456'
     assert connect_calls == [db_path]
+
+def test_my_progress_cache_hit_skips_database_connection(tmp_path, monkeypatch):
+    client = setup(tmp_path)
+    register_and_login(client, 'progresscache')
+
+    # First request populates both the profile cache and progress cache.
+    first = client.get('/api/my-progress')
+    assert first.status_code == 200
+
+    def unexpected_connect(path):
+        raise AssertionError('Progress cache hit should not open the database')
+
+    monkeypatch.setattr(app_module, 'connect', unexpected_connect)
+    second = client.get('/api/my-progress')
+    assert second.status_code == 200
+    assert second.json == first.json
+
+
+def test_public_contests_cache_hit_skips_database_connection(tmp_path, monkeypatch):
+    client = setup(tmp_path)
+
+    # Anonymous public contest data is cached for five seconds.
+    first = client.get('/api/contests')
+    assert first.status_code == 200
+
+    def unexpected_connect(path):
+        raise AssertionError('Contests cache hit should not open the database')
+
+    monkeypatch.setattr(app_module, 'connect', unexpected_connect)
+    second = client.get('/api/contests')
+    assert second.status_code == 200
+    assert second.json == first.json
