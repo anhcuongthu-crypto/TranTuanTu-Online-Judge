@@ -182,7 +182,10 @@ class Judge0:
         errors = 0
         last_status = 'Unknown'
 
-        while True:
+        if deadline is None:
+            deadline = time.monotonic() + 60
+
+        while time.monotonic() < deadline:
             try:
                 result = self._get_submission(token)
                 errors = 0
@@ -206,12 +209,14 @@ class Judge0:
                         'message': str(exc)
                     }
 
-            time.sleep(delay)
+            remaining = deadline - time.monotonic()
+            if remaining > 0:
+                time.sleep(min(delay, remaining))
             delay = min(delay * 1.5, 2.0)
 
         return {
-            'status': last_status,
-            'message': 'Đang chờ Judge0 trả kết quả.'
+            'status': 'Judge Timeout',
+            'message': 'Judge0 không trả kết quả trong thời gian chờ cho phép.'
         }
 
     def run(self, source, language_id, stdin, expected,
@@ -221,7 +226,10 @@ class Judge0:
             time_limit, memory_limit
         )
 
-        return self._wait_for_submission(token)
+        return self._wait_for_submission(
+            token,
+            deadline=time.monotonic() + 60
+        )
 
     def _create_submissions_batch(self, payloads):
         try:
@@ -302,7 +310,8 @@ class Judge0:
         return data
 
     def run_batch(self, source, language_id, tests,
-                  time_limit=1.0, memory_limit=256000):
+                  time_limit=1.0, memory_limit=256000,
+                  max_wait_seconds=90):
         if not tests:
             return []
 
@@ -332,33 +341,39 @@ class Judge0:
 
             tokens.extend(created)
 
-        # Tương thích với các Judge0 fork không bật Batch API.
+        # Nếu Batch API lỗi giữa các chunk, giữ token đã tạo thành công
+        # và chỉ tạo riêng những test còn thiếu, tránh chấm trùng.
         if not batch_create_supported:
-            workers = min(8, len(tests))
-            tokens = [None] * len(tests)
-            with ThreadPoolExecutor(max_workers=workers) as executor:
-                futures = {
-                    executor.submit(
-                        self._create_submission,
-                        source,
-                        language_id,
-                        test['input'],
-                        test['output'],
-                        time_limit,
-                        memory_limit
-                    ): i
-                    for i, test in enumerate(tests)
-                }
-                for future in as_completed(futures):
-                    tokens[futures[future]] = future.result()
+            first_missing = len(tokens)
+            missing_tests = tests[first_missing:]
+            tokens.extend([None] * len(missing_tests))
+
+            if missing_tests:
+                workers = min(8, len(missing_tests))
+                with ThreadPoolExecutor(max_workers=workers) as executor:
+                    futures = {
+                        executor.submit(
+                            self._create_submission,
+                            source,
+                            language_id,
+                            test['input'],
+                            test['output'],
+                            time_limit,
+                            memory_limit
+                        ): first_missing + i
+                        for i, test in enumerate(missing_tests)
+                    }
+                    for future in as_completed(futures):
+                        tokens[futures[future]] = future.result()
 
         results = [None] * len(tokens)
         pending = set(range(len(tokens)))
+        deadline = time.monotonic() + max(5, float(max_wait_seconds))
         errors = [0] * len(tokens)
         delay = 0.3
         batch_get_supported = True
 
-        while pending:
+        while pending and time.monotonic() < deadline:
             # Poll theo từng nhóm <=20 token, thay vì một GET riêng cho
             # từng test ở mỗi vòng lặp.
             pending_list = sorted(pending)
@@ -467,7 +482,16 @@ class Judge0:
                                 pending.discard(i)
 
             if pending:
-                time.sleep(delay)
+                remaining = deadline - time.monotonic()
+                if remaining > 0:
+                    time.sleep(min(delay, remaining))
                 delay = min(delay * 1.4, 2.0)
+
+        # Không để một test ở trạng thái None vô thời hạn nếu Judge0 treo.
+        for i in pending:
+            results[i] = {
+                'status': 'Judge Timeout',
+                'message': 'Judge0 không trả kết quả trong thời gian chờ cho phép.'
+            }
 
         return results
