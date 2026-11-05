@@ -185,26 +185,27 @@ def enqueue(app, user_id, problem, code, language, contest_id=None):
     except Exception as exc:
         message = 'Không thể khởi chạy worker: ' + str(exc)
 
-        with connect(app.config['DATABASE_PATH']) as db:
-            db.execute(
-                '''UPDATE submissions
-                   SET verdict=?, details_json=?
-                   WHERE id=? AND user_id=?''',
-                (
-                    'Judge Unavailable',
-                    json.dumps([{
-                        'status': 'Judge Unavailable',
-                        'message': message[:1000]
-                    }], ensure_ascii=False),
-                    submission_id,
-                    user_id
+        try:
+            with connect(app.config['DATABASE_PATH']) as db:
+                db.execute(
+                    '''UPDATE submissions
+                       SET verdict=?, details_json=?
+                       WHERE id=? AND user_id=?''',
+                    (
+                        'Judge Unavailable',
+                        json.dumps([{
+                            'status': 'Judge Unavailable',
+                            'message': message[:1000]
+                        }], ensure_ascii=False),
+                        submission_id,
+                        user_id
+                    )
                 )
-            )
-
-        with _lock:
-            if job_id in _jobs:
-                _jobs[job_id]['status'] = 'Finished'
-        _capacity.release()
+        finally:
+            with _lock:
+                if job_id in _jobs:
+                    _jobs[job_id]['status'] = 'Finished'
+            _capacity.release()
 
         print(
             f'[OJ ERROR] Cannot start submission={submission_id}: {exc}',
