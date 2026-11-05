@@ -1080,6 +1080,10 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
         return render_template('login.html', next_url=next_url or '')
 
+    @app.get('/favicon.ico')
+    def favicon_ico():
+        return redirect(url_for('static', filename='favicon.svg'), code=302)
+
     @app.get('/')
     def home():
         return render_template('index.html')
