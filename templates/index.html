@@ -59,43 +59,124 @@
 (() => {
   const root = document.getElementById('rubik-cube-27');
   if (!root || root.dataset.ready) return;
-  root.dataset.ready = '1';
-  const colors = {
-    front: '#168ee8', back: '#22b86a', right: '#f28a18',
-    left: '#f0cf28', top: '#f5f7fb', bottom: '#df3348'
+
+  const reducedMotion = window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : { matches: false };
+  let nearViewport = true;
+  let initScheduled = false;
+  const animations = [];
+
+  const syncAnimationState = () => {
+    const shouldPlay = !document.hidden
+      && nearViewport
+      && !reducedMotion.matches;
+
+    animations.forEach(animation => {
+      if (shouldPlay) animation.play();
+      else animation.pause();
+    });
   };
-  const faces = ['front','back','right','left','top','bottom'];
-  const pieces = [];
-  for (let z=0; z<3; z++) for (let y=0; y<3; y++) for (let x=0; x<3; x++) {
-    const piece = document.createElement('div');
-    piece.className = 'rubik-cubie';
-    piece.innerHTML = faces.map(face => '<i class="cubie-face '+face+'"></i>').join('');
-    piece.querySelector('.front').style.setProperty('--sticker', z===0 ? colors.front : '#111923');
-    piece.querySelector('.back').style.setProperty('--sticker', z===2 ? colors.back : '#111923');
-    piece.querySelector('.right').style.setProperty('--sticker', x===2 ? colors.right : '#111923');
-    piece.querySelector('.left').style.setProperty('--sticker', x===0 ? colors.left : '#111923');
-    piece.querySelector('.top').style.setProperty('--sticker', y===0 ? colors.top : '#111923');
-    piece.querySelector('.bottom').style.setProperty('--sticker', y===2 ? colors.bottom : '#111923');
-    root.appendChild(piece);
-    pieces.push({el:piece,x,y,z});
-  }
-  const step = 35, gap = 2;
-  const position = (x,y,z) => `translate3d(${(x-1)*(step+gap)}px,${(y-1)*(step+gap)}px,${(1-z)* (step+gap)}px)`;
-  const shuffled = pieces.slice();
-  for (let i=shuffled.length-1;i>0;i--) {
-    const j=Math.floor(Math.random()*(i+1));
-    [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
-  }
-  const start = new Map();
-  shuffled.forEach((p,index) => start.set(p.el, pieces[index]));
-  pieces.forEach((p,index) => {
-    const from = start.get(p.el);
-    const a = (index%4-1.5)*90, b = (index%3-1)*90;
-    p.el.animate([
-      { transform: position(from.x,from.y,from.z)+` rotateX(${a}deg) rotateY(${b}deg)` },
-      { transform: position(p.x,p.y,p.z)+' rotateX(0deg) rotateY(0deg)' }
-    ], {duration:60000, delay:index*35, iterations:Infinity, easing:'cubic-bezier(.18,.7,.25,1)', fill:'both'});
+
+  const init = () => {
+    if (root.dataset.ready || document.hidden) {
+      initScheduled = false;
+      return;
+    }
+    root.dataset.ready = '1';
+
+    const colors = {
+      front: '#168ee8', back: '#22b86a', right: '#f28a18',
+      left: '#f0cf28', top: '#f5f7fb', bottom: '#df3348'
+    };
+    const faces = ['front','back','right','left','top','bottom'];
+    const pieces = [];
+
+    for (let z=0; z<3; z++) for (let y=0; y<3; y++) for (let x=0; x<3; x++) {
+      const piece = document.createElement('div');
+      piece.className = 'rubik-cubie';
+      piece.innerHTML = faces.map(face => '<i class="cubie-face '+face+'"></i>').join('');
+      piece.querySelector('.front').style.setProperty('--sticker', z===0 ? colors.front : '#111923');
+      piece.querySelector('.back').style.setProperty('--sticker', z===2 ? colors.back : '#111923');
+      piece.querySelector('.right').style.setProperty('--sticker', x===2 ? colors.right : '#111923');
+      piece.querySelector('.left').style.setProperty('--sticker', x===0 ? colors.left : '#111923');
+      piece.querySelector('.top').style.setProperty('--sticker', y===0 ? colors.top : '#111923');
+      piece.querySelector('.bottom').style.setProperty('--sticker', y===2 ? colors.bottom : '#111923');
+      root.appendChild(piece);
+      pieces.push({el:piece,x,y,z});
+    }
+
+    const step = 35, gap = 2;
+    const position = (x,y,z) => `translate3d(${(x-1)*(step+gap)}px,${(y-1)*(step+gap)}px,${(1-z)*(step+gap)}px)`;
+    const shuffled = pieces.slice();
+
+    for (let i=shuffled.length-1;i>0;i--) {
+      const j=Math.floor(Math.random()*(i+1));
+      [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+    }
+
+    const start = new Map();
+    shuffled.forEach((p,index) => start.set(p.el, pieces[index]));
+
+    pieces.forEach((p,index) => {
+      const from = start.get(p.el);
+      const a = (index%4-1.5)*90, b = (index%3-1)*90;
+      const animation = p.el.animate([
+        { transform: position(from.x,from.y,from.z)+` rotateX(${a}deg) rotateY(${b}deg)` },
+        { transform: position(p.x,p.y,p.z)+' rotateX(0deg) rotateY(0deg)' }
+      ], {
+        duration:60000,
+        delay:index*35,
+        iterations:Infinity,
+        easing:'cubic-bezier(.18,.7,.25,1)',
+        fill:'both'
+      });
+      animations.push(animation);
+    });
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(entries => {
+        nearViewport = entries.some(entry => entry.isIntersecting);
+        syncAnimationState();
+      }, { rootMargin: '80px', threshold: 0.01 });
+      observer.observe(root);
+    }
+
+    document.addEventListener('visibilitychange', syncAnimationState);
+    if (typeof reducedMotion.addEventListener === 'function') {
+      reducedMotion.addEventListener('change', syncAnimationState);
+    } else if (typeof reducedMotion.addListener === 'function') {
+      reducedMotion.addListener(syncAnimationState);
+    }
+
+    syncAnimationState();
+  };
+
+  const scheduleInit = () => {
+    if (initScheduled || root.dataset.ready || document.hidden) return;
+    initScheduled = true;
+
+    const run = () => {
+      if (document.hidden) {
+        initScheduled = false;
+        return;
+      }
+      init();
+    };
+
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(run, { timeout: 1800 });
+    } else {
+      // Chừa một nhịp để trình duyệt vẽ nội dung chính trước.
+      window.setTimeout(run, 250);
+    }
+  };
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && !root.dataset.ready) scheduleInit();
   });
+
+  scheduleInit();
 })();
 </script>
    </div>

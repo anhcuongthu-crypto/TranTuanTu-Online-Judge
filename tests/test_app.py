@@ -272,3 +272,17 @@ def test_public_contests_cache_hit_skips_database_connection(tmp_path, monkeypat
     second = client.get('/api/contests')
     assert second.status_code == 200
     assert second.json == first.json
+
+def test_home_rubik_animation_is_deferred_and_paused_offscreen(tmp_path):
+    client = setup(tmp_path)
+    response = client.get('/')
+    assert response.status_code == 200
+
+    page = response.get_data(as_text=True)
+    assert 'requestIdleCallback' in page
+    assert 'IntersectionObserver' in page
+    assert 'document.hidden' in page
+    assert "prefers-reduced-motion: reduce" in page
+    assert 'animation.pause()' in page
+    assert 'animation.play()' in page
+    assert 'z<3' in page and 'y<3' in page and 'x<3' in page
