@@ -30,7 +30,7 @@ from oj.database import (
     DB_INTEGRITY_ERRORS, DB_POOL_TIMEOUT_ERRORS,
     DB_UNAVAILABLE_ERRORS
 )
-from oj.job_queue import enqueue
+from oj.job_queue import enqueue, QueueFullError
 from oj.admin import register_admin_routes
 from oj.history import (
     initialize_history,
@@ -1858,9 +1858,12 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             language = int(language)
         except (ValueError, TypeError):
             return jsonify(error='language_id không hợp lệ.'), 400
-        job_id, submission_id = enqueue(
-            app, user['id'], p, code, language
-        )
+        try:
+            job_id, submission_id = enqueue(
+                app, user['id'], p, code, language
+            )
+        except QueueFullError as exc:
+            return jsonify(error=str(exc)), 429
         return jsonify(
             submission_id=submission_id,
             job_id=job_id,
@@ -2128,9 +2131,12 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         if not p:
             return jsonify(error='Không tìm thấy bài.'), 404
 
-        job_id, submission_id = enqueue(
-            app, user['id'], p, code, language, contest_id=contest_id
-        )
+        try:
+            job_id, submission_id = enqueue(
+                app, user['id'], p, code, language, contest_id=contest_id
+            )
+        except QueueFullError as exc:
+            return jsonify(error=str(exc)), 429
 
         return jsonify(
             submission_id=submission_id,

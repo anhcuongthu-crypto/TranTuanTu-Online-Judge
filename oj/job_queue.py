@@ -10,6 +10,15 @@ from oj.judge import Judge0, JudgeError
 
 
 _pool = ThreadPoolExecutor(max_workers=2)
+# Bound running + waiting submissions so a burst cannot grow RAM without limit.
+_MAX_PENDING_JOBS = 24
+_capacity = threading.BoundedSemaphore(_MAX_PENDING_JOBS)
+
+
+class QueueFullError(Exception):
+    pass
+
+
 _lock = threading.Lock()
 _jobs = {}
 
@@ -125,26 +134,35 @@ def _run_batch_with_retry(
 
 
 def enqueue(app, user_id, problem, code, language, contest_id=None):
+    # Reject overload before writing a submission row. This bounds both the
+    # executor's pending work and the source-code objects retained in memory.
+    if not _capacity.acquire(blocking=False):
+        raise QueueFullError('Hàng đợi chấm bài đang đầy. Vui lòng thử lại sau.')
+
     job_id = uuid.uuid4().hex
 
-    with connect(app.config['DATABASE_PATH']) as db:
-        cur = db.execute(
-            '''INSERT INTO submissions
-            (user_id, problem_id, language_id, source_code,
-             verdict, score, max_score, details_json, contest_id)
-            VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)''',
-            (
-                user_id,
-                problem['id'],
-                language,
-                code,
-                'Queued',
-                problem['total_score'],
-                '[]',
-                contest_id
+    try:
+        with connect(app.config['DATABASE_PATH']) as db:
+            cur = db.execute(
+                '''INSERT INTO submissions
+                (user_id, problem_id, language_id, source_code,
+                 verdict, score, max_score, details_json, contest_id)
+                VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)''',
+                (
+                    user_id,
+                    problem['id'],
+                    language,
+                    code,
+                    'Queued',
+                    problem['total_score'],
+                    '[]',
+                    contest_id
+                )
             )
-        )
-        submission_id = cur.lastrowid
+            submission_id = cur.lastrowid
+    except Exception:
+        _capacity.release()
+        raise
 
     with _lock:
         _jobs[job_id] = {
@@ -167,25 +185,27 @@ def enqueue(app, user_id, problem, code, language, contest_id=None):
     except Exception as exc:
         message = 'Không thể khởi chạy worker: ' + str(exc)
 
-        with connect(app.config['DATABASE_PATH']) as db:
-            db.execute(
-                '''UPDATE submissions
-                   SET verdict=?, details_json=?
-                   WHERE id=? AND user_id=?''',
-                (
-                    'Judge Unavailable',
-                    json.dumps([{
-                        'status': 'Judge Unavailable',
-                        'message': message[:1000]
-                    }], ensure_ascii=False),
-                    submission_id,
-                    user_id
+        try:
+            with connect(app.config['DATABASE_PATH']) as db:
+                db.execute(
+                    '''UPDATE submissions
+                       SET verdict=?, details_json=?
+                       WHERE id=? AND user_id=?''',
+                    (
+                        'Judge Unavailable',
+                        json.dumps([{
+                            'status': 'Judge Unavailable',
+                            'message': message[:1000]
+                        }], ensure_ascii=False),
+                        submission_id,
+                        user_id
+                    )
                 )
-            )
-
-        with _lock:
-            if job_id in _jobs:
-                _jobs[job_id]['status'] = 'Finished'
+        finally:
+            with _lock:
+                if job_id in _jobs:
+                    _jobs[job_id]['status'] = 'Finished'
+            _capacity.release()
 
         print(
             f'[OJ ERROR] Cannot start submission={submission_id}: {exc}',
@@ -500,6 +520,7 @@ def _run_job(
         with _lock:
             if job_id in _jobs:
                 _jobs[job_id]['status'] = 'Finished'
+        _capacity.release()
 
 
 def _get_contest_id(app, submission_id, user_id):
