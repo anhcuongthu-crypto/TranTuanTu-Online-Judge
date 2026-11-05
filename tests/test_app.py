@@ -165,7 +165,7 @@ def test_queue_recovery_replays_only_safe_queued_rows(tmp_path, monkeypatch):
     restored = job_queue.recover_pending(app)
     assert restored == 1
     assert len(submitted) == 1
-    assert submitted[0][2] == queued
+    assert submitted[0][3] == queued
     assert submitted[0][-1] == 'Starting'
 
     with connect(db_path) as db:
@@ -188,7 +188,7 @@ def test_queue_recovery_replays_only_safe_queued_rows(tmp_path, monkeypatch):
     assert rows[legacy]['verdict'] == 'Judge Unavailable'
     assert rows[legacy]['problem_json'] is None
 
-    job_id = submitted[0][1]
+    job_id = submitted[0][2]
     with job_queue._lock:
         job_queue._jobs.pop(job_id, None)
     job_queue._capacity.release()
