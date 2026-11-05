@@ -446,10 +446,16 @@ def create_app(test_config=None):
     problems_cache_lock = threading.Lock()
     problems_refreshing = False
 
-    # Cache bảng xếp hạng contest trong thời gian ngắn để tránh chạy lại
-    # truy vấn GROUP BY trên toàn bộ submissions ở mỗi lần polling.
+    # Cache ngắn cho các API được gọi thường xuyên. Dữ liệu điểm số có thể
+    # trễ tối đa vài giây, đổi lại giảm nhiều lượt truy vấn DB lặp lại.
     contest_leaderboard_cache = {}
     contest_leaderboard_cache_lock = threading.Lock()
+    leaderboard_cache = {'time': 0.0, 'rows': None}
+    leaderboard_cache_lock = threading.Lock()
+    contests_cache = {}
+    contests_cache_lock = threading.Lock()
+    progress_cache = {}
+    progress_cache_lock = threading.Lock()
 
     def _refresh_problem_bank_in_background():
         nonlocal problems_cache, problems_refreshing
@@ -695,6 +701,11 @@ def create_app(test_config=None):
                     )
                 )
 
+    # Cache hồ sơ đăng nhập cực ngắn để tránh một SELECT users cho mỗi
+    # API/page request. TTL 2 giây giúp quyền admin/approval vẫn cập nhật nhanh.
+    current_user_cache = {}
+    current_user_cache_lock = threading.Lock()
+
     def current_user(db=None):
         # Cho phép route truyền kết nối đang mở để tránh mở DB lần thứ hai.
         if hasattr(g, '_trantu_current_user'):
@@ -705,6 +716,13 @@ def create_app(test_config=None):
             g._trantu_current_user = None
             return None
 
+        now = time.monotonic()
+        with current_user_cache_lock:
+            cached = current_user_cache.get(uid)
+            if cached and now - cached['time'] < 2:
+                g._trantu_current_user = cached['user']
+                return g._trantu_current_user
+
         query = '''SELECT id, username, is_admin, approved,
                           avatar_color, bio, created_at
                    FROM users WHERE id=?'''
@@ -713,8 +731,6 @@ def create_app(test_config=None):
                 with connect(app.config['DATABASE_PATH']) as conn:
                     row = conn.execute(query, (uid,)).fetchone()
             except DB_POOL_TIMEOUT_ERRORS as exc:
-                # Không để pool tạm hết connection làm mọi trang HTML
-                # (kể cả trang danh sách bài) trả về HTTP 500.
                 app.logger.error(
                     'DATABASE_POOL_TIMEOUT while loading current user: %s',
                     exc
@@ -724,12 +740,22 @@ def create_app(test_config=None):
         else:
             row = db.execute(query, (uid,)).fetchone()
 
-        if not row or not row['approved']:
-            g._trantu_current_user = None
-        else:
-            g._trantu_current_user = dict(row)
+        user = dict(row) if row and row['approved'] else None
+        g._trantu_current_user = user
+        with current_user_cache_lock:
+            current_user_cache[uid] = {
+                'time': time.monotonic(),
+                'user': user
+            }
+            if len(current_user_cache) > 1000:
+                expired = [
+                    key for key, value in current_user_cache.items()
+                    if time.monotonic() - value['time'] >= 2
+                ]
+                for key in expired:
+                    current_user_cache.pop(key, None)
 
-        return g._trantu_current_user
+        return user
 
     def safe_next_url(value):
         value = str(value or '').strip()
@@ -1412,6 +1438,8 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 'UPDATE users SET bio=?, avatar_color=? WHERE id=?',
                 (bio, color, user['id'])
             )
+        with current_user_cache_lock:
+            current_user_cache.pop(user['id'], None)
         return jsonify(ok=True, bio=bio, avatar_color=color)
 
     @app.get('/api/submissions')
@@ -1611,15 +1639,19 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
     @app.get('/api/my-progress')
     def my_progress():
         bank = problems()
-        maximum_scores = {
-            str(p.get('id')): float(p.get('total_score') or 0)
-            for p in bank
-        }
 
         with connect(app.config['DATABASE_PATH']) as db:
             user = current_user(db=db)
             if not user:
                 return jsonify(error='Đăng nhập để xem tiến độ luyện tập.'), 401
+
+            now = time.monotonic()
+            with progress_cache_lock:
+                cached = progress_cache.get(user['id'])
+                if cached and now - cached['time'] < 3:
+                    response = jsonify(cached['data'])
+                    response.headers['Cache-Control'] = 'private, no-store'
+                    return response
 
             rows = db.execute(
                 '''SELECT problem_id, best_score
@@ -1629,6 +1661,10 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 (user['id'],)
             ).fetchall()
 
+        maximum_scores = {
+            str(p.get('id')): float(p.get('total_score') or 0)
+            for p in bank
+        }
         progress = []
         for row in rows:
             pid = str(row['problem_id'])
@@ -1642,13 +1678,30 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             })
 
         solved_count = sum(1 for item in progress if item['solved'])
-        return jsonify(
-            username=user['username'],
-            solved=solved_count,
-            attempted=len(progress),
-            total=len(bank),
-            problems=progress
-        )
+        payload = {
+            'username': user['username'],
+            'solved': solved_count,
+            'attempted': len(progress),
+            'total': len(bank),
+            'problems': progress
+        }
+        with progress_cache_lock:
+            progress_cache[user['id']] = {
+                'time': time.monotonic(),
+                'data': payload
+            }
+            # Không để cache phình vô hạn khi có nhiều tài khoản.
+            if len(progress_cache) > 500:
+                oldest = sorted(
+                    progress_cache.items(),
+                    key=lambda item: item[1]['time']
+                )[:100]
+                for uid, _ in oldest:
+                    progress_cache.pop(uid, None)
+
+        response = jsonify(payload)
+        response.headers['Cache-Control'] = 'private, max-age=2'
+        return response
 
 
     @app.get('/api/my-analytics')
@@ -1744,6 +1797,14 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
     @app.get('/api/leaderboard')
     def leaderboard():
+        now = time.monotonic()
+        with leaderboard_cache_lock:
+            cached = leaderboard_cache['rows']
+            if cached is not None and now - leaderboard_cache['time'] < 5:
+                response = jsonify(cached)
+                response.headers['Cache-Control'] = 'public, max-age=3'
+                return response
+
         with connect(app.config['DATABASE_PATH']) as db:
             rows = db.execute(
                 '''SELECT u.username,
@@ -1756,7 +1817,15 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                    ORDER BY score DESC, solved DESC, u.username
                    LIMIT 100'''
             ).fetchall()
-        return jsonify([dict(row) for row in rows])
+
+        result = [dict(row) for row in rows]
+        with leaderboard_cache_lock:
+            leaderboard_cache['time'] = time.monotonic()
+            leaderboard_cache['rows'] = result
+
+        response = jsonify(result)
+        response.headers['Cache-Control'] = 'public, max-age=3'
+        return response
 
     @app.post('/api/submit')
     def submit():
@@ -1805,7 +1874,17 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
     def api_contests():
         with connect(app.config['DATABASE_PATH']) as db:
             user = current_user(db=db)
-            if user and user['is_admin']:
+            is_admin = bool(user and user['is_admin'])
+            cache_key = 'admin' if is_admin else 'public'
+            now = time.monotonic()
+            with contests_cache_lock:
+                cached = contests_cache.get(cache_key)
+                if cached and now - cached['time'] < 5:
+                    response = jsonify(cached['rows'])
+                    response.headers['Cache-Control'] = 'private, no-store'
+                    return response
+
+            if is_admin:
                 rows = db.execute(
                     'SELECT * FROM contests ORDER BY start_time DESC, id DESC'
                 ).fetchall()
@@ -1814,13 +1893,22 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                     '''SELECT * FROM contests WHERE is_visible=1
                        ORDER BY start_time DESC, id DESC'''
                 ).fetchall()
+
         result = []
         for row in rows:
             item = dict(row)
             item['is_visible'] = bool(item['is_visible'])
             item['state'] = contest_state(item)
             result.append(item)
-        return jsonify(result)
+
+        with contests_cache_lock:
+            contests_cache[cache_key] = {
+                'time': time.monotonic(),
+                'rows': result
+            }
+        response = jsonify(result)
+        response.headers['Cache-Control'] = 'private, max-age=3'
+        return response
 
     
     @app.get('/api/contests/<int:contest_id>')
@@ -1861,7 +1949,9 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             with contest_leaderboard_cache_lock:
                 cached = contest_leaderboard_cache.get(contest_id)
                 if cached and now - cached['time'] < 3:
-                    return jsonify(cached['rows'])
+                    response = jsonify(cached['rows'])
+                    response.headers['Cache-Control'] = 'private, no-store'
+                    return response
 
             rows = db.execute(
                 '''SELECT u.username,
@@ -1898,7 +1988,9 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                     'rows': result
                 }
 
-        return jsonify(result)
+        response = jsonify(result)
+        response.headers['Cache-Control'] = 'private, no-store'
+        return response
 
 
     
