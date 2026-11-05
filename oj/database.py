@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import atexit
 import os
 import re
 import sqlite3
@@ -54,6 +55,22 @@ _POSTGRES_POOLS_LOCK = threading.Lock()
 # Khi pool đầy, cho phép tối đa một request dùng kết nối dự phòng ngắn hạn.
 # Giới hạn này tránh tạo thêm hàng loạt kết nối ngoài pool.
 _POSTGRES_FALLBACK_SEMAPHORE = threading.BoundedSemaphore(1)
+
+
+def _close_postgres_pools():
+    # Stop pool worker threads cleanly during Render restarts/shutdowns.
+    with _POSTGRES_POOLS_LOCK:
+        pools = list(_POSTGRES_POOLS.values())
+        _POSTGRES_POOLS.clear()
+
+    for pool in pools:
+        try:
+            pool.close()
+        except Exception:
+            pass
+
+
+atexit.register(_close_postgres_pools)
 
 
 def _get_postgres_pool(dsn):
