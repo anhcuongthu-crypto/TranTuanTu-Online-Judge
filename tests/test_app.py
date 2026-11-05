@@ -104,4 +104,5 @@ def test_home_problemset_library_and_brand_assets_render(tmp_path):
     assert c.get('/contests').status_code == 200
 
     assert c.get('/static/favicon.svg').status_code == 200
+    assert c.get('/favicon.ico').status_code == 302
     assert c.get('/static/og-cover.svg').status_code == 200
