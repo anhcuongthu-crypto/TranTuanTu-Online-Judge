@@ -531,6 +531,8 @@ def create_app(test_config=None):
         # ==================== AUTO TRANSLATE PROBLEM ====================
 
     problem_translation_cache = {}
+    # Cache misses too: an unavailable free translation API must not delay every page view.
+    problem_translation_failures = {}
     translation_provider_cooldown = {
         'google': 0.0,
         'mymemory': 0.0
@@ -555,6 +557,12 @@ def create_app(test_config=None):
 
         if text in problem_translation_cache:
             return problem_translation_cache[text]
+
+        failed_at = problem_translation_failures.get(text)
+        if failed_at and time.monotonic() - failed_at < 300:
+            return text
+        if failed_at:
+            problem_translation_failures.pop(text, None)
 
         normalized_text = re.sub(r"\s+", " ", text).strip()
         known_translations = {
@@ -616,7 +624,7 @@ def create_app(test_config=None):
                         google_url,
                         headers={"User-Agent": "Mozilla/5.0 TranTu-OJ-Studio/1.2"}
                     )
-                    with urllib.request.urlopen(google_req, timeout=6) as response:
+                    with urllib.request.urlopen(google_req, timeout=2.5) as response:
                         google_payload = json.loads(response.read().decode("utf-8"))
 
                     segments = google_payload[0] if google_payload else []
@@ -628,10 +636,10 @@ def create_app(test_config=None):
                     if google_candidate.strip() and google_candidate.strip() != chunk.strip():
                         translated_chunk = google_candidate
                 except urllib.error.HTTPError as exc:
-                    if exc.code == 429:
-                        cool_down_translation_provider('google')
+                    cool_down_translation_provider('google', 300 if exc.code == 429 else 60)
                     app.logger.warning("Google translation HTTP error: %s", exc.code)
                 except Exception:
+                    cool_down_translation_provider('google', 60)
                     app.logger.warning("Google translation failed; trying MyMemory")
 
             if translated_chunk == chunk and translation_provider_available('mymemory'):
@@ -644,7 +652,7 @@ def create_app(test_config=None):
                         memory_url,
                         headers={"User-Agent": "TranTu-OJ-Studio/1.2"}
                     )
-                    with urllib.request.urlopen(memory_req, timeout=6) as response:
+                    with urllib.request.urlopen(memory_req, timeout=2.5) as response:
                         memory_payload = json.loads(response.read().decode("utf-8"))
 
                     memory_candidate = (
@@ -659,10 +667,10 @@ def create_app(test_config=None):
                     elif str(memory_payload.get("responseStatus")) == "429":
                         cool_down_translation_provider('mymemory')
                 except urllib.error.HTTPError as exc:
-                    if exc.code == 429:
-                        cool_down_translation_provider('mymemory')
+                    cool_down_translation_provider('mymemory', 300 if exc.code == 429 else 60)
                     app.logger.warning("MyMemory translation HTTP error: %s", exc.code)
                 except Exception:
+                    cool_down_translation_provider('mymemory', 60)
                     app.logger.warning("MyMemory translation failed for a problem chunk")
 
             translated_chunks.append(translated_chunk)
@@ -673,6 +681,8 @@ def create_app(test_config=None):
 
         if translated != text:
             problem_translation_cache[text] = translated
+        else:
+            problem_translation_failures[text] = time.monotonic()
         return translated
 
     admin2_username = os.getenv('ADMIN2_USERNAME', '').strip()
