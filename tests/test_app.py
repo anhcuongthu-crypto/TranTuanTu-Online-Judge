@@ -160,7 +160,6 @@ def test_queue_recovery_replays_only_safe_queued_rows(tmp_path, monkeypatch):
 
     # create_app() already performed its startup pass; reset the marker
     # to simulate a fresh process after inserting the stale database rows.
-    app.extensions.pop('_trantu_queue_recovered', None)
     # Simulate a fresh app process after inserting stale database rows.
     app.extensions.pop('_trantu_queue_recovered', None)
     restored = job_queue.recover_pending(app)
