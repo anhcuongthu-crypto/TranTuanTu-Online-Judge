@@ -701,6 +701,11 @@ def create_app(test_config=None):
                     )
                 )
 
+    # Cache hồ sơ đăng nhập cực ngắn để tránh một SELECT users cho mỗi
+    # API/page request. TTL 2 giây giúp quyền admin/approval vẫn cập nhật nhanh.
+    current_user_cache = {}
+    current_user_cache_lock = threading.Lock()
+
     def current_user(db=None):
         # Cho phép route truyền kết nối đang mở để tránh mở DB lần thứ hai.
         if hasattr(g, '_trantu_current_user'):
@@ -711,6 +716,13 @@ def create_app(test_config=None):
             g._trantu_current_user = None
             return None
 
+        now = time.monotonic()
+        with current_user_cache_lock:
+            cached = current_user_cache.get(uid)
+            if cached and now - cached['time'] < 2:
+                g._trantu_current_user = cached['user']
+                return g._trantu_current_user
+
         query = '''SELECT id, username, is_admin, approved,
                           avatar_color, bio, created_at
                    FROM users WHERE id=?'''
@@ -719,8 +731,6 @@ def create_app(test_config=None):
                 with connect(app.config['DATABASE_PATH']) as conn:
                     row = conn.execute(query, (uid,)).fetchone()
             except DB_POOL_TIMEOUT_ERRORS as exc:
-                # Không để pool tạm hết connection làm mọi trang HTML
-                # (kể cả trang danh sách bài) trả về HTTP 500.
                 app.logger.error(
                     'DATABASE_POOL_TIMEOUT while loading current user: %s',
                     exc
@@ -730,12 +740,22 @@ def create_app(test_config=None):
         else:
             row = db.execute(query, (uid,)).fetchone()
 
-        if not row or not row['approved']:
-            g._trantu_current_user = None
-        else:
-            g._trantu_current_user = dict(row)
+        user = dict(row) if row and row['approved'] else None
+        g._trantu_current_user = user
+        with current_user_cache_lock:
+            current_user_cache[uid] = {
+                'time': time.monotonic(),
+                'user': user
+            }
+            if len(current_user_cache) > 1000:
+                expired = [
+                    key for key, value in current_user_cache.items()
+                    if time.monotonic() - value['time'] >= 2
+                ]
+                for key in expired:
+                    current_user_cache.pop(key, None)
 
-        return g._trantu_current_user
+        return user
 
     def safe_next_url(value):
         value = str(value or '').strip()
@@ -1418,6 +1438,8 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 'UPDATE users SET bio=?, avatar_color=? WHERE id=?',
                 (bio, color, user['id'])
             )
+        with current_user_cache_lock:
+            current_user_cache.pop(user['id'], None)
         return jsonify(ok=True, bio=bio, avatar_color=color)
 
     @app.get('/api/submissions')
