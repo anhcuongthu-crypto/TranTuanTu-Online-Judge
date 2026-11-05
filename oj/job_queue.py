@@ -335,14 +335,14 @@ def _run_job(
         # Atomic claim: a worker only starts a job from the state it owns.
         # This prevents a stale in-memory task from running after recovery.
         with connect(app.config['DATABASE_PATH']) as db:
-            claimed = db.execute(
+            claimed_count = db.execute(
                 '''UPDATE submissions
                    SET verdict=?
                    WHERE id=? AND user_id=? AND verdict=?''',
                 ('Processing', submission_id, user_id, expected_status)
-            )
+            ).rowcount
 
-        if claimed.rowcount != 1:
+        if claimed_count != 1:
             print(
                 f'[OJ QUEUE] Skip duplicate/stale worker '
                 f'submission={submission_id}',
@@ -624,18 +624,18 @@ def _dispatch_next_queued(app):
                     claimed = None
                 else:
                     should_skip = False
-                    claimed = db.execute(
+                    claimed_count = db.execute(
                         '''UPDATE submissions
                            SET verdict='Starting'
                            WHERE id=? AND verdict='Queued' ''',
                         (row['id'],)
-                    )
+                    ).rowcount
 
             if should_skip:
                 _capacity.release()
                 continue
 
-            if claimed.rowcount != 1:
+            if claimed_count != 1:
                 _capacity.release()
                 continue
 
