@@ -552,7 +552,13 @@ def _run_job(
     finally:
         _mark_job_finished(job_id)
         _capacity.release()
-        _dispatch_next_queued(app)
+        try:
+            _dispatch_next_queued(app)
+        except Exception as dispatch_exc:
+            print(
+                f'[OJ QUEUE] Could not dispatch next job: {dispatch_exc}',
+                flush=True
+            )
 
 
 def _mark_recovery_failure(app, submission_id, user_id, message):
@@ -577,95 +583,103 @@ def _mark_recovery_failure(app, submission_id, user_id, message):
 def _dispatch_next_queued(app):
     """Move one durable Queued row into the bounded in-memory executor."""
     while _capacity.acquire(blocking=False):
-        with connect(app.config['DATABASE_PATH']) as db:
-            row = db.execute(
-                '''SELECT id, user_id, language_id, source_code,
-                          problem_json
-                   FROM submissions
-                   WHERE verdict='Queued'
-                   ORDER BY id ASC
-                   LIMIT 1'''
-            ).fetchone()
+        try:
+            with connect(app.config['DATABASE_PATH']) as db:
+                row = db.execute(
+                    '''SELECT id, user_id, language_id, source_code,
+                              problem_json
+                       FROM submissions
+                       WHERE verdict='Queued'
+                       ORDER BY id ASC
+                       LIMIT 1'''
+                ).fetchone()
 
-            if not row:
-                _capacity.release()
-                return False
+                if not row:
+                    _capacity.release()
+                    return False
 
-            try:
-                problem = json.loads(row['problem_json'] or '')
-                if not isinstance(problem, dict) or not problem.get('id'):
-                    raise ValueError('Thiếu bản chụp đề bài.')
-            except (TypeError, ValueError) as exc:
-                db.execute(
-                    '''UPDATE submissions
-                       SET verdict=?, score=0, details_json=?, problem_json=NULL
-                       WHERE id=? AND verdict='Queued' ''',
-                    (
-                        'Judge Unavailable',
-                        json.dumps([{
-                            'status': 'Judge Unavailable',
-                            'score': 0,
-                            'message': (
-                                'Không thể khôi phục bài chờ sau khi máy chủ '
-                                'khởi động lại: ' + str(exc)
-                            )[:1000]
-                        }], ensure_ascii=False),
-                        row['id']
+                try:
+                    problem = json.loads(row['problem_json'] or '')
+                    if not isinstance(problem, dict) or not problem.get('id'):
+                        raise ValueError('Thiếu bản chụp đề bài.')
+                except (TypeError, ValueError) as exc:
+                    db.execute(
+                        '''UPDATE submissions
+                           SET verdict=?, score=0, details_json=?, problem_json=NULL
+                           WHERE id=? AND verdict='Queued' ''',
+                        (
+                            'Judge Unavailable',
+                            json.dumps([{
+                                'status': 'Judge Unavailable',
+                                'score': 0,
+                                'message': (
+                                    'Không thể khôi phục bài chờ sau khi máy chủ '
+                                    'khởi động lại: ' + str(exc)
+                                )[:1000]
+                            }], ensure_ascii=False),
+                            row['id']
+                        )
                     )
-                )
+                    should_skip = True
+                    claimed = None
+                else:
+                    should_skip = False
+                    claimed = db.execute(
+                        '''UPDATE submissions
+                           SET verdict='Starting'
+                           WHERE id=? AND verdict='Queued' ''',
+                        (row['id'],)
+                    )
+
+            if should_skip:
                 _capacity.release()
                 continue
 
-            claimed = db.execute(
-                '''UPDATE submissions
-                   SET verdict='Starting'
-                   WHERE id=? AND verdict='Queued' ''',
-                (row['id'],)
-            )
+            if claimed.rowcount != 1:
+                _capacity.release()
+                continue
 
-        if claimed.rowcount != 1:
+            job_id = uuid.uuid4().hex
+            submission_id = row['id']
+            user_id = row['user_id']
+
+            with _lock:
+                _jobs[job_id] = {
+                    'status': 'Starting',
+                    'submission_id': submission_id
+                }
+
+            try:
+                _pool.submit(
+                    _run_job,
+                    app,
+                    job_id,
+                    submission_id,
+                    user_id,
+                    problem,
+                    row['source_code'],
+                    row['language_id'],
+                    'Starting'
+                )
+                return True
+            except Exception as exc:
+                _mark_recovery_failure(
+                    app,
+                    submission_id,
+                    user_id,
+                    'Không thể khởi động worker sau khi khôi phục: ' + str(exc)
+                )
+                _mark_job_finished(job_id)
+                _capacity.release()
+                print(
+                    f'[OJ ERROR] Cannot recover submission={submission_id}: {exc}',
+                    flush=True
+                )
+        except Exception:
             _capacity.release()
-            continue
-
-        job_id = uuid.uuid4().hex
-        submission_id = row['id']
-        user_id = row['user_id']
-
-        with _lock:
-            _jobs[job_id] = {
-                'status': 'Starting',
-                'submission_id': submission_id
-            }
-
-        try:
-            _pool.submit(
-                _run_job,
-                app,
-                job_id,
-                submission_id,
-                user_id,
-                problem,
-                row['source_code'],
-                row['language_id'],
-                'Starting'
-            )
-            return True
-        except Exception as exc:
-            _mark_recovery_failure(
-                app,
-                submission_id,
-                user_id,
-                'Không thể khởi động worker sau khi khôi phục: ' + str(exc)
-            )
-            _mark_job_finished(job_id)
-            _capacity.release()
-            print(
-                f'[OJ ERROR] Cannot recover submission={submission_id}: {exc}',
-                flush=True
-            )
+            raise
 
     return False
-
 
 def recover_pending(app):
     """Recover safely queued jobs and close ambiguous interrupted jobs.
