@@ -1510,30 +1510,37 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             if not user:
                 return jsonify(error='Cần đăng nhập.'), 401
 
-            sql = '''
-                SELECT s.id, s.user_id, u.username,
-                       s.problem_id, s.language_id, s.verdict,
-                       s.score, s.max_score,
-                       s.created_at, s.contest_id
-                FROM submissions s
-                JOIN users u ON u.id = s.user_id
-                WHERE u.approved = 1
-            '''
-            params = []
-
             if scope == 'all' and problem_id:
-                sql += ' AND s.problem_id = ? AND s.contest_id IS NULL'
-                params.append(problem_id)
-
-            elif scope == 'mine' and problem_id:
-                sql += ''' AND s.problem_id = ?
-                           AND s.user_id = ?
-                           AND s.contest_id IS NULL'''
-                params.extend([problem_id, user['id']])
-
+                # Chế độ xem bài của mọi người cần JOIN để lọc tài khoản đã duyệt.
+                sql = '''
+                    SELECT s.id, s.user_id, u.username,
+                           s.problem_id, s.language_id, s.verdict,
+                           s.score, s.max_score,
+                           s.created_at, s.contest_id
+                    FROM submissions s
+                    JOIN users u ON u.id = s.user_id
+                    WHERE u.approved = 1
+                      AND s.problem_id = ?
+                      AND s.contest_id IS NULL
+                '''
+                params = [problem_id]
             else:
-                sql += ' AND s.user_id = ?'
-                params.append(user['id'])
+                # Lịch sử cá nhân không cần JOIN users: current_user đã xác nhận
+                # tài khoản hợp lệ, còn username lấy trực tiếp từ cache hồ sơ.
+                sql = '''
+                    SELECT s.id, s.user_id, ? AS username,
+                           s.problem_id, s.language_id, s.verdict,
+                           s.score, s.max_score,
+                           s.created_at, s.contest_id
+                    FROM submissions s
+                    WHERE s.user_id = ?
+                '''
+                params = [user['username'], user['id']]
+
+                if scope == 'mine' and problem_id:
+                    sql += ''' AND s.problem_id = ?
+                               AND s.contest_id IS NULL'''
+                    params.append(problem_id)
 
             # Trang chủ chỉ cần lịch sử gần đây; các trang lịch sử vẫn giữ mặc định 500.
             try:

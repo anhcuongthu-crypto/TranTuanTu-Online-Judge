@@ -286,3 +286,48 @@ def test_home_rubik_animation_is_deferred_and_paused_offscreen(tmp_path):
     assert 'animation.pause()' in page
     assert 'animation.play()' in page
     assert 'z<3' in page and 'y<3' in page and 'x<3' in page
+
+def test_submission_history_skips_user_join_but_all_scope_stays_global(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'historyowner')
+    register_and_login(client, 'historyother')
+    assert client.post('/api/login', json={
+        'username': 'historyowner', 'password': '12345678'
+    }).status_code == 200
+
+    app = client.application
+    with connect(app.config['DATABASE_PATH']) as db:
+        users = {
+            row['username']: row['id']
+            for row in db.execute(
+                'SELECT id, username FROM users WHERE username IN (?, ?)',
+                ('historyowner', 'historyother')
+            ).fetchall()
+        }
+        for username in ('historyowner', 'historyother'):
+            db.execute(
+                '''INSERT INTO submissions
+                   (user_id, problem_id, language_id, source_code, verdict,
+                    score, max_score, details_json)
+                   VALUES (?, 'X01', 54, ?, 'Accepted', 100, 100, '[]')''',
+                (users[username], 'int main(){return 0;}')
+            )
+
+    own = client.get('/api/submissions?scope=history&limit=10')
+    assert own.status_code == 200
+    assert len(own.json) == 1
+    assert own.json[0]['username'] == 'historyowner'
+    assert own.json[0]['is_mine'] is True
+
+    mine = client.get('/api/submissions?scope=mine&problem_id=X01&limit=10')
+    assert mine.status_code == 200
+    assert len(mine.json) == 1
+    assert mine.json[0]['username'] == 'historyowner'
+
+    all_rows = client.get('/api/submissions?scope=all&problem_id=X01&limit=10')
+    assert all_rows.status_code == 200
+    assert {row['username'] for row in all_rows.json} == {
+        'historyowner', 'historyother'
+    }
+    assert all(row['is_mine'] == (row['username'] == 'historyowner')
+               for row in all_rows.json)
