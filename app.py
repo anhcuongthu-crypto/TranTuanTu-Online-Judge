@@ -1650,7 +1650,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 cached = progress_cache.get(user['id'])
                 if cached and now - cached['time'] < 3:
                     response = jsonify(cached['data'])
-                    response.headers['Cache-Control'] = 'private, max-age=2'
+                    response.headers['Cache-Control'] = 'private, no-store'
                     return response
 
             rows = db.execute(
@@ -1881,7 +1881,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 cached = contests_cache.get(cache_key)
                 if cached and now - cached['time'] < 5:
                     response = jsonify(cached['rows'])
-                    response.headers['Cache-Control'] = 'private, max-age=3'
+                    response.headers['Cache-Control'] = 'private, no-store'
                     return response
 
             if is_admin:
@@ -1949,7 +1949,9 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             with contest_leaderboard_cache_lock:
                 cached = contest_leaderboard_cache.get(contest_id)
                 if cached and now - cached['time'] < 3:
-                    return jsonify(cached['rows'])
+                    response = jsonify(cached['rows'])
+                    response.headers['Cache-Control'] = 'private, no-store'
+                    return response
 
             rows = db.execute(
                 '''SELECT u.username,
@@ -1986,7 +1988,9 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                     'rows': result
                 }
 
-        return jsonify(result)
+        response = jsonify(result)
+        response.headers['Cache-Control'] = 'private, no-store'
+        return response
 
 
     
