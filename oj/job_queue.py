@@ -21,6 +21,28 @@ class QueueFullError(Exception):
 
 _lock = threading.Lock()
 _jobs = {}
+_MAX_RETAINED_JOBS = 1000
+
+
+def _mark_job_finished(job_id):
+    with _lock:
+        job = _jobs.get(job_id)
+        if job is not None:
+            job['status'] = 'Finished'
+            job['finished_at'] = time.monotonic()
+
+        # Keep recent job IDs for polling, but discard old completed entries.
+        if len(_jobs) > _MAX_RETAINED_JOBS:
+            finished = sorted(
+                (
+                    (item.get('finished_at', 0.0), key)
+                    for key, item in _jobs.items()
+                    if item.get('status') == 'Finished'
+                )
+            )
+            remove_count = max(0, len(_jobs) - 800)
+            for _, key in finished[:remove_count]:
+                _jobs.pop(key, None)
 
 
 def _is_compile_error(status):
@@ -202,9 +224,7 @@ def enqueue(app, user_id, problem, code, language, contest_id=None):
                     )
                 )
         finally:
-            with _lock:
-                if job_id in _jobs:
-                    _jobs[job_id]['status'] = 'Finished'
+            _mark_job_finished(job_id)
             _capacity.release()
 
         print(
@@ -517,9 +537,7 @@ def _run_job(
             )
 
     finally:
-        with _lock:
-            if job_id in _jobs:
-                _jobs[job_id]['status'] = 'Finished'
+        _mark_job_finished(job_id)
         _capacity.release()
 
 
