@@ -525,6 +525,22 @@ def create_app(test_config=None):
         # ==================== AUTO TRANSLATE PROBLEM ====================
 
     problem_translation_cache = {}
+    translation_provider_cooldown = {
+        'google': 0.0,
+        'mymemory': 0.0
+    }
+    translation_provider_lock = threading.Lock()
+
+    def translation_provider_available(name):
+        with translation_provider_lock:
+            return time.monotonic() >= translation_provider_cooldown[name]
+
+    def cool_down_translation_provider(name, seconds=300):
+        with translation_provider_lock:
+            translation_provider_cooldown[name] = max(
+                translation_provider_cooldown[name],
+                time.monotonic() + seconds
+            )
 
     def translate_problem_text(text):
         text = str(text or "")
@@ -578,34 +594,41 @@ def create_app(test_config=None):
         for chunk in chunks:
             translated_chunk = chunk
 
-            # Google Translate endpoint first; MyMemory is a fallback.
-            try:
-                google_url = "https://translate.googleapis.com/translate_a/single?" + urlencode({
-                    "client": "gtx",
-                    "sl": "vi",
-                    "tl": "en",
-                    "dt": "t",
-                    "q": chunk
-                })
-                google_req = urllib.request.Request(
-                    google_url,
-                    headers={"User-Agent": "Mozilla/5.0 TranTu-OJ-Studio/1.2"}
-                )
-                with urllib.request.urlopen(google_req, timeout=12) as response:
-                    google_payload = json.loads(response.read().decode("utf-8"))
+            # Google Translate first, MyMemory as fallback. A 429 response
+            # opens a short circuit breaker so every page request does not
+            # repeatedly hit a provider that is already rate-limiting us.
+            if translation_provider_available('google'):
+                try:
+                    google_url = "https://translate.googleapis.com/translate_a/single?" + urlencode({
+                        "client": "gtx",
+                        "sl": "vi",
+                        "tl": "en",
+                        "dt": "t",
+                        "q": chunk
+                    })
+                    google_req = urllib.request.Request(
+                        google_url,
+                        headers={"User-Agent": "Mozilla/5.0 TranTu-OJ-Studio/1.2"}
+                    )
+                    with urllib.request.urlopen(google_req, timeout=6) as response:
+                        google_payload = json.loads(response.read().decode("utf-8"))
 
-                segments = google_payload[0] if google_payload else []
-                google_candidate = "".join(
-                    str(segment[0])
-                    for segment in segments
-                    if segment and segment[0]
-                )
-                if google_candidate.strip() and google_candidate.strip() != chunk.strip():
-                    translated_chunk = google_candidate
-            except Exception:
-                app.logger.warning("Google translation failed; trying MyMemory")
+                    segments = google_payload[0] if google_payload else []
+                    google_candidate = "".join(
+                        str(segment[0])
+                        for segment in segments
+                        if segment and segment[0]
+                    )
+                    if google_candidate.strip() and google_candidate.strip() != chunk.strip():
+                        translated_chunk = google_candidate
+                except urllib.error.HTTPError as exc:
+                    if exc.code == 429:
+                        cool_down_translation_provider('google')
+                    app.logger.warning("Google translation HTTP error: %s", exc.code)
+                except Exception:
+                    app.logger.warning("Google translation failed; trying MyMemory")
 
-            if translated_chunk == chunk:
+            if translated_chunk == chunk and translation_provider_available('mymemory'):
                 try:
                     memory_url = "https://api.mymemory.translated.net/get?" + urlencode({
                         "q": chunk,
@@ -615,7 +638,7 @@ def create_app(test_config=None):
                         memory_url,
                         headers={"User-Agent": "TranTu-OJ-Studio/1.2"}
                     )
-                    with urllib.request.urlopen(memory_req, timeout=12) as response:
+                    with urllib.request.urlopen(memory_req, timeout=6) as response:
                         memory_payload = json.loads(response.read().decode("utf-8"))
 
                     memory_candidate = (
@@ -627,8 +650,14 @@ def create_app(test_config=None):
                         and memory_candidate.strip() != chunk.strip()
                     ):
                         translated_chunk = memory_candidate
+                    elif str(memory_payload.get("responseStatus")) == "429":
+                        cool_down_translation_provider('mymemory')
+                except urllib.error.HTTPError as exc:
+                    if exc.code == 429:
+                        cool_down_translation_provider('mymemory')
+                    app.logger.warning("MyMemory translation HTTP error: %s", exc.code)
                 except Exception:
-                    app.logger.exception("Both translation providers failed for a problem chunk")
+                    app.logger.warning("MyMemory translation failed for a problem chunk")
 
             translated_chunks.append(translated_chunk)
 
