@@ -85,14 +85,14 @@ def _get_postgres_pool(dsn):
             # A modestly larger pool reduces request pile-ups on Render.
             # Keep the limit configurable for providers with strict connection caps.
             try:
-                max_size = int(os.getenv("DB_POOL_MAX_SIZE", "12"))
+                max_size = int(os.getenv("DB_POOL_MAX_SIZE", "10"))
             except (TypeError, ValueError):
-                max_size = 12
-            max_size = max(4, min(max_size, 16))
+                max_size = 10
+            max_size = max(4, min(max_size, 12))
 
             pool = ConnectionPool(
                 conninfo=dsn,
-                min_size=min(2, max_size),
+                min_size=1,
                 max_size=max_size,
                 timeout=5,
                 max_waiting=32,
