@@ -530,9 +530,50 @@ def create_app(test_config=None):
             problems_cache = data
         # ==================== AUTO TRANSLATE PROBLEM ====================
 
+    # Bounded LRU-like caches: avoid retaining every unique statement forever.
     problem_translation_cache = {}
-    # Cache misses too: an unavailable free translation API must not delay every page view.
     problem_translation_failures = {}
+    translation_cache_lock = threading.Lock()
+    _TRANSLATION_CACHE_LIMIT = 500
+
+    def get_translation_cache(key):
+        with translation_cache_lock:
+            value = problem_translation_cache.get(key)
+            if value is not None:
+                problem_translation_cache.pop(key, None)
+                problem_translation_cache[key] = value
+            return value
+
+    def set_translation_cache(key, value):
+        with translation_cache_lock:
+            problem_translation_cache.pop(key, None)
+            problem_translation_cache[key] = value
+            while len(problem_translation_cache) > _TRANSLATION_CACHE_LIMIT:
+                problem_translation_cache.pop(next(iter(problem_translation_cache)))
+
+    def get_translation_failure(key):
+        now = time.monotonic()
+        with translation_cache_lock:
+            failed_at = problem_translation_failures.get(key)
+            if failed_at is not None and now - failed_at >= 300:
+                problem_translation_failures.pop(key, None)
+                return None
+            return failed_at
+
+    def set_translation_failure(key):
+        now = time.monotonic()
+        with translation_cache_lock:
+            expired = [
+                key for key, stamp in problem_translation_failures.items()
+                if now - stamp >= 300
+            ]
+            for old_key in expired:
+                problem_translation_failures.pop(old_key, None)
+            problem_translation_failures.pop(key, None)
+            problem_translation_failures[key] = now
+            while len(problem_translation_failures) > _TRANSLATION_CACHE_LIMIT:
+                problem_translation_failures.pop(next(iter(problem_translation_failures)))
+
     translation_provider_cooldown = {
         'google': 0.0,
         'mymemory': 0.0
@@ -555,14 +596,13 @@ def create_app(test_config=None):
         if not text.strip():
             return ""
 
-        if text in problem_translation_cache:
-            return problem_translation_cache[text]
+        cached_translation = get_translation_cache(text)
+        if cached_translation is not None:
+            return cached_translation
 
-        failed_at = problem_translation_failures.get(text)
-        if failed_at and time.monotonic() - failed_at < 300:
+        failed_at = get_translation_failure(text)
+        if failed_at is not None:
             return text
-        if failed_at:
-            problem_translation_failures.pop(text, None)
 
         normalized_text = re.sub(r"\s+", " ", text).strip()
         known_translations = {
@@ -577,7 +617,7 @@ def create_app(test_config=None):
         }
         if normalized_text in known_translations:
             translated = known_translations[normalized_text]
-            problem_translation_cache[text] = translated
+            set_translation_cache(text, translated)
             return translated
 
         # Protect code, inline code, and HTML tags from machine translation.
@@ -682,7 +722,7 @@ def create_app(test_config=None):
         if translated != text:
             problem_translation_cache[text] = translated
         else:
-            problem_translation_failures[text] = time.monotonic()
+            set_translation_failure(text)
         return translated
 
     admin2_username = os.getenv('ADMIN2_USERNAME', '').strip()
