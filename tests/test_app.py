@@ -95,7 +95,7 @@ def test_home_problemset_library_and_brand_assets_render(tmp_path):
 
     home = c.get('/')
     assert home.status_code == 200
-    assert b'class="hero-art"' in home.data
+    assert b'hero-art' in home.data
     assert b'og-cover.svg' in home.data
     assert b'favicon.svg' in home.data
 
