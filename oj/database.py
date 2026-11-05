@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import sqlite3
 import threading
@@ -64,14 +65,23 @@ def _get_postgres_pool(dsn):
     with _POSTGRES_POOLS_LOCK:
         pool = _POSTGRES_POOLS.get(dsn)
         if pool is None:
+            # A modestly larger pool reduces request pile-ups on Render.
+            # Keep the limit configurable for providers with strict connection caps.
+            try:
+                max_size = int(os.getenv("DB_POOL_MAX_SIZE", "12"))
+            except (TypeError, ValueError):
+                max_size = 12
+            max_size = max(4, min(max_size, 16))
+
             pool = ConnectionPool(
                 conninfo=dsn,
-                min_size=1,
-                max_size=8,
-                timeout=10,
+                min_size=min(2, max_size),
+                max_size=max_size,
+                timeout=5,
+                max_waiting=32,
                 kwargs={
                     "row_factory": _postgres_row_factory,
-                    "connect_timeout": 15
+                    "connect_timeout": 8
                 },
                 open=False
             )
@@ -341,7 +351,7 @@ def connect(path):
         pool = _get_postgres_pool(dsn)
 
         try:
-            lease = pool.connection(timeout=5)
+            lease = pool.connection(timeout=3)
             raw = lease.__enter__()
             return _PostgresConnection(raw, pool, lease)
         except PoolTimeout:
@@ -354,7 +364,7 @@ def connect(path):
                 raw = psycopg.connect(
                     dsn,
                     row_factory=_postgres_row_factory,
-                    connect_timeout=8
+                    connect_timeout=5
                 )
             except Exception:
                 _POSTGRES_FALLBACK_SEMAPHORE.release()
