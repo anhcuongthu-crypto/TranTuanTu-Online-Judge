@@ -720,7 +720,7 @@ def create_app(test_config=None):
             translated = translated.replace(f"OJKEEP{i}TOKEN", part)
 
         if translated != text:
-            problem_translation_cache[text] = translated
+            set_translation_cache(text, translated)
         else:
             set_translation_failure(text)
         return translated
