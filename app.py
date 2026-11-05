@@ -30,7 +30,7 @@ from oj.database import (
     DB_INTEGRITY_ERRORS, DB_POOL_TIMEOUT_ERRORS,
     DB_UNAVAILABLE_ERRORS
 )
-from oj.job_queue import enqueue, QueueFullError
+from oj.job_queue import enqueue, QueueFullError, recover_pending
 from oj.admin import register_admin_routes
 from oj.history import (
     initialize_history,
@@ -3195,6 +3195,9 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
     register_admin_routes(
         app, connect, current_user, app.config['DATABASE_PATH']
     )
+
+    # Khôi phục bài chờ có snapshot; không gửi lại job đã Processing khi restart.
+    recover_pending(app)
     return app
 
 
