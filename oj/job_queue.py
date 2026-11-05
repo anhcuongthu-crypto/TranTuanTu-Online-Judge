@@ -168,8 +168,9 @@ def enqueue(app, user_id, problem, code, language, contest_id=None):
             cur = db.execute(
                 '''INSERT INTO submissions
                 (user_id, problem_id, language_id, source_code,
-                 verdict, score, max_score, details_json, contest_id)
-                VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)''',
+                 verdict, score, max_score, details_json, contest_id,
+                 problem_json)
+                VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)''',
                 (
                     user_id,
                     problem['id'],
@@ -178,7 +179,8 @@ def enqueue(app, user_id, problem, code, language, contest_id=None):
                     'Queued',
                     problem['total_score'],
                     '[]',
-                    contest_id
+                    contest_id,
+                    json.dumps(problem, ensure_ascii=False)
                 )
             )
             submission_id = cur.lastrowid
@@ -211,7 +213,7 @@ def enqueue(app, user_id, problem, code, language, contest_id=None):
             with connect(app.config['DATABASE_PATH']) as db:
                 db.execute(
                     '''UPDATE submissions
-                       SET verdict=?, details_json=?
+                       SET verdict=?, details_json=?, problem_json=NULL
                        WHERE id=? AND user_id=?''',
                     (
                         'Judge Unavailable',
@@ -280,7 +282,7 @@ def _save_result(
     with connect(app.config['DATABASE_PATH']) as db:
         db.execute(
             '''UPDATE submissions
-               SET verdict=?, score=?, details_json=?
+               SET verdict=?, score=?, details_json=?, problem_json=NULL
                WHERE id=? AND user_id=?''',
             (
                 verdict,
@@ -324,22 +326,33 @@ def _run_job(
     user_id,
     problem,
     code,
-    language
+    language,
+    expected_status='Queued'
 ):
     started = time.perf_counter()
 
-    with _lock:
-        if job_id in _jobs:
-            _jobs[job_id]['status'] = 'Processing'
-
     try:
+        # Atomic claim: a worker only starts a job from the state it owns.
+        # This prevents a stale in-memory task from running after recovery.
         with connect(app.config['DATABASE_PATH']) as db:
-            db.execute(
+            claimed = db.execute(
                 '''UPDATE submissions
                    SET verdict=?
-                   WHERE id=? AND user_id=?''',
-                ('Processing', submission_id, user_id)
+                   WHERE id=? AND user_id=? AND verdict=?''',
+                ('Processing', submission_id, user_id, expected_status)
             )
+
+        if claimed.rowcount != 1:
+            print(
+                f'[OJ QUEUE] Skip duplicate/stale worker '
+                f'submission={submission_id}',
+                flush=True
+            )
+            return
+
+        with _lock:
+            if job_id in _jobs:
+                _jobs[job_id]['status'] = 'Processing'
 
         score = 0
         details = []
@@ -539,6 +552,178 @@ def _run_job(
     finally:
         _mark_job_finished(job_id)
         _capacity.release()
+        _dispatch_next_queued(app)
+
+
+def _mark_recovery_failure(app, submission_id, user_id, message):
+    with connect(app.config['DATABASE_PATH']) as db:
+        db.execute(
+            '''UPDATE submissions
+               SET verdict=?, score=0, details_json=?, problem_json=NULL
+               WHERE id=? AND user_id=? AND verdict IN ('Queued', 'Starting')''',
+            (
+                'Judge Unavailable',
+                json.dumps([{
+                    'status': 'Judge Unavailable',
+                    'score': 0,
+                    'message': message[:1000]
+                }], ensure_ascii=False),
+                submission_id,
+                user_id
+            )
+        )
+
+
+def _dispatch_next_queued(app):
+    """Move one durable Queued row into the bounded in-memory executor."""
+    while _capacity.acquire(blocking=False):
+        with connect(app.config['DATABASE_PATH']) as db:
+            row = db.execute(
+                '''SELECT id, user_id, language_id, source_code,
+                          problem_json
+                   FROM submissions
+                   WHERE verdict='Queued'
+                   ORDER BY id ASC
+                   LIMIT 1'''
+            ).fetchone()
+
+            if not row:
+                _capacity.release()
+                return False
+
+            try:
+                problem = json.loads(row['problem_json'] or '')
+                if not isinstance(problem, dict) or not problem.get('id'):
+                    raise ValueError('Thiếu bản chụp đề bài.')
+            except (TypeError, ValueError) as exc:
+                db.execute(
+                    '''UPDATE submissions
+                       SET verdict=?, score=0, details_json=?, problem_json=NULL
+                       WHERE id=? AND verdict='Queued' ''',
+                    (
+                        'Judge Unavailable',
+                        json.dumps([{
+                            'status': 'Judge Unavailable',
+                            'score': 0,
+                            'message': (
+                                'Không thể khôi phục bài chờ sau khi máy chủ '
+                                'khởi động lại: ' + str(exc)
+                            )[:1000]
+                        }], ensure_ascii=False),
+                        row['id']
+                    )
+                )
+                _capacity.release()
+                continue
+
+            claimed = db.execute(
+                '''UPDATE submissions
+                   SET verdict='Starting'
+                   WHERE id=? AND verdict='Queued' ''',
+                (row['id'],)
+            )
+
+        if claimed.rowcount != 1:
+            _capacity.release()
+            continue
+
+        job_id = uuid.uuid4().hex
+        submission_id = row['id']
+        user_id = row['user_id']
+
+        with _lock:
+            _jobs[job_id] = {
+                'status': 'Starting',
+                'submission_id': submission_id
+            }
+
+        try:
+            _pool.submit(
+                _run_job,
+                app,
+                job_id,
+                submission_id,
+                user_id,
+                problem,
+                row['source_code'],
+                row['language_id'],
+                'Starting'
+            )
+            return True
+        except Exception as exc:
+            _mark_recovery_failure(
+                app,
+                submission_id,
+                user_id,
+                'Không thể khởi động worker sau khi khôi phục: ' + str(exc)
+            )
+            _mark_job_finished(job_id)
+            _capacity.release()
+            print(
+                f'[OJ ERROR] Cannot recover submission={submission_id}: {exc}',
+                flush=True
+            )
+
+    return False
+
+
+def recover_pending(app):
+    """Recover safely queued jobs and close ambiguous interrupted jobs.
+
+    A row left at Processing may already have been sent to Judge0. It is
+    therefore not replayed automatically, which avoids duplicate judging.
+    """
+    marker = '_trantu_queue_recovered'
+    if app.extensions.get(marker):
+        return 0
+
+    # Starting means the worker had not claimed Processing yet; it is safe
+    # to put the row back into Queued before dispatching it again.
+    with connect(app.config['DATABASE_PATH']) as db:
+        db.execute(
+            "UPDATE submissions SET verdict='Queued' WHERE verdict='Starting'"
+        )
+
+        interrupted = db.execute(
+            '''SELECT id, user_id
+               FROM submissions
+               WHERE verdict='Processing'
+               ORDER BY id ASC'''
+        ).fetchall()
+
+        for row in interrupted:
+            db.execute(
+                '''UPDATE submissions
+                   SET verdict=?, score=0, details_json=?, problem_json=NULL
+                   WHERE id=? AND user_id=? AND verdict='Processing' ''',
+                (
+                    'Judge Unavailable',
+                    json.dumps([{
+                        'status': 'Judge Unavailable',
+                        'score': 0,
+                        'message': (
+                            'Máy chủ đã khởi động lại khi bài đang được chấm. '
+                            'Bài không được tự gửi lại để tránh chấm trùng; '
+                            'vui lòng nộp lại.'
+                        )
+                    }], ensure_ascii=False),
+                    row['id'],
+                    row['user_id']
+                )
+            )
+
+    app.extensions[marker] = True
+    restored = 0
+    while _dispatch_next_queued(app):
+        restored += 1
+
+    if restored or interrupted:
+        app.logger.info(
+            '[OJ QUEUE] Startup recovery: restored=%s interrupted=%s',
+            restored,
+            len(interrupted)
+        )
+    return restored
 
 
 def _get_contest_id(app, submission_id, user_id):
