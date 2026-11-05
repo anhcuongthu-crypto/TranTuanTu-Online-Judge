@@ -1694,20 +1694,21 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
     @app.get('/api/my-progress')
     def my_progress():
         bank = problems()
+        user = current_user()
+        if not user:
+            return jsonify(error='Đăng nhập để xem tiến độ luyện tập.'), 401
+
+        # Kiểm tra cache trước khi mượn kết nối PostgreSQL.
+        # Trang chủ có thể gọi API này nhiều lần khi người dùng chuyển trang.
+        now = time.monotonic()
+        with progress_cache_lock:
+            cached = progress_cache.get(user['id'])
+            if cached and now - cached['time'] < 3:
+                response = jsonify(cached['data'])
+                response.headers['Cache-Control'] = 'private, no-store'
+                return response
 
         with connect(app.config['DATABASE_PATH']) as db:
-            user = current_user(db=db)
-            if not user:
-                return jsonify(error='Đăng nhập để xem tiến độ luyện tập.'), 401
-
-            now = time.monotonic()
-            with progress_cache_lock:
-                cached = progress_cache.get(user['id'])
-                if cached and now - cached['time'] < 3:
-                    response = jsonify(cached['data'])
-                    response.headers['Cache-Control'] = 'private, no-store'
-                    return response
-
             rows = db.execute(
                 '''SELECT problem_id, best_score
                    FROM solves
@@ -1930,18 +1931,19 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
     @app.get('/api/contests')
     def api_contests():
-        with connect(app.config['DATABASE_PATH']) as db:
-            user = current_user(db=db)
-            is_admin = bool(user and user['is_admin'])
-            cache_key = 'admin' if is_admin else 'public'
-            now = time.monotonic()
-            with contests_cache_lock:
-                cached = contests_cache.get(cache_key)
-                if cached and now - cached['time'] < 5:
-                    response = jsonify(cached['rows'])
-                    response.headers['Cache-Control'] = 'private, no-store'
-                    return response
+        user = current_user()
+        is_admin = bool(user and user['is_admin'])
+        cache_key = 'admin' if is_admin else 'public'
+        now = time.monotonic()
+        with contests_cache_lock:
+            cached = contests_cache.get(cache_key)
+            if cached and now - cached['time'] < 5:
+                response = jsonify(cached['rows'])
+                response.headers['Cache-Control'] = 'private, no-store'
+                return response
 
+        # Chỉ truy vấn DB nếu cache hết hạn hoặc chưa có dữ liệu.
+        with connect(app.config['DATABASE_PATH']) as db:
             if is_admin:
                 rows = db.execute(
                     'SELECT * FROM contests ORDER BY start_time DESC, id DESC'
