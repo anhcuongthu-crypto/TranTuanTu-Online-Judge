@@ -104,3 +104,75 @@ def test_judge0_run_batch_uses_batch_create_and_batch_poll():
     assert session.get.call_count == 1
     assert session.get.call_args.args[0].endswith('/submissions/batch')
     assert session.get.call_args.kwargs['params']['tokens'] == 'token-1,token-2'
+
+
+def test_single_submission_poll_has_a_hard_deadline():
+    import time
+
+    judge = Judge0("https://judge.example")
+    judge._get_submission = lambda token: {"status": "Processing"}
+
+    started = time.monotonic()
+    result = judge._wait_for_submission(
+        "token",
+        deadline=started + 0.02
+    )
+
+    assert result["status"] == "Judge Timeout"
+    assert time.monotonic() - started < 0.5
+
+
+def test_partial_batch_creation_falls_back_only_for_missing_tests(monkeypatch):
+    judge = Judge0("https://judge.example")
+    individual_creates = []
+    batch_calls = 0
+
+    monkeypatch.setattr(
+        judge,
+        "_payload",
+        lambda source, language_id, stdin, expected, time_limit, memory_limit:
+            {"stdin": stdin, "expected_output": expected}
+    )
+
+    def create_batch(payloads):
+        nonlocal batch_calls
+        batch_calls += 1
+        if batch_calls == 1:
+            return [f"token-{i}" for i in range(len(payloads))]
+        return None
+
+    def create_one(source, language_id, stdin, expected, time_limit, memory_limit):
+        individual_creates.append(stdin)
+        return "token-last"
+
+    def get_batch(tokens):
+        return [
+            {
+                "token": token,
+                "status": {"description": "Accepted"},
+                "stdout": "",
+                "stderr": "",
+                "compile_output": "",
+                "message": ""
+            }
+            for token in tokens
+        ]
+
+    monkeypatch.setattr(judge, "_create_submissions_batch", create_batch)
+    monkeypatch.setattr(judge, "_create_submission", create_one)
+    monkeypatch.setattr(judge, "_get_submissions_batch", get_batch)
+
+    tests = [
+        {"input": str(i), "output": str(i)}
+        for i in range(21)
+    ]
+    results = judge.run_batch(
+        "code",
+        54,
+        tests,
+        max_wait_seconds=1
+    )
+
+    assert len(results) == 21
+    assert all(result["status"] == "Accepted" for result in results)
+    assert individual_creates == ["20"]
