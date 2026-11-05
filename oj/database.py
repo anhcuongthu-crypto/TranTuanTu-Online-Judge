@@ -698,6 +698,7 @@ def init_db(path):
         ),
 
         "submissions": (
+            ("problem_json", "TEXT"),
             (
                 "contest_id",
                 "BIGINT REFERENCES contests(id) ON DELETE SET NULL"
