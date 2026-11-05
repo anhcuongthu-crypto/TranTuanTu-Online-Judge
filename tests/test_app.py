@@ -1,4 +1,5 @@
 import json
+import app as app_module
 from app import create_app
 from oj.database import connect
 import oj.job_queue as job_queue
@@ -192,3 +193,50 @@ def test_queue_recovery_replays_only_safe_queued_rows(tmp_path, monkeypatch):
     with job_queue._lock:
         job_queue._jobs.pop(job_id, None)
     job_queue._capacity.release()
+
+def test_current_user_cache_ttl_and_profile_invalidation(tmp_path, monkeypatch):
+    client = setup(tmp_path)
+    register_and_login(client, 'cacheuser')
+
+    app = client.application
+    db_path = app.config['DATABASE_PATH']
+    real_connect = app_module.connect
+    connect_calls = []
+
+    def tracked_connect(path):
+        connect_calls.append(path)
+        return real_connect(path)
+
+    clock = [100.0]
+    monkeypatch.setattr(app_module.time, 'monotonic', lambda: clock[0])
+    monkeypatch.setattr(app_module, 'connect', tracked_connect)
+
+    # First request loads the profile from the database.
+    assert client.get('/api/me').status_code == 200
+    assert connect_calls == [db_path]
+
+    # A second request within the 10-second TTL reuses the cached profile.
+    connect_calls.clear()
+    clock[0] += 9
+    assert client.get('/api/me').status_code == 200
+    assert connect_calls == []
+
+    # Once expired, the next request refreshes the profile from the database.
+    clock[0] += 2
+    assert client.get('/api/me').status_code == 200
+    assert connect_calls == [db_path]
+
+    # Updating the profile invalidates the cache immediately, not after TTL.
+    connect_calls.clear()
+    updated = client.put('/api/profile', json={
+        'bio': 'Updated bio',
+        'avatar_color': '#123456'
+    })
+    assert updated.status_code == 200
+
+    connect_calls.clear()
+    refreshed = client.get('/api/me')
+    assert refreshed.status_code == 200
+    assert refreshed.json['user']['bio'] == 'Updated bio'
+    assert refreshed.json['user']['avatar_color'] == '#123456'
+    assert connect_calls == [db_path]
