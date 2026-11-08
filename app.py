@@ -358,6 +358,13 @@ def create_app(test_config=None):
     if test_config:
         app.config.update(test_config)
 
+    @app.route('/googleb41680ca79493ff6.html', methods=['GET'])
+    def google_site_verification():
+        return app.response_class(
+            'google-site-verification: googleb41680ca79493ff6.html',
+            mimetype='text/plain'
+        )
+
     # Nén HTML/JSON lớn để giảm thời gian truyền dữ liệu tới trình duyệt.
     if Compress is not None:
         Compress(app)
