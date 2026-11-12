@@ -348,23 +348,6 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
     </section>
 
     <!-- NGÂN HÀNG BÀI TẬP -->
-    <section class="panel">
-    <h2>Bài nộp học sinh</h2>
-
-    <button type="button" id="refresh-submissions">
-        Tải lại bài nộp
-    </button>
-
-    <div id="submissions-list">Đang tải bài nộp...</div>
-
-    <div id="source-panel" hidden>
-        <h3 id="source-title">Mã nguồn</h3>
-        <pre id="source-code" style="white-space:pre-wrap;overflow:auto;background:#111827;color:white;padding:16px;border-radius:8px;"></pre>
-        <button type="button" id="copy-source">Sao chép mã nguồn</button>
-        <button type="button" id="close-source">Đóng</button>
-    </div>
-</section>
-
     <section class="panel statistics-panel" id="admin-statistics">
         <div class="statistics-heading">
             <h2>Thống kê</h2>
@@ -468,7 +451,7 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
 
     <!-- THÊM / SỬA BÀI TẬP -->
     <!-- QUẢN LÝ CONTEST -->
-<section class="panel">
+<section class="panel" id="contest-management">
     <h2>🏆 Quản lý Contest</h2>
 
     <label for="contestTitle">Tên Contest</label>
@@ -2564,104 +2547,6 @@ contestTestContest.addEventListener('change', async () => {
         // Nạp danh sách Contest khi mở trang quản trị.
         loadContestTestContests();
 
-
-        // QUẢN LÝ BÀI NỘP VÀ XEM MÃ NGUỒN
-        const submissionsList = document.getElementById('submissions-list');
-        const sourcePanel = document.getElementById('source-panel');
-        const sourceTitle = document.getElementById('source-title');
-        const sourceCode = document.getElementById('source-code');
-
-        async function loadSubmissions() {
-            submissionsList.textContent = 'Đang tải bài nộp...';
-
-            try {
-                const submissions = await api('/api/admin/submissions');
-                submissionsList.replaceChildren();
-
-                if (!Array.isArray(submissions) || submissions.length === 0) {
-                    submissionsList.textContent = 'Chưa có bài nộp nào.';
-                    return;
-                }
-
-                for (const s of submissions) {
-                    const row = document.createElement('div');
-                    row.className = 'section-heading';
-
-                    const info = document.createElement('div');
-                    info.style.flex = '1';
-
-                    const heading = document.createElement('h3');
-                    heading.textContent =
-                        `#${s.id} — ${s.username} — ${s.problem_id}`;
-
-                    const detail = document.createElement('p');
-                    detail.className = 'muted';
-                    detail.textContent =
-                        `${s.language_id} · ${s.verdict} · ` +
-                        `${s.score}/${s.max_score} điểm · ` +
-                        `${s.created_at || ''}`;
-
-                    info.append(heading, detail);
-
-                    const button = makeButton(
-                        'Mã nguồn',
-                        'secondary',
-                        async () => {
-                            button.disabled = true;
-
-                            try {
-                                const data = await api(
-                                    `/api/admin/submissions/${s.id}/source`
-                                );
-
-                                sourceTitle.textContent =
-                                    `Bài #${data.id} — ${data.username} — ` +
-                                    `${data.problem_id} (${data.language_id})`;
-
-                                sourceCode.textContent = data.source_code || '';
-                                sourcePanel.hidden = false;
-                                sourcePanel.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'start'
-                                });
-                            } catch (error) {
-                                alert('Lỗi tải mã nguồn: ' + error.message);
-                            } finally {
-                                button.disabled = false;
-                            }
-                        }
-                    );
-
-                    row.append(info, button);
-                    submissionsList.appendChild(row);
-                }
-            } catch (error) {
-                submissionsList.textContent =
-                    'Lỗi tải bài nộp: ' + error.message;
-            }
-        }
-
-        document.getElementById('refresh-submissions')
-            .addEventListener('click', loadSubmissions);
-
-        document.getElementById('close-source')
-            .addEventListener('click', () => {
-                sourcePanel.hidden = true;
-            });
-
-        document.getElementById('copy-source')
-            .addEventListener('click', async () => {
-                try {
-                    await navigator.clipboard.writeText(
-                        sourceCode.textContent
-                    );
-                    alert('Đã sao chép mã nguồn.');
-                } catch {
-                    alert('Không sao chép được. Hãy sao chép thủ công.');
-                }
-            });
-
-        loadSubmissions();
 
         // Tải cả tài khoản và ngân hàng đề khi mở trang.
         loadUsers();
