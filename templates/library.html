@@ -275,7 +275,7 @@
         '<div class="el-meta">'+escape(meta)+'</div>'+
         (date||place?'<div class="el-meta">'+date+place+'</div>':'')+
         '</td><td>'+progressHtml+'</td>'+deleteCell+'</tr>';
-    }).join(''):'<tr><td colspan="2" class="el-empty">Không tìm thấy đề thi phù hợp.</td></tr>';
+    }).join(''):'<tr><td colspan="'+(IS_ADMIN?3:2)+'" class="el-empty">Không tìm thấy đề thi phù hợp.</td></tr>';
     $('el-page-label').textContent='Trang: '+currentPage+'/'+totalPages;
     const pager=makePagination(totalPages);
     $('el-pagination-top').innerHTML=pager;
