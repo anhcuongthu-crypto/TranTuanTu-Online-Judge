@@ -1941,6 +1941,22 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
     def contest_page(contest_id):
         return render_template('contest_detail.html', contest_id=contest_id)
 
+    @app.get('/contests/<int:contest_id>/leaderboard')
+    def contest_leaderboard_page(contest_id):
+        return render_template(
+            'contest_section.html',
+            contest_id=contest_id,
+            section='leaderboard'
+        )
+
+    @app.get('/contests/<int:contest_id>/submissions')
+    def contest_submissions_page(contest_id):
+        return render_template(
+            'contest_section.html',
+            contest_id=contest_id,
+            section='submissions'
+        )
+
     # ==================== CONTEST PUBLIC API ====================
 
     @app.get('/api/contests')
