@@ -1197,6 +1197,35 @@ async function loadContestSubmissions() {
         const data = await api(`/api/contests/${CONTEST_ID}/submissions`);
         const rows = normalizeRows(data);
 
+        const statsBox = $("contestStatsSummary");
+        if (statsBox) {
+            const counts = { accepted: 0, wrong: 0, pending: 0, other: 0 };
+            rows.forEach(row => {
+                const verdict = String(row.verdict || row.status || row.result || '').toUpperCase();
+                if (verdict === 'ACCEPTED' || verdict === 'AC' || verdict.includes('ACCEPTED')) counts.accepted++;
+                else if (verdict === 'WA' || verdict.includes('WRONG ANSWER')) counts.wrong++;
+                else if (verdict.includes('QUEUED') || verdict.includes('PENDING') || verdict.includes('PROCESSING') || verdict.includes('RUNNING')) counts.pending++;
+                else counts.other++;
+            });
+            const total = rows.length;
+            const percent = value => total ? Math.round(value * 100 / total) : 0;
+            statsBox.innerHTML = total ? `
+                <div class="contest-stats-grid">
+                    <div><strong>${total}</strong><span>Tổng bài nộp</span></div>
+                    <div><strong>${counts.accepted}</strong><span>Accepted</span></div>
+                    <div><strong>${counts.wrong}</strong><span>Wrong Answer</span></div>
+                    <div><strong>${counts.pending}</strong><span>Đang chấm</span></div>
+                </div>
+                <div class="contest-stats-bar" role="img" aria-label="Tỉ lệ trạng thái bài nộp">
+                    <i class="accepted" style="width:${percent(counts.accepted)}%"></i>
+                    <i class="wrong" style="width:${percent(counts.wrong)}%"></i>
+                    <i class="pending" style="width:${percent(counts.pending)}%"></i>
+                    <i class="other" style="width:${percent(counts.other)}%"></i>
+                </div>
+                <p class="muted">Thống kê dựa trên ${total} bài nộp gần nhất được hệ thống trả về.</p>
+            ` : '<p class="muted">Chưa có dữ liệu bài nộp để thống kê.</p>';
+        }
+
         if (!rows.length) {
             box.innerHTML = `<p class="empty">${t("noSubmissions")}</p>`;
             return;
@@ -1410,7 +1439,7 @@ init();
 .grid>div>section,.grid>aside>section{background:#fff!important;border:0!important;border-radius:0!important;box-shadow:none!important}
 .grid h2{font-size:26px!important;font-weight:400!important;color:#173b5d!important;border-bottom:1px solid #cfd4d8!important;padding-bottom:8px!important}
 #problems{border:1px solid #cfd4d8!important;background:#fff!important}
-#problems .problem{display:grid!important;grid-template-columns:36px 1fr 100px!important;align-items:center!important;gap:10px!important;padding:10px 13px!important;border:0!important;border-bottom:1px solid #ccc!important;background:#fff!important}
+#problems .problem{display:grid!important;grid-template-columns:minmax(0,1fr) 100px!important;align-items:center!important;gap:10px!important;padding:10px 13px!important;border:0!important;border-bottom:1px solid #ccc!important;background:#fff!important}
 #problems .problem:nth-child(even){background:#f5f5f5!important}
 #problems .problem h3{margin:0!important;font-size:16px!important;font-weight:400!important}
 #problems .problem h3 a{color:#3975a6!important}
@@ -1421,6 +1450,20 @@ init();
 #contestSubmissions tbody tr:nth-child(even) td,#leaderboard tbody tr:nth-child(even) td{background:#f5f5f5!important}
 @media(max-width:1050px){.contest-title-tabs{flex-direction:column!important;gap:8px!important}.contest-title-tabs h1{font-size:27px!important}.contest-clue-tabs{overflow-x:auto!important;min-height:48px!important}.grid{grid-template-columns:1fr!important}}
 @media(max-width:600px){.contest-state-title{font-size:27px!important}#contestInfo{padding:0 10px 10px!important}.contest-clue-tabs a{padding:0 10px!important;font-size:13px!important}}
+</style>
+
+<style id="contest-statistics-data-style">
+.contest-stats-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;margin:12px 0!important}
+.contest-stats-grid>div{display:flex!important;flex-direction:column!important;gap:4px!important;padding:12px 10px!important;border:1px solid #d4d9de!important;background:#fff!important}
+.contest-stats-grid strong{font-size:22px!important;color:#173b5d!important}
+.contest-stats-grid span{font-size:12px!important;color:#687987!important}
+.contest-stats-bar{display:flex!important;overflow:hidden!important;width:100%!important;height:13px!important;background:#eef1f3!important;border-radius:2px!important}
+.contest-stats-bar i{display:block!important;height:100%!important}
+.contest-stats-bar .accepted{background:#16a34a!important}
+.contest-stats-bar .wrong{background:#e54832!important}
+.contest-stats-bar .pending{background:#f5a623!important}
+.contest-stats-bar .other{background:#9aabb6!important}
+@media(max-width:560px){.contest-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 </style>
 
 </body>
