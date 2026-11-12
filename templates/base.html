@@ -716,22 +716,6 @@
                 <a href="/submissions" data-i18n="nav_submissions" {% if request.path.startswith('/submissions') %}aria-current="page"{% endif %}>Các bài nộp</a>
                 <a href="/contests" data-i18n="nav_contests" {% if request.path.startswith('/contests') %}aria-current="page"{% endif %}>Các kỳ thi</a>
                 <a href="/library" data-i18n="nav_library" {% if request.path == '/library' %}aria-current="page"{% endif %}>Thư viện đề thi</a>
-
-                <details class="nav-dropdown">
-                    <summary><span data-i18n="nav_users">Người dùng</span> <span>⌄</span></summary>
-                    <div class="nav-dropdown-menu">
-                        <a href="/leaderboard" data-i18n="nav_leaderboard" {% if request.path == '/leaderboard' %}aria-current="page"{% endif %}>Xếp hạng</a>
-                        <a href="/profile" data-i18n="nav_profile" {% if request.path == '/profile' %}aria-current="page"{% endif %}>Hồ sơ cá nhân</a>
-                    </div>
-                </details>
-
-                <details class="nav-dropdown">
-                    <summary><span data-i18n="nav_information">Thông tin</span> <span>⌄</span></summary>
-                    <div class="nav-dropdown-menu">
-                        <a href="/about" data-i18n="nav_about">Về TranTu OJ</a>
-                    </div>
-                </details>
-
                 {% if logged_in_user and logged_in_user.is_admin %}
                     <a id="admin-link" href="/admin" data-i18n="nav_admin">Quản trị</a>
                 {% else %}
