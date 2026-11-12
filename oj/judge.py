@@ -37,7 +37,10 @@ class Judge0:
             'wall_time_limit': min(
                 30.0, max(2.0, time_limit * 3)
             ),
-            'memory_limit': int(memory_limit)
+            # Judge0 requires memory_limit >= 2048 KB.
+            # Clamp small problem defaults so valid submissions are not
+            # rejected with HTTP 422 before execution.
+            'memory_limit': max(2048, int(memory_limit))
         }
 
         if int(language_id) == 54:
