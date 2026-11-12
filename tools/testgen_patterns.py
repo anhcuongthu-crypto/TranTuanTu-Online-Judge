@@ -47,6 +47,8 @@ def graphs(n, mode, rng):
             raise ValueError("complete graph helper is limited to n <= 500")
         return [(i, j) for i in range(1, n + 1) for j in range(i + 1, n + 1)]
     if mode == "random":
+        if n == 1:
+            return []
         edges = set()
         for v in range(2, n + 1):
             u = rng.randint(1, v - 1)
