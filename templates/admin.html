@@ -424,7 +424,7 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
         
 <section class="panel" id="library-json-panel">
     <h2>📚 JSON Thư viện đề</h2>
-    <p class="muted">Xem dữ liệu các đề thi đang được lưu trong Thư viện đề (không phải ngân hàng bài tập).</p>
+    <p class="muted">Xem đầy đủ dữ liệu từng đề trong Thư viện đề, bao gồm danh sách bài, nội dung bài, thang điểm và test. Chỉ admin được truy cập.</p>
     <div class="toolbar">
         <button type="button" id="load-library-json" class="secondary">Tải / làm mới JSON thư viện</button>
         <button type="button" id="copy-library-json" class="secondary">Sao chép JSON</button>
@@ -2779,11 +2779,29 @@ contestTestContest.addEventListener('change', async () => {
                 credentials: 'same-origin',
                 cache: 'no-store'
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Không tải được JSON Thư viện đề.');
-            if (!Array.isArray(data)) throw new Error('Dữ liệu Thư viện đề không đúng định dạng mảng JSON.');
-            view.value = JSON.stringify(data, null, 2);
-            show('Đã tải ' + data.length + ' đề từ Thư viện đề.');
+            const contests = await response.json();
+            if (!response.ok) throw new Error(contests.error || 'Không tải được danh sách Thư viện đề.');
+            if (!Array.isArray(contests)) throw new Error('Danh sách Thư viện đề không đúng định dạng JSON.');
+
+            // Lấy chi tiết từng đề qua API có kiểm tra quyền admin,
+            // bao gồm các bài ngân hàng và bài tự tạo cùng toàn bộ subtasks/tests.
+            const details = await Promise.all(contests.map(async contest => {
+                const detailResponse = await fetch('/api/contests/' + encodeURIComponent(contest.id), {
+                    credentials: 'same-origin',
+                    cache: 'no-store'
+                });
+                const detail = await detailResponse.json();
+                if (!detailResponse.ok) {
+                    throw new Error('Không tải được chi tiết đề #' + contest.id + ': ' +
+                        (detail.error || detailResponse.status));
+                }
+                return detail;
+            }));
+
+            view.value = JSON.stringify(details, null, 2);
+            const problemCount = details.reduce((sum, contest) =>
+                sum + (Array.isArray(contest.problems) ? contest.problems.length : 0), 0);
+            show('Đã tải đầy đủ ' + details.length + ' đề và ' + problemCount + ' bài thi (kèm dữ liệu chi tiết).');
         } catch (error) {
             show(error.message || 'Có lỗi khi tải JSON Thư viện đề.', true);
         } finally {
