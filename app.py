@@ -1231,7 +1231,10 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
     def submit_problem_page(pid):
         p = next((x for x in problems() if str(x['id']) == pid), None)
         if p:
-            return render_template('submit_problem.html', problem=p)
+            contest_id = request.args.get('contest_id', type=int)
+            return render_template(
+                'submit_problem.html', problem=p, contest_id=contest_id
+            )
         return render_template('not_found.html'), 404
 
 
