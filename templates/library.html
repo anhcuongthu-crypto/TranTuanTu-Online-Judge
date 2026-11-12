@@ -277,7 +277,7 @@
     let max=0,score=0;
     for(const p of list){
       const cap=Number(p.total_score)||0;
-      const best=Number(progress[String(p.id)]?.score)||0;
+      const best=Number(progress[String(contest.id)]?.[String(p.id)]?.score)||0;
       max+=cap;score+=Math.min(best,cap);
     }
     const pct=max?Math.min(100,score/max*100):0;
@@ -377,11 +377,15 @@
   });
   Promise.all([
     fetch('/api/contests',{credentials:'same-origin'}).then(r=>{if(!r.ok)throw Error('Không tải được danh sách đề thi');return r.json();}),
-    fetch('/api/my-progress',{credentials:'same-origin'}).then(r=>{if(!r.ok)return null;return r.json();}).catch(()=>null)
+    fetch('/api/my-library-progress',{credentials:'same-origin',cache:'no-store'}).then(r=>{if(!r.ok)return null;return r.json();}).catch(()=>null)
   ]).then(([cs,pr])=>{
     contests=Array.isArray(cs)?cs:[];
-    progressAvailable=!!pr;
-    (pr?.problems||[]).forEach(p=>progress[String(p.problem_id)]={score:Number(p.best_score??p.score)||0});
+    progressAvailable=Array.isArray(pr);
+    (Array.isArray(pr)?pr:[]).forEach(p=>{
+      const contestKey=String(p.contest_id),problemKey=String(p.problem_id);
+      if(!progress[contestKey])progress[contestKey]={};
+      progress[contestKey][problemKey]={score:Number(p.best_score??p.score)||0};
+    });
     setupFilters();
     const requested=Number(new URLSearchParams(location.search).get('page'));
     currentPage=Number.isInteger(requested)&&requested>0?requested:1;
