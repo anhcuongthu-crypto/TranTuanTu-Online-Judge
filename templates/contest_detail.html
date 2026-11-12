@@ -937,10 +937,6 @@ function getSubtaskCondition(s) {
                 <tbody>
                     ${subtasks.map((s, i) => {
                         const subtaskScore = Number(s.score) || 0;
-                        const percent = totalScore > 0
-                            ? subtaskScore / totalScore * 100
-                            : 0;
-
                         const condition = getSubtaskCondition(s);
 
                         return `
@@ -949,7 +945,7 @@ function getSubtaskCondition(s) {
                                     ${esc(s.name || (t("subtask") + " " + (i + 1)))}
                                 </td>
                                 <td class="subtask-condition">${esc(condition)}</td>
-                                <td class="score">${Number(percent.toFixed(2))}%</td>
+                                <td class="score">${Number(subtaskScore.toFixed(2))} ${t("points")}</td>
                             </tr>
                         `;
                     }).join('')}
