@@ -495,3 +495,78 @@ body:not(.login-page) ::-webkit-scrollbar-thumb:hover { background:#28789a; }
 @media(prefers-reduced-motion:reduce) {
   body:not(.login-page) .workflow-step,body:not(.login-page) .home-shortcut-card { transition:none !important; }
 }
+
+
+/* Site-wide premium component details */
+body:not(.login-page) .topbar{position:relative!important}
+body:not(.login-page) .topbar::after{
+ content:""!important;position:absolute!important;left:0!important;right:0!important;bottom:-1px!important;height:1px!important;
+ background:linear-gradient(90deg,transparent,rgba(73,211,245,.7) 28%,rgba(123,135,255,.55) 72%,transparent)!important;
+ pointer-events:none!important
+}
+body:not(.login-page) #main-content{min-height:calc(100vh - 190px)!important}
+body:not(.login-page) .button:focus-visible,
+body:not(.login-page) button:focus-visible,
+body:not(.login-page) a:focus-visible{outline:2px solid #65def5!important;outline-offset:3px!important}
+body:not(.login-page) input[type="checkbox"],
+body:not(.login-page) input[type="radio"]{accent-color:#42c9eb!important}
+body:not(.login-page) hr{border:0!important;border-top:1px solid rgba(105,190,235,.17)!important}
+body:not(.login-page) pre,
+body:not(.login-page) .code-block,
+body:not(.login-page) .source-code,
+body:not(.login-page) .submission-code{
+ color:#d9efff!important;background:#061321!important;
+ border:1px solid rgba(91,190,229,.2)!important;border-radius:13px!important;
+ box-shadow:inset 0 1px 0 rgba(190,230,255,.035),0 10px 24px rgba(0,0,0,.15)!important;
+}
+body:not(.login-page) code{
+ font-family:"JetBrains Mono",monospace!important;
+}
+body:not(.login-page) :not(pre)>code{
+ color:#81e4f5!important;background:rgba(48,174,216,.11)!important;
+ border:1px solid rgba(84,192,226,.13)!important;border-radius:5px!important;padding:2px 5px!important;
+}
+body:not(.login-page) .tabs,
+body:not(.login-page) .tab-list,
+body:not(.login-page) [role="tablist"]{
+ border-bottom:1px solid rgba(104,190,229,.19)!important;
+}
+body:not(.login-page) [role="tab"],
+body:not(.login-page) .tab{
+ color:#9fb5ca!important;background:transparent!important;border-color:transparent!important;
+ transition:color .18s ease,background .18s ease,border-color .18s ease!important;
+}
+body:not(.login-page) [role="tab"][aria-selected="true"],
+body:not(.login-page) .tab.active{
+ color:#77e4f6!important;border-color:rgba(82,210,241,.48)!important;
+ background:rgba(44,173,215,.08)!important;
+}
+body:not(.login-page) .alert,
+body:not(.login-page) .notice,
+body:not(.login-page) .flash-message{
+ color:#d5e8f7!important;background:rgba(17,43,65,.9)!important;
+ border:1px solid rgba(92,190,225,.2)!important;border-radius:12px!important;
+}
+body:not(.login-page) .badge,
+body:not(.login-page) .pill,
+body:not(.login-page) .tag{
+ border-radius:999px!important;
+}
+body:not(.login-page) .pagination a,
+body:not(.login-page) .pagination button{
+ color:#c4d9ea!important;background:#0d2237!important;
+ border:1px solid rgba(102,187,222,.2)!important;border-radius:9px!important;
+}
+body:not(.login-page) .pagination .active,
+body:not(.login-page) .pagination [aria-current="page"]{
+ color:#071624!important;background:linear-gradient(110deg,#4bdcf4,#789aff)!important;
+ border-color:#70e7ff!important;
+}
+body:not(.login-page) .empty-state,
+body:not(.login-page) .no-data{
+ color:#a9bfd3!important;background:rgba(12,31,50,.7)!important;
+ border:1px dashed rgba(105,190,229,.25)!important;border-radius:14px!important;padding:26px!important;
+}
+@media(max-width:700px){
+ body:not(.login-page) #main-content{min-height:calc(100vh - 150px)!important}
+}
