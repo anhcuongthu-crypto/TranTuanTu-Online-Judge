@@ -1071,6 +1071,41 @@ html body .problemset-pagination [aria-current="page"]{
 }
 </style>
 
+
+<style id="trantu-navbar-theme-background-fix">
+/* Keep the navigation bar and its nav element on the same surface. */
+html.theme-dark body .topbar,
+html.theme-dark body .topbar .clue-nav {
+  background:#050505!important;background-color:#050505!important;
+  background-image:none!important;color:#f5f7fa!important;
+}
+html.theme-dark body .topbar .clue-nav {
+  border:0!important;box-shadow:none!important;
+}
+html.theme-dark body .topbar .clue-nav>a {
+  background:transparent!important;color:#67dfff!important;
+}
+html.theme-dark body .topbar .clue-nav>a:hover,
+html.theme-dark body .topbar .clue-nav>a[aria-current="page"] {
+  background:#102a40!important;color:#fff!important;
+}
+html.theme-light body .topbar,
+html.theme-light body .topbar .clue-nav {
+  background:#fff!important;background-color:#fff!important;
+  background-image:none!important;color:#174a72!important;
+}
+html.theme-light body .topbar .clue-nav {
+  border:0!important;box-shadow:none!important;
+}
+html.theme-light body .topbar .clue-nav>a {
+  background:transparent!important;color:#176eaa!important;
+}
+html.theme-light body .topbar .clue-nav>a:hover,
+html.theme-light body .topbar .clue-nav>a[aria-current="page"] {
+  background:#eaf5fd!important;color:#075b91!important;
+}
+</style>
+
 <!-- trantu-global-times-new-roman -->
 <style id="trantu-global-times-new-roman">
 html,body,body *,
