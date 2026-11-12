@@ -1,0 +1,49 @@
+name: Build problem-bank test suites
+
+on:
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: Reproducible random seed
+        required: true
+        default: "20261113"
+      per_subtask:
+        description: Number of generated cases per subtask
+        required: true
+        default: "5"
+  push:
+    paths:
+      - "tools/testgen_catalog.py"
+      - "data/problems.json"
+      - ".github/workflows/testgen-catalog.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Generate test suites for the full problem bank
+        run: |
+          python tools/testgen_catalog.py \
+            --seed "\${{ github.event.inputs.seed || '20261113' }}" \
+            --per-subtask "\${{ github.event.inputs.per_subtask || '5' }}" \
+            --output data/problems.generated.json \
+            --report data/testgen_catalog_report.json
+      - name: Upload generated suites and audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trantu-testgen-catalog-\${{ github.run_number }}
+          path: |
+            data/problems.generated.json
+            data/testgen_catalog_report.json
+          if-no-files-found: error
+          retention-days: 30
