@@ -1434,6 +1434,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
         scope = request.args.get('scope', 'history')
         problem_id = request.args.get('problem_id', '').strip()
+        contest_id = request.args.get('contest_id', type=int)
 
         if scope not in ('all', 'mine', 'history'):
             scope = 'history'
@@ -1444,7 +1445,8 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         return render_template(
             'submissions.html',
             scope=scope,
-            problem_id=problem_id
+            problem_id=problem_id,
+            contest_id=contest_id
         )
 
    
