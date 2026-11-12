@@ -1008,75 +1008,67 @@ html.theme-light body :is(.theme-switch,.theme-switch-standalone){background:#ff
 
 
 <style id="trantu-problemset-theme-fix">
-/* Problem list: white surfaces use readable blue text in light mode. */
-html.theme-light body .problemset-page,
-html.theme-light body .problemset-workspace,
-html.theme-light body .problemset-filters,
-html.theme-light body .problemset-table-wrap,
-html.theme-light body .problemset-table-wrap table,
-html.theme-light body .problemset-table-wrap thead,
-html.theme-light body .problemset-table-wrap tbody,
-html.theme-light body .problemset-table-wrap tr,
-html.theme-light body .problemset-table-wrap th,
-html.theme-light body .problemset-table-wrap td,
-html.theme-light body .problemset-pagination{
-  background:#fff!important;background-image:none!important;color:#174a68!important;
-  border-color:#cbddea!important;box-shadow:none!important;
+/* Blue-and-white palette for the complete problem list, in either theme mode. */
+html body .problemset-page,
+html body .problemset-workspace,
+html body .problemset-filters,
+html body .problemset-table-wrap,
+html body .problemset-table-wrap table,
+html body .problemset-table-wrap thead,
+html body .problemset-table-wrap tbody,
+html body .problemset-table-wrap tr,
+html body .problemset-table-wrap th,
+html body .problemset-table-wrap td,
+html body .problemset-pagination{
+  background:#fff!important;background-image:none!important;color:#174a72!important;
+  border-color:#c8def0!important;box-shadow:none!important;
 }
-html.theme-light body .problemset-filter-title{
-  background:#e8f4fc!important;color:#176eaa!important;border-color:#c5deef!important;
+html body .problemset-heading{border-color:#c8def0!important}
+html body .problemset-heading h2,
+html body .problemset-table-head,
+html body .problemset-table-head strong,
+html body .problemset-table-wrap th,
+html body .problemset-table-wrap td,
+html body .problemset-table-wrap a,
+html body .problemset-filters label,
+html body .problemset-filters .muted{color:#174a72!important}
+html body .problemset-filter-title{
+  background:linear-gradient(110deg,#176da5,#287fc0)!important;
+  color:#fff!important;border-color:#176da5!important;
 }
-html.theme-light body .problemset-heading h2,
-html.theme-light body .problemset-table-head,
-html.theme-light body .problemset-table-head strong,
-html.theme-light body .problemset-table-wrap th,
-html.theme-light body .problemset-table-wrap td,
-html.theme-light body .problemset-table-wrap a,
-html.theme-light body .problemset-filters label,
-html.theme-light body .problemset-filters .muted{
-  color:#174a68!important;
-}
-html.theme-light body .problemset-filters input,
-html.theme-light body .problemset-filters select,
-html.theme-light body .problemset-page-size select{
-  background:#fff!important;color:#174a68!important;border:1px solid #b9d2e5!important;
+html body .problemset-filter-title span{color:#fff!important}
+html body .problemset-filters input,
+html body .problemset-filters select,
+html body .problemset-page-size select{
+  background:#fff!important;color:#174a72!important;border:1px solid #a9cce7!important;
   color-scheme:light!important;
 }
-html.theme-light body .problemset-filters input::placeholder{color:#527b98!important;opacity:1!important}
-html.theme-light body .problemset-filters select option{background:#fff!important;color:#174a68!important}
-html.theme-light body .problemset-table-wrap tbody tr:nth-child(even) td,
-html.theme-light body .problemset-table-wrap tbody tr:hover td{background:#fff!important}
-html.theme-dark body .problemset-page,
-html.theme-dark body .problemset-workspace,
-html.theme-dark body .problemset-filters,
-html.theme-dark body .problemset-table-wrap,
-html.theme-dark body .problemset-table-wrap table,
-html.theme-dark body .problemset-table-wrap thead,
-html.theme-dark body .problemset-table-wrap tbody,
-html.theme-dark body .problemset-table-wrap tr,
-html.theme-dark body .problemset-table-wrap th,
-html.theme-dark body .problemset-table-wrap td,
-html.theme-dark body .problemset-pagination{
-  background:#050505!important;background-image:none!important;color:#f0f3f7!important;
-  border-color:#30343a!important;box-shadow:none!important;
+html body .problemset-filters input::placeholder{color:#668aa7!important;opacity:1!important}
+html body .problemset-filters select option{background:#fff!important;color:#174a72!important}
+html body .problemset-filters input:focus,
+html body .problemset-filters select:focus,
+html body .problemset-page-size select:focus{
+  border-color:#2788c9!important;box-shadow:0 0 0 3px rgba(39,136,201,.14)!important;outline:0!important;
 }
-html.theme-dark body .problemset-filter-title{background:#102940!important;color:#e6f7ff!important}
-html.theme-dark body .problemset-heading h2,
-html.theme-dark body .problemset-table-head,
-html.theme-dark body .problemset-table-head strong,
-html.theme-dark body .problemset-table-wrap th,
-html.theme-dark body .problemset-table-wrap td,
-html.theme-dark body .problemset-table-wrap a{color:#f0f3f7!important}
-html.theme-dark body .problemset-filters input,
-html.theme-dark body .problemset-filters select,
-html.theme-dark body .problemset-page-size select{
-  background:#050505!important;color:#f0f3f7!important;border-color:#30343a!important;
-  color-scheme:dark!important;
+html body .problemset-filters #reset-problem-filters{
+  background:#eaf5fd!important;color:#176da5!important;border:1px solid #b9d9ef!important;
 }
-html.theme-dark body .problemset-filters input::placeholder{color:#aab8c5!important;opacity:1!important}
-html.theme-dark body .problemset-filters select option{background:#050505!important;color:#f0f3f7!important}
-html.theme-dark body .problemset-table-wrap tbody tr:nth-child(even) td,
-html.theme-dark body .problemset-table-wrap tbody tr:hover td{background:#050505!important}
+html body .problemset-filters #random-problem{
+  background:linear-gradient(110deg,#176da5,#438fd0)!important;color:#fff!important;
+  border:1px solid #176da5!important;box-shadow:0 5px 14px rgba(23,109,165,.18)!important;
+}
+html body .problemset-table-wrap th{background:#eaf5fd!important;color:#174a72!important}
+html body .problemset-table-wrap tbody tr:nth-child(even) td{background:#f4f9fd!important}
+html body .problemset-table-wrap tbody tr:hover td{background:#e7f3fc!important}
+html body .problemset-table-wrap a{color:#0877ba!important}
+html body .problemset-pagination button,
+html body .problemset-pagination a{
+  background:#eaf5fd!important;color:#176da5!important;border:1px solid #b9d9ef!important;
+}
+html body .problemset-pagination .active,
+html body .problemset-pagination [aria-current="page"]{
+  background:#176da5!important;color:#fff!important;border-color:#176da5!important;
+}
 </style>
 
 <!-- trantu-global-times-new-roman -->
