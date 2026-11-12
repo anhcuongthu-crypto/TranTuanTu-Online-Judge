@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ 'Bảng xếp hạng' if section == 'leaderboard' else 'Các bài nộp' }} - TranTu OJ</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f8fc;color:#29465f;font:15px Arial,sans-serif}
+header{background:#17334e;color:#fff;padding:14px max(4%,calc((100% - 1420px)/2));display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+header a{color:#fff;text-decoration:none}.brand{font-size:19px;font-weight:bold}
+main{max-width:1420px;margin:26px auto;padding:0 22px}
+h1{font-size:32px;font-weight:400;color:#173b5d;margin:0}
+h2{font-size:22px;font-weight:400;color:#173b5d;margin:0 0 14px}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;border-bottom:1px solid #cfd8df;padding-bottom:14px;margin-bottom:18px}
+.tabs{display:flex;align-items:center;gap:0;flex-wrap:wrap}.tabs a{padding:13px 15px;color:#536b80;text-decoration:none;border:1px solid transparent}
+.tabs a.active{color:#173b5d;background:#fff;border:1px solid #cfd8df;border-top:3px solid #173b5d;border-bottom-color:#fff;margin-bottom:-1px}
+.card{background:#fff;border:1px solid #dce8f2;padding:18px;margin-bottom:18px}
+.meta{color:#71879a;text-align:center;margin:10px 0 20px}
+.table-wrap{width:100%;overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:650px}
+th{background:#17334e;color:#fff;text-align:left;font-size:14px;padding:12px 10px}
+td{padding:11px 10px;border:1px solid #d4d9de;color:#405b70;background:#fff}
+tbody tr:nth-child(even) td{background:#f5f6f7}
+a.item-link{color:#3975a6;text-decoration:none}a.item-link:hover{text-decoration:underline}
+.pill{display:inline-block;padding:4px 9px;border-radius:3px;background:#edf1f4;color:#526879;font-size:12px;font-weight:bold}
+.pill.accepted{background:#d1fae5;color:#166534}.pill.wrong{background:#fee2e2;color:#991b1b}.pill.pending{background:#fef3c7;color:#92400e}
+.empty,.error{padding:25px;text-align:center;color:#71879a}
+@media(max-width:650px){main{padding:0 10px;margin:16px auto}h1{font-size:25px}.card{padding:10px}.tabs{overflow-x:auto;flex-wrap:nowrap;width:100%}.tabs a{white-space:nowrap;padding:10px}}
+</style>
+</head>
+<body data-contest-id="{{ contest_id }}">
+<header><a class="brand" href="/">TranTu OJ</a><a href="/contests/{{ contest_id }}">← Quay lại kỳ thi</a></header>
+<main>
+<div class="topline">
+<h1 id="contestTitle">Đang tải kỳ thi...</h1>
+<nav class="tabs">
+<a href="/contests/{{ contest_id }}">Thông tin</a>
+<a href="/contests/{{ contest_id }}/leaderboard" class="{{ 'active' if section == 'leaderboard' else '' }}">Bảng xếp hạng</a>
+<a href="/contests/{{ contest_id }}/submissions" class="{{ 'active' if section == 'submissions' else '' }}">Các bài nộp</a>
+</nav>
+</div>
+<div class="meta" id="contestMeta"></div>
+<section class="card">
+<h2>{{ 'Bảng xếp hạng' if section == 'leaderboard' else 'Danh sách bài nộp trong kỳ thi' }}</h2>
+<div id="content" class="empty">Đang tải dữ liệu...</div>
+</section>
+</main>
+<script>
+const contestId={{ contest_id|tojson }};
+const section={{ section|tojson }};
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function dateText(v){if(!v)return '—';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString('vi-VN')}
+function verdictClass(v){v=String(v||'').toUpperCase();if(v.includes('ACCEPTED')||v==='AC')return 'accepted';if(v.includes('WRONG')||v==='WA')return 'wrong';if(/QUEUED|PROCESSING|RUNNING|PENDING/.test(v))return 'pending';return ''}
+async function get(url){const r=await fetch(url,{credentials:'same-origin'});const d=await r.json();if(!r.ok)throw Error(d.error||'Không tải được dữ liệu');return d}
+async function init(){
+ try{
+  const contest=await get('/api/contests/'+contestId);
+  $('contestTitle').textContent=contest.title||'Kỳ thi';
+  $('contestMeta').textContent='Bắt đầu: '+dateText(contest.start_time)+' · Kết thúc: '+dateText(contest.end_time)+' · '+(contest.state==='ended'?'Đã kết thúc':contest.state==='upcoming'?'Sắp diễn ra':'Đang diễn ra');
+  if(section==='leaderboard'){
+   const data=await get('/api/contests/'+contestId+'/leaderboard');
+   const rows=Array.isArray(data)?data:[];
+   if(!rows.length){$('content').innerHTML='<div class="empty">Chưa có dữ liệu xếp hạng.</div>';return}
+   $('content').innerHTML='<div class="table-wrap"><table><thead><tr><th style="width:75px">Hạng</th><th>Thành viên</th><th>Điểm</th><th>Số bài giải</th></tr></thead><tbody>'+rows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(r.username||r.name||r.user||'Ẩn danh')+'</td><td>'+esc(r.score??0)+'</td><td>'+esc(r.solved??0)+'</td></tr>').join('')+'</tbody></table></div>';
+  }else{
+   const data=await get('/api/contests/'+contestId+'/submissions');
+   const rows=Array.isArray(data)?data:[];
+   if(!rows.length){$('content').innerHTML='<div class="empty">Chưa có bài nộp nào trong kỳ thi.</div>';return}
+   $('content').innerHTML='<div class="table-wrap"><table><thead><tr><th>Mã bài nộp</th><th>Thành viên</th><th>Bài tập</th><th>Kết quả</th><th>Điểm</th><th>Thời gian</th></tr></thead><tbody>'+rows.map(r=>'<tr><td><a class="item-link" href="/submission/'+encodeURIComponent(r.id)+'">#'+esc(r.id)+'</a></td><td>'+esc(r.username||'—')+'</td><td>'+esc(r.problem_title||r.problem_id||'—')+'</td><td><span class="pill '+verdictClass(r.verdict)+'">'+esc(r.verdict||'—')+'</span></td><td>'+esc(r.score??0)+' / '+esc(r.max_score??'—')+'</td><td>'+esc(dateText(r.created_at))+'</td></tr>').join('')+'</tbody></table></div>';
+  }
+ }catch(e){$('content').innerHTML='<div class="error">'+esc(e.message)+'</div>'}
+}
+init();
+</script>
+</body>
+</html>
