@@ -95,27 +95,6 @@
 .problem-info-row span { opacity: .7; font-size: 13px; }
 .problem-info-row strong { text-align: right; font-size: 13px; }
 .problem-hero { margin-bottom: 20px; }
-.freopen-notice {
-    margin: 0 0 20px;
-    padding: 16px 18px;
-    border: 1px solid #e8b65c;
-    border-left: 5px solid #d99019;
-    border-radius: 12px;
-    background: #fff8e8;
-    color: #704b12;
-    line-height: 1.7;
-    font-size: 14px;
-}
-.freopen-notice strong { display: block; margin-bottom: 5px; color: #8a5708; }
-.freopen-notice p { margin: 5px 0 0; color: #704b12; }
-.freopen-notice code {
-    display: inline-block;
-    padding: 2px 6px;
-    border-radius: 5px;
-    background: #ffedc5;
-    color: #744800;
-    font-weight: 700;
-}
 .problem-content { padding: 24px; }
 
 .translation-status {
@@ -304,17 +283,6 @@
             </div>
         </article>
 
-        {% if problem.use_freopen %}
-            <div class="freopen-notice" role="alert">
-                <strong>⚠ Lưu ý: Bài này bắt buộc sử dụng freopen</strong>
-                <p>Khi viết chương trình C++, hãy đọc dữ liệu từ file
-                   <code>{{ problem.input_file }}</code> và ghi kết quả ra file
-                   <code>{{ problem.output_file }}</code>.</p>
-                <p>Nếu không sử dụng đúng <code>freopen</code> và tên file yêu cầu,
-                   bài nộp sẽ không được chấm điểm.</p>
-            </div>
-        {% endif %}
-
         <section class="glass-card problem-content">
 
             <h2>
@@ -411,28 +379,28 @@
             <h3 id="info-heading">Thông tin bài tập</h3>
 
             <div class="problem-info-row">
-                <span id="info-score">Điểm</span>
+                <span id="info-score">✔ <b>Điểm:</b></span>
                 <strong>{{ problem.total_score }} (OI)</strong>
             </div>
 
             <div class="problem-info-row">
-                <span id="info-time">Giới hạn thời gian</span>
+                <span id="info-time">◷ <b>Giới hạn thời gian:</b></span>
                 <strong>{{ problem.time_limit }}s</strong>
             </div>
 
             <div class="problem-info-row">
-                <span id="info-memory">Giới hạn bộ nhớ</span>
+                <span id="info-memory">▤ <b>Giới hạn bộ nhớ:</b></span>
                 <strong>{{ problem.memory_limit }} KB</strong>
             </div>
 
             <div class="problem-info-row">
-                <span id="info-input">Input</span>
-                <strong>{{ problem.input_file if problem.use_freopen else 'stdin' }}</strong>
+                <span id="info-input">⌨ <b>Input:</b></span>
+                <strong>{% if problem.use_freopen %}<i>{{ problem.input_file }}</i>{% else %}stdin{% endif %}</strong>
             </div>
 
             <div class="problem-info-row">
-                <span id="info-output">Output</span>
-                <strong>{{ problem.output_file if problem.use_freopen else 'stdout' }}</strong>
+                <span id="info-output">▣ <b>Output:</b></span>
+                <strong>{% if problem.use_freopen %}<i>{{ problem.output_file }}</i>{% else %}stdout{% endif %}</strong>
             </div>
         </section>
 
