@@ -4,6 +4,27 @@
 {% block meta_description %}Kho bài tập lập trình TranTu OJ: tìm kiếm, lọc chủ đề, độ khó, theo dõi trạng thái giải và luyện thuật toán.{% endblock %}
 
 {% block content %}
+<style id="clue-problem-list-style">
+.problemset-page{max-width:1160px!important;margin:0 auto!important;padding:0!important}
+.problemset-hero{display:none!important}
+.problemset-workspace{display:grid!important;grid-template-columns:minmax(0,1fr) 270px!important;grid-template-rows:auto auto auto auto!important;gap:10px 14px!important;align-items:start!important;background:transparent!important;border:0!important;box-shadow:none!important}
+.problemset-heading{grid-column:1/-1!important;grid-row:1!important;padding:0 0 7px!important;border-bottom:1px solid #d9dee2!important}
+.problemset-heading h2{font-size:24px!important;font-weight:400!important;margin:0!important}
+.problemset-heading p,.problemset-total{display:none!important}
+.problemset-filters{grid-column:2!important;grid-row:2 / span 3!important;display:flex!important;flex-direction:column!important;gap:7px!important;padding:10px!important;background:#fff!important;border:1px solid #d4d9de!important;border-radius:3px!important}
+.problemset-search{width:100%!important}
+.problemset-filters input,.problemset-filters select{width:100%!important;min-height:31px!important;font-size:12px!important}
+.problemset-filters .button{width:auto!important;align-self:flex-end!important;padding:6px 12px!important;font-size:11px!important}
+.problemset-table-head{grid-column:1!important;grid-row:2!important;padding:0!important;border:0!important;background:transparent!important}
+.problemset-table-wrap{grid-column:1!important;grid-row:3!important;overflow-x:auto!important;border:1px solid #d4d9de!important;background:#fff!important}
+.problemset-pagination{grid-column:1!important;grid-row:4!important;padding:8px 0!important;border:0!important;background:transparent!important}
+.problemset-table-wrap table{min-width:690px!important}
+.problemset-table-wrap th{font-size:11px!important;padding:8px 9px!important}
+.problemset-table-wrap td{font-size:11px!important;padding:7px 9px!important}
+.problemset-table-wrap tbody tr:nth-child(even) td{background:#f8f9fa!important}
+@media(max-width:850px){.problemset-workspace{grid-template-columns:minmax(0,1fr)!important}.problemset-filters{grid-column:1!important;grid-row:2!important;display:grid!important;grid-template-columns:1fr 1fr!important}.problemset-search{grid-column:1/-1!important}.problemset-table-head{grid-row:3!important}.problemset-table-wrap{grid-row:4!important}.problemset-pagination{grid-row:5!important}}
+@media(max-width:560px){.problemset-filters{grid-template-columns:1fr!important}.problemset-search{grid-column:1!important}.problemset-heading h2{font-size:21px!important}}
+</style>
 <div class="problemset-page">
     <section class="problemset-hero">
         <div>
