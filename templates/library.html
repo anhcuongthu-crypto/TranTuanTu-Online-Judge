@@ -43,12 +43,35 @@
 .exam-library .el-progress-bar{height:7px;max-width:210px;margin:0 auto 6px;background:#d8dde1;overflow:hidden;border-radius:2px}
 .exam-library .el-progress-bar span{height:100%;display:block;background:#20a45a}
 .exam-library .el-empty{padding:30px!important;text-align:center!important;color:#718096!important}
+
+.exam-library .el-admin-tools{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  margin:0 0 20px;padding:16px 18px;border:1px solid #b9d8ed;border-radius:10px;
+  background:linear-gradient(110deg,#edf7ff,#fff);color:#174a72}
+.exam-library .el-admin-tools p{margin:4px 0 0;color:#55758f;font-size:13px}
+.exam-library .el-admin-actions{display:flex;gap:9px;flex-wrap:wrap}
+.exam-library .el-admin-actions a{display:inline-flex;align-items:center;justify-content:center;padding:9px 13px;
+  border-radius:7px;background:#176da5;color:#fff;text-decoration:none;font-weight:700;font-size:13px}
+.exam-library .el-admin-actions a:last-child{background:#fff;color:#176da5;border:1px solid #9fc5e2}
+.exam-library .el-admin-actions a:hover{filter:brightness(.96);text-decoration:none}
+
 .exam-library .el-bottom-page{margin-top:10px}
 @media(max-width:980px){.exam-library .el-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.exam-library .el-search{grid-column:1/-1}}
 @media(max-width:600px){.exam-library{padding:0 12px;margin:16px auto 30px}.exam-library .el-title{font-size:25px}.exam-library .el-filters{grid-template-columns:1fr}.exam-library .el-search{grid-column:auto}.exam-library .el-actions button{flex:1}.exam-library .el-checks{gap:12px;flex-direction:column}.exam-library td{padding:11px 9px}.exam-library .el-name{font-size:14px}}
 </style>
 
 <div class="exam-library">
+  {% if is_admin %}
+  <section class="el-admin-tools" aria-label="Công cụ quản trị thư viện đề">
+    <div>
+      <strong>Quản trị thư viện đề</strong>
+      <p>Tạo đề thi, thêm bài từ ngân hàng hoặc tạo bài mới.</p>
+    </div>
+    <div class="el-admin-actions">
+      <a href="/admin#contest-management">Tạo đề / Thêm bài vào đề</a>
+      <a href="/admin#problem-form">Tạo bài mới</a>
+    </div>
+  </section>
+  {% endif %}
   <h1 class="el-title">Đề thi</h1>
   <div class="el-rule"></div>
 
