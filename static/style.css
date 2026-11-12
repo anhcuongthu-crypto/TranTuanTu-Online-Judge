@@ -3696,3 +3696,23 @@ table tbody tr:hover td{background:#fff!important}
 }
 .topbar .nav-dropdown-menu a{color:#526879!important}
 .topbar .nav-dropdown-menu a:hover{background:#f1f3f5!important;color:#315773!important}
+
+
+/* ClueOJ typography match: Roboto across navigation and interface */
+html,body,button,input,select,textarea,
+.topbar,.topbar *,
+.clue-nav,.clue-nav *,
+.nav-dropdown-menu,
+#main-content,.problemset-page,.contest-page,
+.submissions-page,.exam-library,
+table,th,td,label{
+  font-family:"Roboto",Arial,sans-serif!important;
+}
+.topbar .clue-nav>a,
+.topbar .clue-nav .nav-dropdown>summary{
+  font-family:"Roboto",Arial,sans-serif!important;
+  font-size:13px!important;
+  font-weight:500!important;
+  letter-spacing:0!important;
+  text-transform:uppercase!important;
+}
