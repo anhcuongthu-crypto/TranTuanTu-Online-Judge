@@ -4,7 +4,7 @@
 {% block content %}
 <style>
 /* ClueOJ-inspired exam library */
-.exam-library{max-width:1500px;margin:22px auto 42px;padding:0 24px;color:#273746;font-family:inherit}
+.exam-library{max-width:1180px;margin:22px auto 42px;padding:0 24px;color:#273746;font-family:inherit}
 .exam-library *{box-sizing:border-box}
 .exam-library .el-breadcrumb{font-size:13px;color:#82909c;margin:0 0 14px}
 .exam-library .el-breadcrumb a{color:#3975a8;text-decoration:none}
@@ -49,7 +49,6 @@
 </style>
 
 <div class="exam-library">
-  <div class="el-breadcrumb"><a href="/">Trang chủ</a>　/　<span>Thư viện đề thi</span></div>
   <h1 class="el-title">Đề thi</h1>
   <div class="el-rule"></div>
 
@@ -88,7 +87,7 @@
 (() => {
   const root=document.querySelector('.exam-library'); if(!root)return;
   const $=id=>document.getElementById(id);
-  const PAGE_SIZE=20;
+  const PAGE_SIZE=25;
   let contests=[],progress={},filtered=[],currentPage=1,progressAvailable=false;
   const fields={category:'category',scope:'scope',location:'host_location',year:'year'};
   const text=v=>String(v??'').trim();
