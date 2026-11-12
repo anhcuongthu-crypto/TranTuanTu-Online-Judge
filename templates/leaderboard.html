@@ -7,6 +7,18 @@
 
 {% block content %}
 <style>
+#leaderboard{overflow-x:auto;color:#52616d}
+#leaderboard .clue-data-table{width:100%;min-width:560px;border-collapse:collapse;background:#fff}
+#leaderboard .clue-data-table th{background:#344b5e;color:#fff;font-size:12px;padding:9px 12px;text-align:left}
+#leaderboard .clue-data-table td{padding:9px 12px;border-bottom:1px solid #dce0e3;font-size:12px}
+#leaderboard .clue-data-table tbody tr:nth-child(even) td{background:#f7f8f9}
+#leaderboard .clue-data-table tbody tr:hover td{background:#edf2f5}
+#leaderboard .clue-data-table td:first-child{width:52px;color:#7c8992;font-weight:500}
+#leaderboard .leader-handle{color:#8b5591;font-weight:700}
+.leaderboard-clue-card{padding:0!important;overflow:hidden}
+@media(max-width:640px){.section-block{padding:12px!important}#leaderboard .clue-data-table{min-width:500px}}
+</style>
+<style>
 #leaderboard{overflow-x:auto;color:#365d79}
 #leaderboard table{width:100%;border-collapse:collapse;min-width:560px;background:#fff}
 #leaderboard th{background:#eaf3fa;color:#365d79;font-weight:700}
@@ -21,8 +33,8 @@
 <section class="section-block">
     <div class="section-heading">
         <div>
-            <span class="eyebrow">LEADERBOARD</span>
-            <h2 data-i18n="leader_title">Bảng xếp hạng thành viên</h2>
+            <span class="eyebrow">TRAN TU OJ</span>
+            <h2 data-i18n="leader_title">Bảng xếp hạng</h2>
             <p class="muted">
                 Theo dõi điểm số và số bài giải được của các thành viên
                 trên TranTu OJ.
@@ -34,7 +46,7 @@
         </button>
     </div>
 
-    <div class="glass-card table-card">
+    <div class="glass-card table-card leaderboard-clue-card">
         <div id="leaderboard" data-i18n="leader_loading">Đang tải bảng xếp hạng...</div>
     </div>
 </section>
@@ -66,6 +78,7 @@
             }
 
             const table = document.createElement('table');
+            table.className = 'clue-data-table';
             table.style.width = '100%';
 
             const thead = document.createElement('thead');
@@ -95,6 +108,7 @@
 
                 const username = document.createElement('td');
                 username.textContent = item.username ?? '';
+                username.className = 'leader-handle';
                 tr.appendChild(username);
 
                 const score = document.createElement('td');
