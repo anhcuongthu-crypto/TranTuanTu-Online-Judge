@@ -1214,12 +1214,12 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         problem.update(item)
         problem['id'] = str(pid)
         return render_template(
-            'library_exam_problem.html',
+            'problem.html',
             problem=problem,
             contest_id=contest_id,
             contest_title=contest.get('title', '')
         )
-    
+
     @app.get('/problems/<pid>')
     def problem_page(pid):
         p = next((x for x in problems() if str(x['id']) == pid), None)
