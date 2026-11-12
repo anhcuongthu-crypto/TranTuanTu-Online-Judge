@@ -714,6 +714,9 @@ def init_db(path):
         "contest_custom_problems": (
             ("sample_input", "TEXT NOT NULL DEFAULT ''"),
             ("sample_output", "TEXT NOT NULL DEFAULT ''"),
+            ("use_freopen", "INTEGER NOT NULL DEFAULT 0"),
+            ("input_file", "TEXT NOT NULL DEFAULT ''"),
+            ("output_file", "TEXT NOT NULL DEFAULT ''"),
         ),
 
         "problem_history": (
