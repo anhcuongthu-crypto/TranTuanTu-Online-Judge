@@ -452,7 +452,7 @@ def _run_job(
                 judge,
                 code_to_run,
                 language,
-            flat_tests,
+                flat_tests,
                 problem.get('time_limit', 1),
                 problem.get('memory_limit', 256000),
                 max_attempts=1
