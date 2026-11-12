@@ -1182,7 +1182,11 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
     @app.get('/library')
     def library_page():
-        return render_template('library.html')
+        user = current_user()
+        return render_template(
+            'library.html',
+            is_admin=bool(user and user['is_admin'])
+        )
 
     @app.get('/library/<int:contest_id>')
     def library_exam_detail(contest_id):
