@@ -219,7 +219,13 @@ def cases_for(problem, rng, count):
                 n = 40 if si == 0 else 1000
                 a = [rng.randint(1,hi) for _ in range(n)]
                 if k % 2 == 0:
-                    a[rng.randrange(n)] = rng.choice([1,2,5,12,15,24,36,128,999999937])
+                    choices = [1, 2, 5, 12, 15, 24, 36, 128]
+                    if si == 1:
+                        choices.append(999999937)
+                    a[rng.randrange(n)] = rng.choice(choices)
+                if si == 1 and k == count - 1:
+                    n = 100000
+                    a = [rng.randint(1, hi) for _ in range(n)]
                 l = rng.randint(1,n)
                 r = rng.randint(l,n)
                 inp = f"{n} {l} {r}\n" + " ".join(map(str,a))
