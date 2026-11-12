@@ -1547,6 +1547,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
     def submission_history():
         scope = request.args.get('scope', 'history')
         problem_id = request.args.get('problem_id', '').strip()
+        contest_id = request.args.get('contest_id', type=int)
 
         if scope not in ('all', 'mine', 'history'):
             scope = 'history'
@@ -1556,8 +1557,29 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             if not user:
                 return jsonify(error='Cần đăng nhập.'), 401
 
-            if scope == 'all' and problem_id:
-                # Chế độ xem bài của mọi người cần JOIN để lọc tài khoản đã duyệt.
+            if scope == 'all':
+                if not problem_id:
+                    return jsonify(error='Cần chọn bài tập để xem bài nộp của thí sinh khác.'), 400
+
+                # Chỉ mở danh sách bài nộp của người khác sau khi người xem
+                # đạt FULL đúng bài và đúng phạm vi contest (hoặc ngoài contest).
+                if not user['is_admin']:
+                    full_sql = '''
+                        SELECT 1 FROM submissions
+                        WHERE user_id=? AND problem_id=?
+                          AND max_score > 0 AND score >= max_score
+                    '''
+                    full_params = [user['id'], problem_id]
+                    if contest_id is None:
+                        full_sql += ' AND contest_id IS NULL'
+                    else:
+                        full_sql += ' AND contest_id=?'
+                        full_params.append(contest_id)
+                    if not db.execute(full_sql + ' LIMIT 1', full_params).fetchone():
+                        return jsonify(
+                            error='Bạn cần FULL (100%) bài này trong đúng đề thi để xem bài nộp của thí sinh khác.'
+                        ), 403
+
                 sql = '''
                     SELECT s.id, s.user_id, u.username,
                            s.problem_id, s.language_id, s.verdict,
@@ -1567,12 +1589,14 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                     JOIN users u ON u.id = s.user_id
                     WHERE u.approved = 1
                       AND s.problem_id = ?
-                      AND s.contest_id IS NULL
                 '''
                 params = [problem_id]
+                if contest_id is None:
+                    sql += ' AND s.contest_id IS NULL'
+                else:
+                    sql += ' AND s.contest_id = ?'
+                    params.append(contest_id)
             else:
-                # Lịch sử cá nhân không cần JOIN users: current_user đã xác nhận
-                # tài khoản hợp lệ, còn username lấy trực tiếp từ cache hồ sơ.
                 sql = '''
                     SELECT s.id, s.user_id, ? AS username,
                            s.problem_id, s.language_id, s.verdict,
@@ -1584,11 +1608,14 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 params = [user['username'], user['id']]
 
                 if scope == 'mine' and problem_id:
-                    sql += ''' AND s.problem_id = ?
-                               AND s.contest_id IS NULL'''
+                    sql += ' AND s.problem_id = ?'
                     params.append(problem_id)
+                    if contest_id is None:
+                        sql += ' AND s.contest_id IS NULL'
+                    else:
+                        sql += ' AND s.contest_id = ?'
+                        params.append(contest_id)
 
-            # Trang chủ chỉ cần lịch sử gần đây; các trang lịch sử vẫn giữ mặc định 500.
             try:
                 limit = int(request.args.get('limit', 500))
             except (TypeError, ValueError):
