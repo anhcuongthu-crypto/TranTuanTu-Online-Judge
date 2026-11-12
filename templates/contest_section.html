@@ -156,5 +156,54 @@ html.theme-light .theme-switch-standalone button[aria-pressed="true"]{background
 })();
 </script>
 
+
+<style id="trantu-uniform-theme-surfaces">
+/* Uniform theme: no alternating pale panels or mixed surface colors. */
+html.theme-dark,html.theme-dark body,html.theme-dark body>header,html.theme-dark body>nav,
+html.theme-dark body>main,html.theme-dark main,html.theme-dark #main-content,html.theme-dark footer,
+html.theme-dark .site-header,html.theme-dark .site-footer,html.theme-dark .navbar,
+html.theme-dark .topbar,html.theme-dark .sidebar{background:#050505!important;background-image:none!important;color:#f5f7fa!important;color-scheme:dark!important}
+html.theme-dark body :is(main,section,article,aside,form,fieldset,details,summary,
+.card,.panel,.glass-card,.section,.box,.contest-page,.contest-card,.contest-stat,
+.contest-admin,.contest-hero,.problem-card,.table-wrap,.table-responsive,.table-container,
+#contestHeader,#contestInfo,#problems,#leaderboard,#contestSubmissions,
+table,thead,tbody,tr,th,td,pre,pre code,code,
+input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea,
+.CodeMirror,.cm-editor,.cm-scroller,.modal,.modal-content,.modal-dialog,
+.dropdown-menu,.popover,.offcanvas,.toast,.notification,.alert){
+ background:#050505!important;background-image:none!important;color:#f0f3f7!important;
+ border-color:#30343a!important;box-shadow:none!important;color-scheme:dark!important
+}
+html.theme-dark body :is(h1,h2,h3,h4,h5,h6,strong,label,legend,th){color:#fff!important}
+html.theme-dark body :is(p,small,.muted,.description,.help-text,.text-muted,.contest-muted){color:#c5cbd3!important}
+html.theme-dark body :is(td,pre,pre code,code){color:#edf2f7!important}
+html.theme-dark body :is(tbody tr:hover td,tbody tr:nth-child(even) td){background:#050505!important}
+html.theme-dark body :is(input,select,textarea)::placeholder{color:#858d98!important}
+html.theme-light,html.theme-light body,html.theme-light body>header,html.theme-light body>nav,
+html.theme-light body>main,html.theme-light main,html.theme-light #main-content,html.theme-light footer,
+html.theme-light .site-header,html.theme-light .site-footer,html.theme-light .navbar,
+html.theme-light .topbar,html.theme-light .sidebar{background:#fff!important;background-image:none!important;color:#17191c!important;color-scheme:light!important}
+html.theme-light body :is(main,section,article,aside,form,fieldset,details,summary,
+.card,.panel,.glass-card,.section,.box,.contest-page,.contest-card,.contest-stat,
+.contest-admin,.contest-hero,.problem-card,.table-wrap,.table-responsive,.table-container,
+#contestHeader,#contestInfo,#problems,#leaderboard,#contestSubmissions,
+table,thead,tbody,tr,th,td,pre,pre code,code,
+input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea,
+.CodeMirror,.cm-editor,.cm-scroller,.modal,.modal-content,.modal-dialog,
+.dropdown-menu,.popover,.offcanvas,.toast,.notification,.alert){
+ background:#fff!important;background-image:none!important;color:#24282d!important;
+ border-color:#d5d9de!important;box-shadow:none!important;color-scheme:light!important
+}
+html.theme-light body :is(h1,h2,h3,h4,h5,h6,strong,label,legend,th){color:#111!important}
+html.theme-light body :is(p,small,.muted,.description,.help-text,.text-muted,.contest-muted){color:#555d66!important}
+html.theme-light body :is(td,pre,pre code,code){color:#24282d!important}
+html.theme-light body :is(tbody tr:hover td,tbody tr:nth-child(even) td){background:#fff!important}
+html.theme-light body :is(input,select,textarea)::placeholder{color:#858d98!important}
+html.theme-dark body :is(a,.item-link){color:#67dfff!important}
+html.theme-light body :is(a,.item-link){color:#176eaa!important}
+html.theme-dark body :is(.theme-switch,.theme-switch-standalone){background:#050505!important;border-color:#30343a!important}
+html.theme-light body :is(.theme-switch,.theme-switch-standalone){background:#fff!important;border-color:#d5d9de!important}
+</style>
+
 </body>
 </html>
