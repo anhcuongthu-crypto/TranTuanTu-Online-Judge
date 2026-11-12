@@ -1538,5 +1538,63 @@ pre,pre code,code{background:#071522!important;color:#9fe9ff!important;border-co
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
+
+<style id="trantu-contest_detail-theme-switch-light-mode">
+html.theme-light{color-scheme:light!important;background:#f4f8fc!important}
+html.theme-light body{background:radial-gradient(ellipse at 12% 0%,rgba(42,153,190,.08),transparent 34%),#f4f8fc!important;color:#263e55!important;color-scheme:light!important}
+html.theme-light header{background:#fff!important;color:#29445c!important;border-color:#dce6ef!important}
+html.theme-light main{color:#263e55!important}
+html.theme-light :is(.panel,.card,.contest-card,.contest-stat,.contest-admin,#contestHeader,#contestInfo,#problems,#leaderboard,#contestSubmissions,section,article,.problem-card,.grid>div>section,.grid>aside>section,.table-wrap,.empty,.error){background:#fff!important;color:#263e55!important;border-color:#dce6ef!important;box-shadow:0 8px 24px rgba(36,69,100,.07)!important}
+html.theme-light :is(h1,h2,h3,h4,strong,label,th,.contest-title-tabs h1,.grid h2){color:#1c3852!important}
+html.theme-light :is(p,.muted,small,.contest-state-summary,.contest-state-summary>strong){color:#687f94!important}
+html.theme-light a,html.theme-light .item-link{color:#176eaa!important}
+html.theme-light input,html.theme-light select,html.theme-light textarea,html.theme-light #submitForm #sourceCode{background:#fff!important;color:#243d54!important;border-color:#cbd9e6!important;color-scheme:light!important}
+html.theme-light button,html.theme-light .button,html.theme-light .btn{background:linear-gradient(110deg,#197da5,#526bd0)!important;color:#fff!important;border-color:#347eaf!important}
+html.theme-light table,html.theme-light #contestSubmissions{background:#fff!important;color:#29445c!important}
+html.theme-light th{background:#eaf3fa!important;color:#315a78!important;border-color:#dce6ef!important}
+html.theme-light td{background:#fff!important;color:#405c73!important;border-color:#e2eaf1!important}
+html.theme-light tbody tr:nth-child(even) td{background:#f6f9fc!important}
+html.theme-light tbody tr:hover td{background:#edf5fc!important}
+html.theme-light .problem,html.theme-light #problems .problem,html.theme-light #problems .problem:nth-child(even){background:#fff!important;color:#405c73!important;border-color:#e2eaf1!important}
+html.theme-light pre,html.theme-light pre code,html.theme-light code{background:#f1f6fa!important;color:#28465f!important;border-color:#dce6ef!important}
+html.theme-light .contest-title-tabs,html.theme-light .topline{border-color:#dce6ef!important}
+html.theme-light .contest-clue-tabs a,html.theme-light .contest-clue-tabs a:first-child,html.theme-light .tabs a{background:#f5f9fc!important;color:#3c607b!important;border-color:#dce6ef!important}
+html.theme-light .contest-clue-tabs a.contest-join-button{background:linear-gradient(110deg,#197da5,#526bd0)!important;color:#fff!important}
+html.theme-light .contest-stats-grid>div{background:#fff!important;border-color:#dce6ef!important}
+html.theme-light .contest-stats-grid strong{color:#176eaa!important}
+html.theme-light .contest-stats-grid span{color:#687f94!important}
+html.theme-light .contest-chart-title,html.theme-light .contest-chart-total{color:#405c73!important}
+html.theme-light .contest-status-chart text{fill:#405c73!important}
+html.theme-light .theme-switch{background:#edf4f9!important;border-color:#d7e3ed!important}
+html.theme-light .theme-btn{color:#46657e!important}
+html.theme-light .theme-btn[aria-pressed="true"]{background:linear-gradient(110deg,#d9f1f8,#e5e9ff)!important;border-color:#a9cddd!important;color:#174a68!important}
+.theme-switch-standalone{position:fixed;z-index:99999;right:18px;bottom:18px;display:flex;gap:5px;padding:5px;border:1px solid rgba(91,197,235,.35);border-radius:13px;background:#0b1b2d;box-shadow:0 8px 28px rgba(0,0,0,.3)}
+.theme-switch-standalone button{padding:9px 12px;border:1px solid transparent;border-radius:9px;background:transparent;color:#b7d2e6;font-weight:700;cursor:pointer}
+.theme-switch-standalone button[aria-pressed="true"]{background:linear-gradient(110deg,#126b88,#4c55a6);border-color:#58ddf4;color:#fff}
+html.theme-light .theme-switch-standalone{background:#fff;border-color:#d7e3ed;box-shadow:0 8px 28px rgba(36,69,100,.15)}
+html.theme-light .theme-switch-standalone button{color:#46657e}
+html.theme-light .theme-switch-standalone button[aria-pressed="true"]{background:linear-gradient(110deg,#197da5,#526bd0);border-color:#347eaf;color:#fff}
+</style>
+<script id="trantu-contest_detail-theme-switch-controller">
+(function(){
+ const root=document.documentElement;
+ const meta=document.querySelector('meta[name="color-scheme"]');
+ function setTheme(theme,save){
+  const light=theme==='light';
+  root.classList.toggle('theme-light',light);
+  root.classList.toggle('theme-dark',!light);
+  if(meta)meta.content=light?'light':'dark';
+  document.querySelectorAll('[data-theme-choice]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.themeChoice===(light?'light':'dark')?'true':'false'));
+  if(save){try{localStorage.setItem('oj_theme',light?'light':'dark')}catch(_){}}
+ }
+ let pref='dark';try{pref=localStorage.getItem('oj_theme')||'dark'}catch(_){}
+ setTheme(pref,false);
+ const group=document.createElement('div');group.className='theme-switch-standalone';group.setAttribute('role','group');group.setAttribute('aria-label','Giao diện');
+ group.innerHTML='<button type="button" data-theme-choice="light" aria-pressed="false">☀️ Sáng</button><button type="button" data-theme-choice="dark" aria-pressed="false">🌙 Tối</button>';
+ document.body.appendChild(group);
+ group.addEventListener('click',e=>{const b=e.target.closest('[data-theme-choice]');if(b)setTheme(b.dataset.themeChoice,true)});
+})();
+</script>
+
 </body>
 </html>
