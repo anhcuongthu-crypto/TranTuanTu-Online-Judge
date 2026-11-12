@@ -67,6 +67,18 @@
 
 <div class="exam-library">
   {% if logged_in_user and logged_in_user['is_admin'] %}
+  <section class="el-admin-tools" id="el-admin-json" aria-label="Xem JSON ngân hàng đề">
+    <h2>JSON ngân hàng đề</h2>
+    <p>Chỉ admin có quyền xem toàn bộ dữ liệu JSON hiện đang lưu trong ngân hàng bài tập.</p>
+    <div class="el-admin-actions">
+      <button type="button" id="el-load-bank-json">Tải / làm mới JSON</button>
+      <button type="button" class="secondary" id="el-copy-bank-json">Sao chép JSON</button>
+    </div>
+    <p id="el-bank-json-message" role="status" aria-live="polite"></p>
+    <textarea id="el-bank-json-view" rows="18" readonly spellcheck="false" placeholder="Nhấn “Tải / làm mới JSON” để xem toàn bộ ngân hàng đề..."></textarea>
+  </section>
+  {% endif %}
+  {% if logged_in_user and logged_in_user['is_admin'] %}
   <section class="el-admin-tools" id="el-admin-create" aria-label="Tạo đề thi trong thư viện">
     <h2>Quản trị thư viện đề — Tạo đề mới</h2>
     <p>Tạo đề trực tiếp tại đây, chọn bài có sẵn hoặc thêm bài riêng bằng JSON.</p>
@@ -141,6 +153,38 @@
   <nav class="el-pagination el-bottom-page" id="el-pagination-bottom" aria-label="Phân trang phía dưới"></nav>
 </div>
 
+<script id="el-admin-json-script">
+(() => {
+  const view=document.getElementById('el-bank-json-view');
+  if(!view)return;
+  const load=document.getElementById('el-load-bank-json');
+  const copy=document.getElementById('el-copy-bank-json');
+  const message=document.getElementById('el-bank-json-message');
+  const show=(text,error=false)=>{message.textContent=text;message.style.color=error?'#c0392b':'#176da5';};
+  load.addEventListener('click',async()=>{
+    load.disabled=true;show('Đang tải ngân hàng đề...');
+    try{
+      const response=await fetch('/api/admin/problems',{credentials:'same-origin',cache:'no-store'});
+      const data=await response.json();
+      if(!response.ok)throw Error(data.error||'Không có quyền xem JSON hoặc tải dữ liệu thất bại.');
+      if(!Array.isArray(data))throw Error('Dữ liệu ngân hàng không đúng định dạng mảng JSON.');
+      view.value=JSON.stringify(data,null,2);
+      show('Đã tải '+data.length+' bài từ ngân hàng đề.');
+    }catch(error){show(error.message||'Không tải được JSON.',true);}
+    finally{load.disabled=false;}
+  });
+  copy.addEventListener('click',async()=>{
+    if(!view.value){show('Hãy tải JSON trước khi sao chép.',true);return;}
+    try{
+      await navigator.clipboard.writeText(view.value);
+      show('Đã sao chép toàn bộ JSON.');
+    }catch(error){
+      view.focus();view.select();
+      show('Không thể tự sao chép; JSON đã được chọn, nhấn Ctrl+C để sao chép.',true);
+    }
+  });
+})();
+</script>
 <script id="el-admin-create-script">
 (() => {
   const form=document.getElementById('el-create-contest');
