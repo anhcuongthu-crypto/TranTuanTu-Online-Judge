@@ -1186,7 +1186,39 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
     @app.get('/library/<int:contest_id>')
     def library_exam_detail(contest_id):
-        return render_template('library_exam_detail.html', contest_id=contest_id)
+        user = current_user()
+        return render_template(
+            'library_exam_detail.html',
+            contest_id=contest_id,
+            is_admin=bool(user and user['is_admin'])
+        )
+
+    @app.get('/library/<int:contest_id>/problem/<pid>')
+    def library_exam_problem(contest_id, pid):
+        user = current_user()
+        contest = get_contest_data(
+            contest_id, allow_hidden=bool(user and user['is_admin'])
+        )
+        if not contest:
+            return render_template('not_found.html'), 404
+        item = next(
+            (p for p in contest.get('problems', []) if str(p['id']) == str(pid)),
+            None
+        )
+        if not item:
+            return render_template('not_found.html'), 404
+        bank_item = next(
+            (p for p in problems() if str(p['id']) == str(pid)), None
+        )
+        problem = dict(bank_item or {})
+        problem.update(item)
+        problem['id'] = str(pid)
+        return render_template(
+            'library_exam_problem.html',
+            problem=problem,
+            contest_id=contest_id,
+            contest_title=contest.get('title', '')
+        )
     
     @app.get('/problems/<pid>')
     def problem_page(pid):
@@ -2316,6 +2348,57 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             message='Đã nhận bài thi. Đang chấm...'
         ), 202
     
+    @app.put('/api/admin/contests/<int:contest_id>/problem-score/<pid>')
+    def admin_update_library_problem_score(contest_id, pid):
+        if not admin_required():
+            return jsonify(error='Chỉ admin.'), 403
+        data = request.get_json(silent=True) or {}
+        try:
+            new_score = float(data.get('total_score'))
+            if not math.isfinite(new_score) or new_score <= 0 or new_score > 100000:
+                raise ValueError()
+        except (TypeError, ValueError, OverflowError):
+            return jsonify(error='Điểm tối đa phải là số dương hợp lệ.'), 400
+
+        with connect(app.config['DATABASE_PATH']) as db:
+            row = db.execute(
+                '''SELECT total_score FROM contest_problems
+                   WHERE contest_id=? AND problem_id=?''',
+                (contest_id, pid)
+            ).fetchone()
+            if not row:
+                return jsonify(error='Bài không thuộc đề thi này.'), 404
+            custom = db.execute(
+                '''SELECT subtasks_json, total_score FROM contest_custom_problems
+                   WHERE contest_id=? AND problem_id=?''',
+                (contest_id, pid)
+            ).fetchone()
+            old_score = float(row['total_score'] or 0)
+            if custom:
+                subtasks = json.loads(custom['subtasks_json'] or '[]')
+                if old_score <= 0 or not subtasks:
+                    return jsonify(error='Không thể điều chỉnh thang điểm bài này.'), 400
+                ratio = new_score / old_score
+                for subtask in subtasks:
+                    subtask['score'] = round(float(subtask.get('score', 0)) * ratio, 8)
+                if subtasks:
+                    # Bảo đảm tổng điểm subtask khớp tuyệt đối với điểm tối đa mới.
+                    subtasks[-1]['score'] = round(
+                        new_score - sum(float(s['score']) for s in subtasks[:-1]), 8
+                    )
+                db.execute(
+                    '''UPDATE contest_custom_problems
+                       SET total_score=?, subtasks_json=?
+                       WHERE contest_id=? AND problem_id=?''',
+                    (new_score, json.dumps(subtasks, ensure_ascii=False), contest_id, pid)
+                )
+            db.execute(
+                '''UPDATE contest_problems SET total_score=?
+                   WHERE contest_id=? AND problem_id=?''',
+                (new_score, contest_id, pid)
+            )
+        return jsonify(ok=True, total_score=new_score)
+
     # SỬA NỘI DUNG BÀI RIÊNG TRONG CONTEST
     @app.put('/api/admin/contests/<int:contest_id>/problems/<pid>')
     def admin_update_contest_problem(contest_id, pid):
