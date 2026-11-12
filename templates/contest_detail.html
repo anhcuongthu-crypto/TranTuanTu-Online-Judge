@@ -618,11 +618,6 @@ function setLanguage(language) {
         }
     }
 
-    if (problemList.length) {
-        loadLeaderboard();
-        loadContestSubmissions();
-    }
-
     window.dispatchEvent(new CustomEvent("oj-language-changed", {
         detail: { language }
     }));
@@ -1281,15 +1276,38 @@ async function loadContestSubmissions() {
     }
 }
 
-$("refreshSubmissions").addEventListener('click', async () => {
-    $("refreshSubmissions").disabled = true;
-
+async function loadContestStats() {
+    const target = $("contestStatsSummary");
+    if (!target) return;
     try {
-        await loadContestSubmissions();
-    } finally {
-        $("refreshSubmissions").disabled = false;
+        const rows = normalizeRows(await api(`/api/contests/${CONTEST_ID}/submissions`));
+        const counts = { accepted: 0, wrong: 0, pending: 0, other: 0 };
+        rows.forEach(row => {
+            const v = String(row.verdict || '').toUpperCase();
+            if (v === 'ACCEPTED' || v === 'AC' || v.includes('ACCEPTED')) counts.accepted++;
+            else if (v === 'WA' || v.includes('WRONG ANSWER')) counts.wrong++;
+            else if (/QUEUED|PENDING|PROCESSING|RUNNING/.test(v)) counts.pending++;
+            else counts.other++;
+        });
+        const total = rows.length;
+        const pct = n => total ? Math.round(n * 100 / total) : 0;
+        target.innerHTML = total ? `
+            <div class="contest-stats-grid">
+                <div><strong>${total}</strong><span>Tổng bài nộp</span></div>
+                <div><strong>${counts.accepted}</strong><span>Accepted</span></div>
+                <div><strong>${counts.wrong}</strong><span>Wrong Answer</span></div>
+                <div><strong>${counts.pending}</strong><span>Đang chấm</span></div>
+            </div>
+            <div class="contest-stats-bar">
+                <i class="accepted" style="width:${pct(counts.accepted)}%"></i>
+                <i class="wrong" style="width:${pct(counts.wrong)}%"></i>
+                <i class="pending" style="width:${pct(counts.pending)}%"></i>
+                <i class="other" style="width:${pct(counts.other)}%"></i>
+            </div>` : '<p class="muted">Chưa có dữ liệu bài nộp.</p>';
+    } catch (error) {
+        target.innerHTML = '<p class="muted">Thống kê sẽ hiển thị khi có dữ liệu bài nộp.</p>';
     }
-});
+}
 
 /* =========================
    NỘP BÀI
@@ -1374,19 +1392,7 @@ async function init() {
 
         openProblemFromUrl();
 
-        // Hai bảng phụ tải song song, không chặn phần đề thi.
-        Promise.allSettled([
-            loadLeaderboard(),
-            loadContestSubmissions()
-        ]);
-
-        // Giảm tải DB: chỉ làm mới khi tab đang mở và mỗi 60 giây.
-        submissionRefreshTimer = setInterval(() => {
-            if (document.visibilityState === 'visible') {
-                loadContestSubmissions();
-                loadLeaderboard();
-            }
-        }, 60000);
+        loadContestStats();
 
     } catch (error) {
         $("contestHeader").innerHTML = `
