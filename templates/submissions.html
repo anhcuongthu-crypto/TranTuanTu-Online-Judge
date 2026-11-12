@@ -483,8 +483,8 @@
 </style>
 
 <div class="clue-submission-tabs" role="tablist" aria-label="Danh sách bài nộp">
- <a role="tab" class="{{ 'active' if scope == 'all' else '' }}" href="{{ url_for('submissions_page', scope='all', problem_id=problem_id) if problem_id else url_for('submissions_page') }}"><span class="tab-icon">▤</span> Tất cả</a>
- <a role="tab" class="{{ 'active' if scope == 'mine' or scope == 'history' else '' }}" href="{{ url_for('submissions_page', scope='mine', problem_id=problem_id) if problem_id else url_for('submissions_page') }}"><span class="tab-icon">♟</span> Bài nộp của tôi</a>
+ <a role="tab" class="{{ 'active' if scope == 'all' or scope == 'history' else '' }}" href="{{ url_for('submissions_page', scope='all', problem_id=problem_id) if problem_id else url_for('submissions_page') }}"><span class="tab-icon">▤</span> Tất cả</a>
+ <a role="tab" class="{{ 'active' if scope == 'mine' else '' }}" href="{{ url_for('submissions_page', scope='mine', problem_id=problem_id) if problem_id else url_for('submissions_page') }}"><span class="tab-icon">♟</span> Bài nộp của tôi</a>
 </div>
 <div class="submissions-page">
     <div class="submissions-header">
