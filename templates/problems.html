@@ -164,3 +164,74 @@
 </style>
 
 {% endblock %}
+
+
+<style id="trantu-problemset-led-finish">
+.problemset-page{max-width:1320px!important;padding:0 8px 42px!important}
+.problemset-workspace{grid-template-columns:minmax(0,1fr) 292px!important;gap:18px 20px!important}
+.problemset-heading{border-bottom:1px solid rgba(95,196,231,.2)!important;padding-bottom:14px!important}
+.problemset-heading h2{color:#e9f5ff!important;font-size:25px!important;font-weight:800!important;letter-spacing:-.035em!important}
+.problemset-heading p{color:#91aac2!important}
+.problemset-total{color:#68dff5!important}
+.problemset-total span{font-size:29px!important;text-shadow:0 0 18px rgba(67,211,242,.22)!important}
+.problemset-filters{
+ background:linear-gradient(155deg,#10263d,#0b1c30)!important;
+ border:1px solid rgba(89,193,231,.22)!important;border-radius:17px!important;
+ padding:17px!important;gap:12px!important;
+ box-shadow:0 14px 34px rgba(0,0,0,.2),inset 0 1px 0 rgba(191,231,255,.035)!important;
+}
+.problemset-filter-title{
+ margin:-17px -17px 4px!important;padding:15px 17px!important;
+ background:linear-gradient(100deg,rgba(32,130,166,.25),rgba(75,91,177,.18))!important;
+ color:#e6f7ff!important;border-bottom:1px solid rgba(95,204,239,.16)!important;
+ border-radius:16px 16px 0 0!important;font-size:14px!important;
+}
+.problemset-filter-title span{color:#73e4f5!important}
+.problemset-search input,.problemset-filters select{
+ background:#081827!important;color:#e3f0fc!important;
+ border:1px solid rgba(106,184,219,.23)!important;border-radius:10px!important;
+ font-size:12px!important;min-height:42px!important;
+}
+.problemset-search input::placeholder{color:#7894ad!important}
+.problemset-filters select:focus,.problemset-search input:focus{
+ border-color:#48c9eb!important;box-shadow:0 0 0 3px rgba(64,197,235,.09)!important;outline:0!important;
+}
+.problemset-filters #reset-problem-filters{
+ color:#c3d8eb!important;background:rgba(10,27,45,.8)!important;
+ border:1px solid rgba(110,183,218,.22)!important;
+}
+.problemset-filters #random-problem{
+ color:#061724!important;background:linear-gradient(105deg,#4bdcf4,#789aff)!important;
+ border:1px solid rgba(112,231,255,.55)!important;
+ box-shadow:0 0 16px rgba(49,196,235,.18)!important;
+}
+.problemset-table-head{color:#9db4c9!important;padding:4px 2px!important}
+.problemset-table-head strong{color:#dceeff!important;font-size:13px!important}
+.problemset-page-size select{
+ color:#dceeff!important;background:#0c2034!important;
+ border:1px solid rgba(100,185,220,.22)!important;border-radius:9px!important;
+}
+.problemset-table-wrap{
+ border:1px solid rgba(91,190,229,.2)!important;border-radius:15px!important;
+ background:#0b1b2d!important;box-shadow:0 14px 34px rgba(0,0,0,.19)!important;
+}
+.problemset-table-wrap th{
+ color:#a9c9df!important;background:#102940!important;
+ border-bottom:1px solid rgba(91,190,229,.2)!important;
+}
+.problemset-table-wrap td{color:#d5e5f3!important;background:#0b1c2e!important}
+.problemset-table-wrap tbody tr:nth-child(even) td{background:#0e2237!important}
+.problemset-table-wrap tbody tr:hover td{background:#15334c!important}
+.problemset-table-wrap a{color:#71dcf3!important;font-weight:600!important}
+.problemset-table-wrap a:hover{color:#b0f1ff!important}
+.problemset-pagination button,.problemset-pagination a{
+ color:#c5d9ea!important;background:#0e2338!important;
+ border:1px solid rgba(101,187,222,.2)!important;border-radius:9px!important;
+}
+.problemset-pagination .active,.problemset-pagination [aria-current="page"]{
+ color:#061724!important;background:linear-gradient(110deg,#4bdcf4,#789aff)!important;
+ border-color:#70e7ff!important;box-shadow:0 0 13px rgba(60,197,235,.18)!important;
+}
+@media(max-width:900px){.problemset-workspace{grid-template-columns:minmax(0,1fr)!important}.problemset-filters{grid-column:1!important}}
+@media(max-width:560px){.problemset-page{padding:0 2px 30px!important}.problemset-filters{padding:14px!important}.problemset-filter-title{margin:-14px -14px 4px!important}.problemset-table-wrap{border-radius:11px!important}}
+</style>
