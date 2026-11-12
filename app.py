@@ -1254,13 +1254,69 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
     @app.get('/problems/<pid>/submit')
     def submit_problem_page(pid):
-        p = next((x for x in problems() if str(x['id']) == pid), None)
-        if p:
-            contest_id = request.args.get('contest_id', type=int)
-            return render_template(
-                'submit_problem.html', problem=p, contest_id=contest_id
+        contest_id = request.args.get('contest_id', type=int)
+        user = current_user()
+        p = None
+
+        if contest_id is not None:
+            # Bài tự tạo trong thư viện không nằm trong problems.json.
+            # Lấy bài từ đúng contest để trang nộp hỗ trợ cả bài tự tạo.
+            contest = get_contest_data(
+                contest_id,
+                allow_hidden=bool(user and user['is_admin'])
             )
-        return render_template('not_found.html'), 404
+            if contest:
+                item = next(
+                    (
+                        x for x in contest.get('problems', [])
+                        if str(x.get('id')) == str(pid)
+                    ),
+                    None
+                )
+                if item:
+                    bank_item = next(
+                        (
+                            x for x in problems()
+                            if str(x.get('id')) == str(pid)
+                        ),
+                        None
+                    )
+                    p = dict(bank_item or {})
+                    p.update(item)
+                    p['id'] = str(pid)
+                    p.setdefault('category', 'Bài thi')
+                    p.setdefault('difficulty', '')
+                    p.setdefault('statement', '')
+                    p.setdefault(
+                        'input_format',
+                        p.get('input_desc', '')
+                    )
+                    p.setdefault(
+                        'output_format',
+                        p.get('output_desc', '')
+                    )
+                    p.setdefault('time_limit', 1)
+                    p.setdefault('memory_limit', 1024)
+                    p.setdefault('total_score', 0)
+                    p.setdefault('subtasks', [])
+                    p.setdefault('sample_input', '')
+                    p.setdefault('sample_output', '')
+                    if not isinstance(p.get('subtasks'), list):
+                        p['subtasks'] = []
+        else:
+            p = next(
+                (x for x in problems() if str(x.get('id')) == str(pid)),
+                None
+            )
+
+        if not p:
+            return render_template('not_found.html'), 404
+
+        return render_template(
+            'submit_problem.html',
+            problem=p,
+            contest_id=contest_id
+        )
 
 
     @app.get('/api/problems')
