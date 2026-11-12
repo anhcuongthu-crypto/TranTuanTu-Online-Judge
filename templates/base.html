@@ -71,7 +71,7 @@
     </noscript>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='20261112.5') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='polish.css', v='20261112.3') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='polish.css', v='20261112.5') }}">
 
     <style>
         .language-switch {
@@ -816,7 +816,53 @@
       main#main-content :is(.progress-track span){background:linear-gradient(90deg,#42d8eb,#668bff,#a28bff)!important;box-shadow:0 0 18px rgba(66,205,235,.3)!important}
       main#main-content :focus-visible{outline:2px solid #66e4ff!important;outline-offset:3px!important;box-shadow:0 0 0 5px rgba(77,211,240,.12)!important}
       @media(prefers-reduced-motion:reduce){main#main-content *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
-    </style>
+    
+      /* Site-wide LED finish: every shared page, including admin, login, library and profiles */
+      body{background-color:#06111f!important}
+      body>header,body>nav,body>footer,header.site-header,footer.site-footer,.navbar,.topbar,.site-nav,.sidebar{
+        background:linear-gradient(110deg,#081a2b,#0b1b31 62%,#111a38)!important;
+        color:#e4f2ff!important;border-color:rgba(91,197,235,.24)!important
+      }
+      body>header a,body>nav a,body>footer a,.navbar a,.topbar a{color:#a9eaff!important}
+      main#main-content :is(section,article,aside,form,fieldset,details,dialog,[role="dialog"],.card,.panel,.box,.widget,.tile,.stat,.stat-card,.content-card,.form-card,.table-card,.list-card,.profile-card,.admin-card,.library-card,.exam-card,.submission-card,.history-card,.settings-card,.notice,.alert,.empty-state){
+        background-color:#0b1b2d!important;color:#dceeff!important;
+        border-color:rgba(91,197,235,.22)!important;
+        box-shadow:0 10px 30px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.025)!important
+      }
+      main#main-content :is(section,article,aside,form,fieldset,details,dialog,[role="dialog"]):has(> h1,> h2,> h3){
+        background:linear-gradient(145deg,rgba(16,42,66,.72),rgba(8,24,41,.92))!important
+      }
+      main#main-content :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea,output,.CodeMirror,.cm-editor,.cm-scroller){
+        background:#071727!important;color:#e2f3ff!important;border:1px solid rgba(91,197,235,.28)!important;
+        color-scheme:dark!important;caret-color:#69e5ff!important
+      }
+      main#main-content :is(input,textarea)::placeholder{color:#708da5!important}
+      main#main-content :is(button,.button,.btn,input[type=submit],input[type=button],.contest-btn){
+        background:linear-gradient(110deg,#126b88,#4c55a6)!important;color:#effcff!important;
+        border:1px solid rgba(104,224,247,.42)!important;box-shadow:0 0 17px rgba(44,184,219,.13)!important
+      }
+      main#main-content :is(button.secondary,.button.secondary,.btn-secondary,.button-ghost,.ghost){
+        background:#10243a!important;color:#bceeff!important;border-color:rgba(91,197,235,.24)!important
+      }
+      main#main-content :is(table,.table-wrap,.table-responsive,.table-container){background:#091a2b!important;color:#dceeff!important;border-color:rgba(91,197,235,.2)!important}
+      main#main-content th{background:#102a42!important;color:#aeeeff!important;border-color:rgba(91,197,235,.22)!important}
+      main#main-content td{background:#0b1c2e!important;color:#d5e7f6!important;border-color:rgba(91,197,235,.14)!important}
+      main#main-content tbody tr:nth-child(even) td{background:#0e2237!important}
+      main#main-content tbody tr:hover td{background:#15334c!important}
+      main#main-content :is(pre,pre code,code,.code,.source-code,.code-block){background:#071522!important;color:#9fe9ff!important;border-color:rgba(91,197,235,.2)!important}
+      main#main-content :is(.tabs a,.tab,.nav-tabs a,.pagination a,.pagination button){background:#0d2237!important;color:#a9cde2!important;border-color:rgba(91,197,235,.2)!important}
+      main#main-content :is(.tabs .active,.tab.active,.nav-tabs .active,.pagination .active,[aria-current="page"]){background:linear-gradient(110deg,#126b88,#4c55a6)!important;color:#fff!important;border-color:#58ddf4!important}
+      main#main-content :is(.badge,.pill,.status,.status-pill,.tag){background:#102c43!important;color:#9cecff!important;border:1px solid rgba(91,197,235,.25)!important}
+      main#main-content :is(.progress,.progress-track,.progress-bar-bg){background:#061321!important;border-color:rgba(91,197,235,.18)!important}
+      main#main-content :is(.progress-fill,.progress-track span,.progress-bar){background:linear-gradient(90deg,#42d8eb,#668bff,#a28bff)!important;box-shadow:0 0 18px rgba(66,205,235,.3)!important}
+      main#main-content :is(h1,h2,h3,h4,h5,strong,label,legend,th){color:#e7f5ff!important}
+      main#main-content :is(p,small,.muted,.description,.help-text,.text-muted){color:#9bb2c7!important}
+      main#main-content a{color:#71def5}
+      main#main-content a:hover{color:#c0f5ff}
+      main#main-content :focus-visible{outline:2px solid #66e4ff!important;outline-offset:3px!important;box-shadow:0 0 0 5px rgba(77,211,240,.12)!important}
+      footer{background:#071522!important;color:#8faec5!important;border-top:1px solid rgba(91,197,235,.2)!important}
+      @media(prefers-reduced-motion:reduce){body *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
 
     {% if request.path != '/login' and request.path != '/login/' %}
         <footer>
