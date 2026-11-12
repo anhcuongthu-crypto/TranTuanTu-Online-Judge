@@ -120,8 +120,8 @@
   <nav class="el-pagination" id="el-pagination-top" aria-label="Phân trang phía trên"></nav>
   <div class="el-table-wrap">
     <table>
-      <thead><tr><th>Đề thi</th><th style="width:23%">Tiến độ của bạn</th></tr></thead>
-      <tbody id="el-rows"><tr><td colspan="2" class="el-empty">Đang tải đề thi...</td></tr></tbody>
+      <thead><tr><th>Đề thi</th><th style="width:23%">Tiến độ của bạn</th>{% if logged_in_user and logged_in_user['is_admin'] %}<th style="width:120px">Quản trị</th>{% endif %}</tr></thead>
+      <tbody id="el-rows"><tr><td colspan="{% if logged_in_user and logged_in_user['is_admin'] %}3{% else %}2{% endif %}" class="el-empty">Đang tải đề thi...</td></tr></tbody>
     </table>
   </div>
   <nav class="el-pagination el-bottom-page" id="el-pagination-bottom" aria-label="Phân trang phía dưới"></nav>
@@ -178,6 +178,7 @@
   const root=document.querySelector('.exam-library'); if(!root)return;
   const $=id=>document.getElementById(id);
   const PAGE_SIZE=25;
+  const IS_ADMIN={{ 'true' if logged_in_user and logged_in_user['is_admin'] else 'false' }};
   let contests=[],progress={},filtered=[],currentPage=1,progressAvailable=false;
   const provinces63=[
     'An Giang','Bà Rịa - Vũng Tàu','Bắc Giang','Bắc Kạn','Bạc Liêu','Bắc Ninh',
@@ -269,10 +270,11 @@
         progressHtml='<div class="el-progress-bar"><span style="width:'+pg.pct.toFixed(1)+'%"></span></div>'+
           '<div class="el-progress-label">'+score+($('el-compare').checked?' · '+pg.pct.toFixed(1)+'%':'')+'</div>';
       }
+      const deleteCell=IS_ADMIN?'<td><button type="button" class="el-delete-contest" data-delete-contest="'+id+'" style="background:#fff;color:#b42318;border:1px solid #e3a3a3;padding:6px 10px;border-radius:5px">Xóa đề</button></td>':'';
       return '<tr><td><a class="el-name" target="_self" data-open-contest="'+id+'" href="/library/'+encodeURIComponent(id)+'">'+escape(c.title||('Kỳ thi #'+id))+'</a>'+
         '<div class="el-meta">'+escape(meta)+'</div>'+
         (date||place?'<div class="el-meta">'+date+place+'</div>':'')+
-        '</td><td>'+progressHtml+'</td></tr>';
+        '</td><td>'+progressHtml+'</td>'+deleteCell+'</tr>';
     }).join(''):'<tr><td colspan="2" class="el-empty">Không tìm thấy đề thi phù hợp.</td></tr>';
     $('el-page-label').textContent='Trang: '+currentPage+'/'+totalPages;
     const pager=makePagination(totalPages);
@@ -280,6 +282,30 @@
     $('el-pagination-bottom').innerHTML=pager;
     $('el-pagination-top').querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>goPage(Number(b.dataset.page))));
     $('el-pagination-bottom').querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>goPage(Number(b.dataset.page))));
+    if(IS_ADMIN){
+      $('el-rows').querySelectorAll('[data-delete-contest]').forEach(button=>{
+        button.addEventListener('click',async()=>{
+          const id=button.dataset.deleteContest;
+          const contest=contests.find(item=>String(item.id)===String(id));
+          const title=contest?.title||('đề thi #'+id);
+          if(!confirm('Bạn chắc chắn muốn xóa "'+title+'"? Thao tác này không thể hoàn tác.'))return;
+          button.disabled=true;
+          try{
+            const response=await fetch('/api/admin/contests/'+encodeURIComponent(id),{
+              method:'DELETE',credentials:'same-origin'
+            });
+            const result=await response.json().catch(()=>({}));
+            if(!response.ok)throw Error(result.error||'Không xóa được đề thi.');
+            contests=contests.filter(item=>String(item.id)!==String(id));
+            currentPage=Math.min(currentPage,Math.max(1,Math.ceil(contests.length/PAGE_SIZE)));
+            render();
+          }catch(error){
+            alert(error.message||'Có lỗi khi xóa đề thi.');
+            button.disabled=false;
+          }
+        });
+      });
+    }
   }
   function goPage(page){
     const totalPages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
@@ -312,7 +338,7 @@
     currentPage=Number.isInteger(requested)&&requested>0?requested:1;
     render();
   }).catch(error=>{
-    $('el-rows').innerHTML='<tr><td colspan="2" class="el-empty">'+escape(error.message||'Không tải được thư viện đề thi.')+'</td></tr>';
+    $('el-rows').innerHTML='<tr><td colspan="'+(IS_ADMIN?3:2)+'" class="el-empty">'+escape(error.message||'Không tải được thư viện đề thi.')+'</td></tr>';
   });
 })();
 </script>
