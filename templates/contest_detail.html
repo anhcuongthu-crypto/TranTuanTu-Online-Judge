@@ -300,7 +300,60 @@ input,select,textarea{background:#fff!important;color:#244761!important;border:1
 pre,code,.code,.source-code{background:#f0f6fb!important;color:#294c67!important;border-color:#dce8f2!important}
 table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!important;color:#365d79!important}td{background:#fff!important;color:#36566f!important;border-color:#e4edf4!important}
 .status,.badge,.pill{background:#eaf3fa!important;color:#28658f!important}
-</style></head>
+</style><style id="clueoj-contest-judge-workspace">
+/* Contest judge workspace: problem selection, source editor and live verdict history */
+.grid{grid-template-columns:minmax(0,1.55fr) minmax(260px,.85fr)!important;gap:16px!important}
+.grid>div,.grid>aside{min-width:0!important}
+#problemDetailPanel{scroll-margin-top:64px!important}
+#problemDetailPanel,#problemDetailPanel .panel{background:#fff!important}
+#submitForm{display:grid!important;grid-template-columns:1fr 190px!important;gap:0 12px!important;align-items:end!important}
+#submitForm label[for="problemId"]{grid-column:1!important;grid-row:1!important}
+#submitForm #problemId{grid-column:1!important;grid-row:2!important}
+#submitForm label[for="language"]{grid-column:2!important;grid-row:1!important}
+#submitForm #language{grid-column:2!important;grid-row:2!important}
+#submitForm label[for="sourceCode"],#submitForm #sourceCode,
+#submitForm #submitButton,#submitForm #submitMessage{grid-column:1/-1!important}
+#submitForm label{font-size:12px!important;color:#526879!important;margin:8px 0 2px!important}
+#submitForm #sourceCode{
+ width:100%!important;min-height:360px!important;resize:vertical!important;
+ padding:14px 16px!important;margin:5px 0 12px!important;
+ background:#fff!important;color:#263b4b!important;
+ border:1px solid #cbd3d9!important;border-radius:3px!important;
+ font:13px/1.65 Consolas,"Courier New",monospace!important;
+ tab-size:4!important;box-shadow:none!important;white-space:pre!important;
+}
+#submitForm #sourceCode:focus{outline:2px solid #b8cbd8!important;outline-offset:1px!important;border-color:#526f83!important;box-shadow:none!important}
+#submitForm #submitButton{justify-self:start!important;min-width:115px!important;margin:3px 0!important}
+#submitMessage{padding:8px 0!important;font-size:13px!important}
+#contestSubmissions{overflow-x:auto!important;border:1px solid #d4d9de!important;background:#fff!important}
+#contestSubmissions table{min-width:600px!important;border-collapse:collapse!important}
+#contestSubmissions th{background:#344b5e!important;color:#fff!important;font-size:11px!important;padding:9px 10px!important}
+#contestSubmissions td{background:#fff!important;color:#52616d!important;font-size:12px!important;padding:8px 10px!important;border-bottom:1px solid #dce0e3!important}
+#contestSubmissions tbody tr:nth-child(even) td,
+#contestSubmissions tbody tr:hover td{background:#fff!important}
+#contestSubmissions .status-pill{border-radius:3px!important}
+#contestSubmissions .status-ac,#contestSubmissions .status-accepted{background:#d1fae5!important;color:#166534!important;border:1px solid #a7f3d0!important}
+#contestSubmissions .status-wa,#contestSubmissions .status-wrong{background:#fee2e2!important;color:#991b1b!important;border:1px solid #fecaca!important}
+#contestSubmissions .status-pending,#contestSubmissions .status-running{background:#fef3c7!important;color:#92400e!important;border:1px solid #fde68a!important}
+#leaderboard{overflow-x:auto!important}
+#leaderboard table{min-width:440px!important}
+#leaderboard th{background:#344b5e!important;color:#fff!important;font-size:11px!important}
+#leaderboard td{background:#fff!important;color:#52616d!important;font-size:12px!important}
+#leaderboard tbody tr:nth-child(even) td,#leaderboard tbody tr:hover td{background:#fff!important}
+#contestInfo p{padding:8px 0!important;border-bottom:1px solid #e2e6e9!important;margin:0!important}
+#problems .problem{margin:0!important;padding:11px 8px!important;border-bottom:1px solid #dce0e3!important;border-radius:0!important;background:#fff!important}
+#problems .problem:hover{background:#fff!important}
+#problems .problem h3{font-size:13px!important;font-weight:600!important}
+#problems .score{color:#526f83!important;font-size:12px!important}
+@media(max-width:850px){.grid{grid-template-columns:1fr!important}#submitForm{grid-template-columns:1fr 150px!important}}
+@media(max-width:560px){
+ #submitForm{grid-template-columns:1fr!important}
+ #submitForm label[for="language"],#submitForm #language{grid-column:1!important;grid-row:auto!important}
+ #submitForm #sourceCode{min-height:280px!important;font-size:12px!important}
+ .panel{padding:14px!important}
+}
+</style>
+</head>
 
 <body data-contest-id="{{ contest_id|default('', true) }}">
 <header>
