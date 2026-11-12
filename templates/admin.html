@@ -253,6 +253,25 @@ pre,code { background:#f3f6f9 !important; color:#34495d !important; }
 
 /* Keep admin code preview light as well */
 #source-code, pre, code { background:#f4f6f8 !important; color:#34495d !important; border:1px solid #e1e6ec !important; }
+
+/* Admin statistics pie chart */
+.statistics-panel{overflow:hidden}
+.statistics-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:-20px -20px 18px;padding:10px 14px;background:#17334d;color:#fff}
+.statistics-heading h2{margin:0;color:#fff;font-size:22px;font-weight:500}
+.statistics-heading .statistics-icon{font-size:25px;color:#fff}
+.statistics-content{display:flex;flex-direction:column;align-items:center;gap:18px;padding:4px 0 2px}
+.statistics-pie{width:min(292px,78vw);aspect-ratio:1;border-radius:50%;
+  background:#e8eef2;box-shadow:0 0 0 1px rgba(15,40,60,.08);transition:background .25s}
+.statistics-total{font-size:18px;color:#17212b;text-align:center}
+.statistics-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));
+  gap:9px;width:100%;max-width:680px}
+.statistics-legend-item{display:flex;align-items:center;gap:8px;color:#263b4d;font-size:14px}
+.statistics-swatch{width:12px;height:12px;border-radius:3px;flex:0 0 12px}
+.statistics-legend-item strong{margin-left:auto;font-variant-numeric:tabular-nums}
+.statistics-message{color:#526579;text-align:center;font-size:13px}
+@media(max-width:600px){.statistics-heading{margin:-16px -16px 16px}.statistics-pie{width:min(260px,78vw)}}
+
 </style>
 <style>
 /* TranTu OJ — unified light admin */
@@ -304,6 +323,23 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
             <a href="/contests">Kỳ thi ↗</a>
         </nav>
     </header>
+
+    <!-- THỐNG KÊ BÀI NỘP -->
+    <section class="panel statistics-panel" id="admin-statistics">
+        <div class="statistics-heading">
+            <h2>Thống kê</h2>
+            <span class="statistics-icon" aria-hidden="true">◕</span>
+        </div>
+        <div class="statistics-content">
+            <div id="statistics-pie" class="statistics-pie"
+                 role="img" aria-label="Biểu đồ tròn thống kê kết quả bài nộp"></div>
+            <div id="statistics-total" class="statistics-total">Tổng: đang tải...</div>
+            <div id="statistics-legend" class="statistics-legend"></div>
+            <div id="statistics-message" class="statistics-message" aria-live="polite"></div>
+            <button type="button" id="refresh-statistics" class="secondary">Làm mới thống kê</button>
+        </div>
+    </section>
+
 
     <!-- QUẢN LÝ TÀI KHOẢN -->
     <section class="panel">
@@ -2753,6 +2789,80 @@ contestTestContest.addEventListener('change', async () => {
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
+})();
+</script>
+
+
+<script id="admin-statistics-script">
+(() => {
+  const pie = document.getElementById('statistics-pie');
+  if (!pie) return;
+  const totalNode = document.getElementById('statistics-total');
+  const legend = document.getElementById('statistics-legend');
+  const message = document.getElementById('statistics-message');
+  const refresh = document.getElementById('refresh-statistics');
+
+  async function loadStatistics() {
+    refresh.disabled = true;
+    message.textContent = 'Đang tải thống kê...';
+    try {
+      const response = await fetch('/api/admin/statistics', {
+        credentials: 'same-origin',
+        cache: 'no-store'
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Không tải được thống kê.');
+
+      const total = Number(data.total) || 0;
+      const items = Array.isArray(data.items) ? data.items : [];
+      totalNode.textContent = 'Tổng: ' + total.toLocaleString('vi-VN');
+      legend.replaceChildren();
+
+      let cursor = 0;
+      const slices = [];
+      for (const item of items) {
+        const value = Math.max(0, Number(item.value) || 0);
+        const color = item.color || '#94a3b8';
+        const percent = total ? value / total * 100 : 0;
+        if (percent > 0) {
+          const next = cursor + percent;
+          slices.push(color + ' ' + cursor + '% ' + next + '%');
+          cursor = next;
+        }
+
+        const row = document.createElement('div');
+        row.className = 'statistics-legend-item';
+        const swatch = document.createElement('span');
+        swatch.className = 'statistics-swatch';
+        swatch.style.backgroundColor = color;
+        const label = document.createElement('span');
+        label.textContent = item.label || 'Khác';
+        const count = document.createElement('strong');
+        count.textContent = value.toLocaleString('vi-VN') +
+          ' (' + percent.toFixed(1) + '%)';
+        row.append(swatch, label, count);
+        legend.appendChild(row);
+      }
+
+      pie.style.background = total && slices.length
+        ? 'conic-gradient(' + slices.join(', ') + ')'
+        : '#e8eef2';
+      pie.setAttribute('aria-label',
+        'Biểu đồ tròn tổng ' + total.toLocaleString('vi-VN') + ' bài nộp');
+      message.textContent = total
+        ? 'Phân bố toàn bộ bài nộp theo kết quả chấm.'
+        : 'Chưa có dữ liệu bài nộp.';
+    } catch (error) {
+      message.textContent = error.message;
+      totalNode.textContent = 'Tổng: —';
+      pie.style.background = '#e8eef2';
+    } finally {
+      refresh.disabled = false;
+    }
+  }
+
+  refresh.addEventListener('click', loadStatistics);
+  loadStatistics();
 })();
 </script>
 
