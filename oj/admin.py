@@ -83,6 +83,53 @@ def register_admin_routes(app, connect, current_user, database_path):
             rejected=True
         )
 
+    @app.get('/api/admin/statistics')
+    def admin_statistics():
+        user = require_admin()
+        if not user:
+            return jsonify(error='Chỉ admin.'), 403
+
+        with connect(database_path) as db:
+            rows = db.execute(
+                '''
+                SELECT UPPER(TRIM(verdict)) AS verdict, COUNT(*) AS total
+                FROM submissions
+                GROUP BY UPPER(TRIM(verdict))
+                '''
+            ).fetchall()
+
+        buckets = {
+            'AC': {'label': 'Chấp nhận (AC)', 'value': 0, 'color': '#00a83b'},
+            'WA': {'label': 'Sai kết quả (WA)', 'value': 0, 'color': '#f04424'},
+            'TLE': {'label': 'Quá thời gian (TLE)', 'value': 0, 'color': '#435a70'},
+            'CE': {'label': 'Lỗi biên dịch (CE)', 'value': 0, 'color': '#a9c0c0'},
+            'OTHER': {'label': 'Khác', 'value': 0, 'color': '#ffa51f'}
+        }
+        accepted = {'AC', 'ACCEPTED'}
+        wrong = {'WA', 'WRONG ANSWER'}
+        time_limit = {'TLE', 'TIME LIMIT EXCEEDED'}
+        compile_error = {'CE', 'COMPILATION ERROR'}
+
+        for row in rows:
+            verdict = str(row['verdict'] or '').strip().upper()
+            total = int(row['total'] or 0)
+            if verdict in accepted:
+                key = 'AC'
+            elif verdict in wrong:
+                key = 'WA'
+            elif verdict in time_limit:
+                key = 'TLE'
+            elif verdict in compile_error:
+                key = 'CE'
+            else:
+                key = 'OTHER'
+            buckets[key]['value'] += total
+
+        return jsonify({
+            'total': sum(item['value'] for item in buckets.values()),
+            'items': list(buckets.values())
+        })
+
     # DANH SÁCH BÀI NỘP
     @app.get('/api/admin/submissions')
     def admin_submissions():
