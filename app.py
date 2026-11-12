@@ -1439,7 +1439,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         if scope not in ('all', 'mine', 'history'):
             scope = 'history'
 
-        if scope in ('all', 'mine') and not problem_id:
+        if scope == 'mine' and not problem_id:
             scope = 'history'
 
         return render_template(
@@ -1560,28 +1560,8 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 return jsonify(error='Cần đăng nhập.'), 401
 
             if scope == 'all':
-                if not problem_id:
-                    return jsonify(error='Cần chọn bài tập để xem bài nộp của thí sinh khác.'), 400
-
-                # Chỉ mở danh sách bài nộp của người khác sau khi người xem
-                # đạt FULL đúng bài và đúng phạm vi contest (hoặc ngoài contest).
-                if not user['is_admin']:
-                    full_sql = '''
-                        SELECT 1 FROM submissions
-                        WHERE user_id=? AND problem_id=?
-                          AND max_score > 0 AND score >= max_score
-                    '''
-                    full_params = [user['id'], problem_id]
-                    if contest_id is None:
-                        full_sql += ' AND contest_id IS NULL'
-                    else:
-                        full_sql += ' AND contest_id=?'
-                        full_params.append(contest_id)
-                    if not db.execute(full_sql + ' LIMIT 1', full_params).fetchone():
-                        return jsonify(
-                            error='Bạn cần FULL (100%) bài này trong đúng đề thi để xem bài nộp của thí sinh khác.'
-                        ), 403
-
+                # Danh sách chỉ gồm các bài mà người xem đã FULL đúng bài,
+                # đúng contest (hoặc cùng ngoài contest). Admin xem toàn bộ.
                 sql = '''
                     SELECT s.id, s.user_id, u.username,
                            s.problem_id, s.language_id, s.verdict,
@@ -1590,14 +1570,29 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                     FROM submissions s
                     JOIN users u ON u.id = s.user_id
                     WHERE u.approved = 1
-                      AND s.problem_id = ?
                 '''
-                params = [problem_id]
+                params = []
+                if problem_id:
+                    sql += ' AND s.problem_id = ?'
+                    params.append(problem_id)
                 if contest_id is None:
                     sql += ' AND s.contest_id IS NULL'
                 else:
                     sql += ' AND s.contest_id = ?'
                     params.append(contest_id)
+
+                if not user['is_admin']:
+                    sql += '''
+                        AND EXISTS (
+                            SELECT 1 FROM submissions mine
+                            WHERE mine.user_id = ?
+                              AND mine.problem_id = s.problem_id
+                              AND mine.max_score > 0
+                              AND mine.score >= mine.max_score
+                              AND mine.contest_id IS s.contest_id
+                        )
+                    '''
+                    params.append(user['id'])
             else:
                 sql = '''
                     SELECT s.id, s.user_id, ? AS username,
