@@ -67,3 +67,38 @@ Important: a candidate kill rate is meaningful only when candidate programs are
 deliberately selected mutants or known incorrect solutions. It is not a formal
 proof of test completeness. The generator and its reference solution must still
 be reviewed against the statement and constraints before importing tests into a contest.
+
+
+## Full toolkit
+
+The repository now also includes:
+
+- `tools/testgen_patterns.py`: reusable boundary values, array shapes, graph
+  families (path/star/cycle/complete/random), strings, permutations and operation sequences.
+- `tools/testgen_template.py`: starter module for a new problem-specific generator.
+- `tools/testgen_mutation.py`: run known-wrong candidate programs against all tests
+  already stored in a problem JSON.
+- `tools/testgen_regression.py`: compare baseline/current JSON and detect removed
+  tests or changed expected outputs.
+
+### Mutation testing an existing test set
+
+```bash
+python tools/testgen_mutation.py PROBLEM.json \
+  --candidate offbyone="python wrong.py" \
+  --candidate slow="python slow_solution.py" --timeout 2
+```
+
+### Regression check
+
+```bash
+python tools/testgen_regression.py PROBLEM.before.json PROBLEM.after.json
+```
+
+### Design boundary
+
+There is no safe universal generator that can infer arbitrary input formats,
+constraints, or correct outputs from a statement automatically. The shared toolkit
+provides reusable patterns and verification infrastructure; each problem still needs
+a reviewed generator and independent reference solution. Do not publish generated
+tests until their validity and expected outputs have been reviewed.
