@@ -20,6 +20,10 @@
 .le-progress{height:10px;max-width:240px;margin:0 auto 10px;background:#ddd;border-radius:10px;overflow:hidden}
 .le-progress span{display:block;height:100%;background:#20a45a}
 .le-muted{color:#758696}
+.le-score-edit{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:8px;font-size:13px}
+.le-score-edit input{width:78px;padding:5px;border:1px solid #b8c4ce;border-radius:4px}
+.le-score-edit button{padding:6px 10px;border:0;border-radius:4px;background:#08718a;color:#fff;cursor:pointer}
+
 @media(max-width:600px){.library-exam{padding:0 12px}.le-offline{padding:20px}.le-meta{font-size:15px}}
 </style>
 <div class="library-exam" id="libraryExam" data-contest-id="{{ contest_id }}">
@@ -41,7 +45,7 @@
 <script>
 (()=>{
  const root=document.getElementById('libraryExam');if(!root)return;
- const id=root.dataset.contestId,esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const id=root.dataset.contestId,isAdmin={{ is_admin|tojson }},esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const date=s=>{if(!s)return '—';const d=new Date(s);return Number.isNaN(d.getTime())?esc(s):d.toLocaleDateString('vi-VN')};
  Promise.all([
   fetch('/api/contests/'+id,{credentials:'same-origin'}).then(r=>{if(!r.ok)throw Error('Không tìm thấy đề thi');return r.json()}),
@@ -55,9 +59,14 @@
   const scores={};(progress?.problems||[]).forEach(p=>scores[String(p.problem_id)]=Number(p.best_score??p.score)||0);
   document.getElementById('le-problems').innerHTML=ps.length?ps.map(p=>{
    const pid=String(p.id),cap=Number(p.total_score)||0,score=Math.min(cap,scores[pid]||0),pct=cap?Math.min(100,score/cap*100):0;
-   return '<tr><td><a href="/problems/'+encodeURIComponent(pid)+'">'+esc(pid)+'</a></td><td>'+esc(p.title||p.name||pid)+'</td><td><div class="le-progress"><span style="width:'+pct.toFixed(1)+'%"></span></div><b>'+score.toFixed(0)+'/'+cap.toFixed(0)+' · '+pct.toFixed(1)+'%</b></td></tr>';
+   const edit=isAdmin?'<div class="le-score-edit"><label>Điểm tối đa <input type="number" min="0.01" step="0.01" value="'+cap+'" data-score-pid="'+esc(pid)+'"></label><button type="button" data-save-score="'+esc(pid)+'">Lưu điểm</button></div>':'';
+   return '<tr><td><a href="/library/'+id+'/problem/'+encodeURIComponent(pid)+'">'+esc(pid)+'</a></td><td><a href="/library/'+id+'/problem/'+encodeURIComponent(pid)+'">'+esc(p.title||p.name||pid)+'</a>'+edit+'</td><td><div class="le-progress"><span style="width:'+pct.toFixed(1)+'%"></span></div><b>'+score.toFixed(2)+'/'+cap.toFixed(2)+' · '+pct.toFixed(1)+'%</b></td></tr>';
   }).join(''):'<tr><td colspan="3" class="le-muted">Đề thi chưa có bài tập.</td></tr>';
-  const first=ps[0];document.getElementById('le-start').href=first?'/problems/'+encodeURIComponent(first.id):'#';
+  document.querySelectorAll('[data-save-score]').forEach(button=>button.addEventListener('click',async()=>{
+   const pid=button.dataset.saveScore,input=document.querySelector('[data-score-pid="'+CSS.escape(pid)+'"]');
+   try{const response=await fetch('/api/admin/contests/'+id+'/problem-score/'+encodeURIComponent(pid),{method:'PUT',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({total_score:input.value})});const result=await response.json();if(!response.ok)throw Error(result.error||'Không lưu được điểm');button.textContent='Đã lưu';button.disabled=true;}catch(error){alert(error.message);}
+  }));
+  const first=ps[0];document.getElementById('le-start').href=first?'/library/'+id+'/problem/'+encodeURIComponent(first.id):'#';
  }).catch(e=>{document.getElementById('le-meta').textContent=e.message;document.getElementById('le-problems').innerHTML='<tr><td colspan="3">Không tải được dữ liệu đề thi.</td></tr>'});
 })();
 </script>
