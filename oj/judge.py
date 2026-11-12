@@ -28,31 +28,34 @@ class Judge0:
         time_limit = max(0.1, float(time_limit))
 
         
+        language_id = int(language_id)
+        configured_memory = max(2048, int(memory_limit))
+
+        # Judge0's 2048 KB API minimum is too small for a normal GNU G++
+        # process in this sandbox. Use a 32 MB floor for C++ so the runtime
+        # itself is not killed before user code can execute. Keep larger
+        # problem-specific limits unchanged.
+        effective_memory = (
+            max(32768, configured_memory)
+            if language_id == 54
+            else configured_memory
+        )
+
         payload = {
             'source_code': source,
-            'language_id': int(language_id),
+            'language_id': language_id,
             'stdin': stdin,
             'expected_output': expected,
             'cpu_time_limit': time_limit,
             'wall_time_limit': min(
                 30.0, max(2.0, time_limit * 3)
             ),
-            # Judge0 requires memory_limit >= 2048 KB.
-            # Clamp small problem defaults so valid submissions are not
-            # rejected with HTTP 422 before execution.
-            'memory_limit': max(2048, int(memory_limit))
+            'memory_limit': effective_memory
         }
 
-        if int(language_id) == 54:
-            # Keep ASan/UBSan to detect out-of-bounds and undefined behavior,
-            # but omit debug symbols: they increase compile time and are not
-            # required for Judge0 to report Runtime Error.
-            payload['compiler_options'] = (
-                '-fsanitize=address,undefined '
-                '-fno-omit-frame-pointer'
-            )
-            print("JUDGE COMPILER OPTIONS:",
-      payload.get('compiler_options'), flush=True)
+        # Do not inject AddressSanitizer into judged C++ submissions:
+        # its runtime overhead can exceed small problem memory limits and
+        # cause the sandbox to kill even trivial programs (NZEC / Killed).
 
         return payload
 
