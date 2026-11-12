@@ -44,32 +44,53 @@
 .exam-library .el-progress-bar span{height:100%;display:block;background:#20a45a}
 .exam-library .el-empty{padding:30px!important;text-align:center!important;color:#718096!important}
 
-.exam-library .el-admin-tools{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
-  margin:0 0 20px;padding:16px 18px;border:1px solid #b9d8ed;border-radius:10px;
-  background:linear-gradient(110deg,#edf7ff,#fff);color:#174a72}
-.exam-library .el-admin-tools p{margin:4px 0 0;color:#55758f;font-size:13px}
-.exam-library .el-admin-actions{display:flex;gap:9px;flex-wrap:wrap}
-.exam-library .el-admin-actions a{display:inline-flex;align-items:center;justify-content:center;padding:9px 13px;
-  border-radius:7px;background:#176da5;color:#fff;text-decoration:none;font-weight:700;font-size:13px}
-.exam-library .el-admin-actions a:last-child{background:#fff;color:#176da5;border:1px solid #9fc5e2}
-.exam-library .el-admin-actions a:hover{filter:brightness(.96);text-decoration:none}
-
-.exam-library .el-bottom-page{margin-top:10px}
-@media(max-width:980px){.exam-library .el-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.exam-library .el-search{grid-column:1/-1}}
+.exam-library .el-admin-tools{display:block;margin:0 0 22px;padding:18px;border:1px solid #b9d8ed;border-radius:10px;background:#f1f8fe;color:#174a72}
+.exam-library .el-admin-tools h2{margin:0 0 5px;color:#174a72;font-size:21px}
+.exam-library .el-admin-tools>p{margin:0 0 15px;color:#55758f;font-size:13px}
+.exam-library .el-admin-tools form{display:grid;gap:8px}
+.exam-library .el-admin-tools label{margin:4px 0 0;color:#174a72;font-weight:650}
+.exam-library .el-admin-tools input,.exam-library .el-admin-tools select,.exam-library .el-admin-tools textarea{width:100%;padding:9px 11px;border:1px solid #b7d1e5;border-radius:6px;background:#fff;color:#174a72;font:inherit}
+.exam-library .el-admin-tools select[multiple]{min-height:170px}
+.exam-library .el-admin-tools textarea{font-family:monospace;white-space:pre;overflow:auto}
+.exam-library .el-admin-tools small{color:#55758f}
+.exam-library .el-admin-dates{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.exam-library .el-admin-dates>div{min-width:0}
+.exam-library .el-admin-tools .el-visible{display:flex;align-items:center;gap:8px}
+.exam-library .el-admin-tools .el-visible input{width:auto;margin:0}
+.exam-library .el-admin-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:8px}
+.exam-library .el-admin-actions button,.exam-library .el-admin-actions a{display:inline-flex;align-items:center;justify-content:center;padding:9px 14px;border:1px solid #176da5;border-radius:7px;background:#176da5;color:#fff;text-decoration:none;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.exam-library .el-admin-actions a{background:#fff;color:#176da5}
+.exam-library #el-create-message{margin:5px 0 0;font-size:14px;color:#176da5}
+@media(max-width:600px){.exam-library .el-admin-dates{grid-template-columns:1fr}}
 @media(max-width:600px){.exam-library{padding:0 12px;margin:16px auto 30px}.exam-library .el-title{font-size:25px}.exam-library .el-filters{grid-template-columns:1fr}.exam-library .el-search{grid-column:auto}.exam-library .el-actions button{flex:1}.exam-library .el-checks{gap:12px;flex-direction:column}.exam-library td{padding:11px 9px}.exam-library .el-name{font-size:14px}}
 </style>
 
 <div class="exam-library">
   {% if is_admin %}
-  <section class="el-admin-tools" aria-label="Công cụ quản trị thư viện đề">
-    <div>
-      <strong>Quản trị thư viện đề</strong>
-      <p>Tạo đề thi, thêm bài từ ngân hàng hoặc tạo bài mới.</p>
-    </div>
-    <div class="el-admin-actions">
-      <a href="/admin#contest-management">Tạo đề / Thêm bài vào đề</a>
-      <a href="/admin#problem-form">Tạo bài mới</a>
-    </div>
+  <section class="el-admin-tools" id="el-admin-create" aria-label="Tạo đề thi trong thư viện">
+    <h2>Quản trị thư viện đề — Tạo đề mới</h2>
+    <p>Tạo đề trực tiếp tại đây, chọn bài có sẵn hoặc thêm bài riêng bằng JSON.</p>
+    <form id="el-create-contest">
+      <label for="el-new-title">Tên đề thi</label>
+      <input id="el-new-title" type="text" maxlength="160" required placeholder="Ví dụ: HSG Tin học 9 Thanh Hóa 2027">
+      <label for="el-new-description">Mô tả</label>
+      <textarea id="el-new-description" maxlength="5000" rows="3" placeholder="Mô tả đề thi..."></textarea>
+      <div class="el-admin-dates">
+        <div><label for="el-new-start">Thời gian bắt đầu</label><input id="el-new-start" type="datetime-local" required></div>
+        <div><label for="el-new-end">Thời gian kết thúc</label><input id="el-new-end" type="datetime-local" required></div>
+      </div>
+      <label for="el-bank-problems">Chọn bài từ ngân hàng đề (có thể chọn nhiều bài)</label>
+      <select id="el-bank-problems" multiple size="8" aria-describedby="el-bank-help"></select>
+      <small id="el-bank-help">Giữ Ctrl (Windows) hoặc Command (Mac) để chọn nhiều bài.</small>
+      <label for="el-custom-problems">Tạo bài riêng cho đề (JSON array, có thể để trống)</label>
+      <textarea id="el-custom-problems" rows="10" spellcheck="false" placeholder='[{"id":"DEMO_C1","title":"Bài 1","statement":"Đề bài...","input_desc":"Dữ liệu vào","output_desc":"Dữ liệu ra","total_score":10,"time_limit":1,"memory_limit":256000,"subtasks":[{"id":"1","name":"Subtask 1","score":10,"tests":[{"input":"5\n","output":"5\n"}]}]}]'></textarea>
+      <label class="el-visible"><input id="el-new-visible" type="checkbox" checked> Hiển thị đề thi cho thí sinh</label>
+      <div class="el-admin-actions">
+        <button type="submit" id="el-create-submit">Tạo đề trong Thư viện</button>
+        <a href="/admin#problem-form">Mở trình tạo bài tập đầy đủ ↗</a>
+      </div>
+      <p id="el-create-message" role="status" aria-live="polite"></p>
+    </form>
   </section>
   {% endif %}
   <h1 class="el-title">Đề thi</h1>
@@ -105,6 +126,52 @@
   </div>
   <nav class="el-pagination el-bottom-page" id="el-pagination-bottom" aria-label="Phân trang phía dưới"></nav>
 </div>
+
+<script id="el-admin-create-script">
+(() => {
+  const form=document.getElementById('el-create-contest');
+  if(!form)return;
+  const $=id=>document.getElementById(id);
+  const message=$('el-create-message'),submit=$('el-create-submit'),bank=$('el-bank-problems');
+  const show=(text,error=false)=>{message.textContent=text;message.style.color=error?'#c0392b':'#176da5';};
+  fetch('/api/admin/problems',{credentials:'same-origin',cache:'no-store'})
+    .then(async r=>{const data=await r.json();if(!r.ok)throw Error(data.error||'Không tải được ngân hàng bài');return data;})
+    .then(items=>{
+      bank.replaceChildren();
+      for(const p of (Array.isArray(items)?items:[])){
+        bank.add(new Option((p.id||'')+' — '+(p.title||''),String(p.id)));
+      }
+      if(!bank.options.length)bank.add(new Option('Chưa có bài trong ngân hàng',''));
+    })
+    .catch(e=>show(e.message,true));
+  form.addEventListener('submit',async event=>{
+    event.preventDefault();
+    const title=$('el-new-title').value.trim();
+    const start=$('el-new-start').value,end=$('el-new-end').value;
+    const problem_ids=Array.from(bank.selectedOptions).map(o=>o.value).filter(Boolean);
+    let custom_problems=[];
+    const raw=$('el-custom-problems').value.trim();
+    if(raw){try{custom_problems=JSON.parse(raw);}catch(e){show('JSON bài riêng không hợp lệ: '+e.message,true);return;}}
+    if(!Array.isArray(custom_problems)){show('Bài riêng phải là một mảng JSON [].',true);return;}
+    if(!problem_ids.length&&!custom_problems.length){show('Hãy chọn ít nhất một bài ngân hàng hoặc nhập bài riêng.',true);return;}
+    if(!start||!end||new Date(end)<=new Date(start)){show('Thời gian kết thúc phải sau thời gian bắt đầu.',true);return;}
+    submit.disabled=true;show('Đang tạo đề...');
+    try{
+      const response=await fetch('/api/admin/contests',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        title,description:$('el-new-description').value.trim(),start_time:start,end_time:end,
+        problem_ids,custom_problems,is_visible:$('el-new-visible').checked
+      })});
+      const result=await response.json();
+      if(!response.ok)throw Error(result.error||'Không tạo được đề.');
+      show('Đã tạo đề thành công! Mã đề: '+result.id);
+      form.reset();$('el-new-visible').checked=true;
+      const url=new URL(location.href);url.searchParams.set('created',result.id);history.replaceState(null,'',url);
+      location.reload();
+    }catch(e){show(e.message,true);}
+    finally{submit.disabled=false;}
+  });
+})();
+</script>
 
 <script>
 (() => {
