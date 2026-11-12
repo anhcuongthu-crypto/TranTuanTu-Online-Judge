@@ -253,7 +253,7 @@
 
 
 <div class="breadcrumbs">
-    <a href="/" id="problem-back">← Tất cả bài tập</a>
+    <a href="{% if contest_id %}/library/{{ contest_id }}{% else %}/problems{% endif %}" id="problem-back">{% if contest_id %}← Quay lại đề thi{% else %}← Tất cả bài tập{% endif %}</a>
     <span>/</span>
     <span>{{ problem.id }}</span>
 </div>
@@ -356,19 +356,19 @@
                 </a>
             {% endif %}
 
-            <a href="/problems/{{ problem.id }}/submit"
+            <a href="{% if contest_id %}/problems/{{ problem.id }}/submit?contest_id={{ contest_id }}{% else %}/problems/{{ problem.id }}/submit{% endif %}"
                class="button button-primary problem-action"
                id="submit-button">
                 ↑ <span id="submit-button-text">Gửi bài giải</span>
             </a>
 
             <div style="margin-top:12px">
-                <a href="/submissions?scope=mine&problem_id={{ problem.id|urlencode }}"
+                <a href="/submissions?scope=mine&problem_id={{ problem.id|urlencode }}{% if contest_id %}&contest_id={{ contest_id }}{% endif %}"
                    class="problem-side-link">
                     <span id="my-submissions-text">Bài nộp của tôi</span> →
                 </a>
 
-                <a href="/submissions?scope=all&problem_id={{ problem.id|urlencode }}"
+                <a href="/submissions?scope=all&problem_id={{ problem.id|urlencode }}{% if contest_id %}&contest_id={{ contest_id }}{% endif %}"
                    class="problem-side-link">
                     <span id="all-submissions-text">Danh sách bài nộp</span> →
                 </a>
