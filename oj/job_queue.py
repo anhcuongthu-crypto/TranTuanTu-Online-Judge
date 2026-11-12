@@ -66,7 +66,7 @@ def _is_judge_error(status):
 
 
 def _prepare_freopen_source(problem, code, language):
-    """Require configured C++ freopen calls and map their files to Judge0 streams."""
+    """Require configured C++ freopen calls, then let Judge0 provide stdin/stdout."""
     if not problem.get('use_freopen'):
         return code, None
 
@@ -91,10 +91,11 @@ def _prepare_freopen_source(problem, code, language):
             + re.escape(stream)
             + r'\s*\)'
         )
-        return pattern.sub(
-            lambda match: match.group(0).replace(filename, target),
-            source
-        ), bool(pattern.search(source))
+        # Judge0 already supplies the test data through stdin and captures
+        # stdout. Opening /dev/stdin or /dev/stdout via freopen is unreliable
+        # in some sandbox configurations, so validate the required call and
+        # neutralize it instead of reopening the stream.
+        return pattern.sub('(void)0', source), bool(pattern.search(source))
 
     transformed, has_input = replace_call(
         code, input_file, 'r', 'stdin', '/dev/stdin'
