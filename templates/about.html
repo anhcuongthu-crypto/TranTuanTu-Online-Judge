@@ -1,4 +1,30 @@
 {% extends 'base.html' %}
-{% block title %}TranTu OJ là gì? — Nền tảng luyện C++ và Tin học{% endblock %}
-{% block meta_description %}Tìm hiểu TranTu OJ, nền tảng luyện lập trình C++, thuật toán, chấm bài tự động và ôn thi học sinh giỏi Tin học dành cho học sinh.{% endblock %}
-{% block content %}<section class="hero about-hero"><span class="eyebrow">ABOUT TRANTU OJ</span><h1 data-i18n="about_title">Một nơi để tư duy<br><span class="gradient-text">trở thành kỹ năng.</span></h1><p data-i18n="about_intro">TranTu OJ là dự án nền tảng luyện lập trình hướng tới học sinh yêu thích thuật toán, đặc biệt là hành trình ôn luyện HSG Tin học.</p></section><section class="about-grid"><article class="glass-card"><div class="card-icon purple-icon">⌘</div><h2 data-i18n="about_systematic">Luyện tập có hệ thống</h2><p class="muted" data-i18n="about_systematic_desc">Danh sách bài theo chủ đề, trang mô tả Input/Output, subtasks và nơi gửi lời giải.</p></article><article class="glass-card"><div class="card-icon cyan-icon">✓</div><h2 data-i18n="about_judge">Chấm bài tự động</h2><p class="muted" data-i18n="about_judge_desc">Sử dụng Judge0 để biên dịch và chạy mã trong môi trường chấm riêng. Cần cấu hình endpoint hợp lệ.</p></article><article class="glass-card"><div class="card-icon orange-icon">♙</div><h2 data-i18n="about_community">Tiến bộ cùng cộng đồng</h2><p class="muted" data-i18n="about_community_desc">Lịch sử nộp bài, bảng xếp hạng và tài khoản học sinh được duyệt bởi quản trị viên.</p></article></section><section class="glass-card"><h2 data-i18n="about_developer">Người phát triển</h2><p><b>Trần Tuấn Tú</b></p><p class="muted">Dự án luyện tập lập trình. Thông tin giới thiệu chi tiết có thể được bổ sung tại đây.</p></section>{% endblock %}
+{% block title %}Về chúng mình — TranTu OJ{% endblock %}
+{% block meta_description %}Tìm hiểu về TranTu OJ, nền tảng luyện lập trình và chấm bài tự động.{% endblock %}
+{% block content %}
+<style>
+.about-clue{max-width:1160px;margin:0 auto;color:#52616d}
+.about-clue h1{font-size:25px;font-weight:400;margin:0 0 18px}
+.about-banner{height:120px;background:linear-gradient(115deg,#344b5e 0 63%,#496b82 63% 88%,#b8c8d2 88%);margin-bottom:30px;position:relative;overflow:hidden}
+.about-brandmark{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 0 30px}
+.about-brandmark .mark{width:94px;height:94px;border-radius:50%;display:grid;place-items:center;background:#397ca8;color:#fff;border:8px solid #dce8ef;font-size:54px;font-weight:700}
+.about-brandmark h2{font-size:28px;color:#344b5e!important;font-weight:700;margin:12px 0}
+.about-copy{max-width:900px;margin:0 auto;line-height:1.8;font-size:15px}
+.about-copy h2{font-size:32px;font-weight:700;color:#344b5e!important;margin:28px 0 12px}
+.about-copy p{color:#64727d}
+</style>
+<section class="about-clue">
+ <h1>Về chúng mình &amp; Một số câu hỏi thường gặp</h1>
+ <div class="about-banner" aria-hidden="true"></div>
+ <div class="about-brandmark"><div class="mark">λ</div><h2>TranTu Online Judge</h2></div>
+ <article class="about-copy">
+  <h2>VỀ CHÚNG MÌNH</h2>
+  <p>TranTu OJ là nền tảng luyện lập trình và chấm bài trực tuyến, hướng tới học sinh yêu thích Tin học, thuật toán và lập trình C++.</p>
+  <p>Hệ thống cung cấp kho bài tập, các kỳ thi, thư viện đề tuyển sinh và đề học sinh giỏi, cùng công cụ theo dõi tiến độ học tập và lịch sử bài nộp.</p>
+  <p>Mục tiêu của TranTu OJ là tạo ra một môi trường học tập rõ ràng, thuận tiện và gần gũi với cộng đồng Tin học học đường.</p>
+  <h2>MỘT SỐ CÂU HỎI THƯỜNG GẶP</h2>
+  <p><b>TranTu OJ là gì?</b><br>Nền tảng luyện tập lập trình, tổ chức bài tập và chấm lời giải tự động.</p>
+  <p><b>Làm thế nào để bắt đầu?</b><br>Chọn một bài tập, đọc kỹ yêu cầu, viết lời giải và gửi bài để xem kết quả chấm.</p>
+ </article>
+</section>
+{% endblock %}
