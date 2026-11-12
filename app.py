@@ -276,6 +276,8 @@ def validate_problem(p):
     if abs(sum(subtask_scores) - total_score) > 1e-9:
         raise ValueError('Tổng điểm subtasks phải bằng total_score.')
 
+    set_freopen_settings(p)
+
 def initialize_problem_file(app):
     target = Path(app.config['PROBLEMS_PATH'])
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -2923,6 +2925,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                         error=f'Tổng điểm subtasks của {pid} phải bằng total_score.'
                     ), 400
 
+                set_freopen_settings(p)
                 custom_ids.add(pid)
                 checked_custom.append({
                     **p,
@@ -3078,6 +3081,10 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 subtask_ids.add(sid); score_sum += score
             if abs(score_sum - total_score) > 1e-9:
                 return jsonify(error=f'Tong diem subtask cua {pid} phai bang total_score.'), 400
+            try:
+                set_freopen_settings(p)
+            except ValueError as exc:
+                return jsonify(error=f'Cấu hình freopen của {pid} không hợp lệ: {exc}.'), 400
             seen.add(pid)
             checked.append({**p, 'id': pid, 'title': title, 'statement': statement, 'total_score': total_score, 'time_limit': time_limit, 'memory_limit': memory_limit})
         try:
