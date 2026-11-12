@@ -2726,6 +2726,48 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
     # ==================== ADMIN CONTEST API ====================
 
+    @app.get('/api/admin/contests/<int:contest_id>/full')
+    def admin_get_full_contest(contest_id):
+        """Chi tiết đầy đủ của một đề, chỉ admin được xem (bao gồm test chấm)."""
+        if not admin_required():
+            return jsonify(error='Chỉ admin.'), 403
+
+        with connect(app.config['DATABASE_PATH']) as db:
+            contest = get_contest_data(
+                contest_id, allow_hidden=True, db=db
+            )
+            if not contest:
+                return jsonify(error='Không tìm thấy đề thi.'), 404
+
+            custom_rows = db.execute(
+                '''SELECT problem_id, subtasks_json
+                   FROM contest_custom_problems WHERE contest_id=?''',
+                (contest_id,)
+            ).fetchall()
+
+        custom_subtasks = {
+            str(row['problem_id']): json.loads(row['subtasks_json'] or '[]')
+            for row in custom_rows
+        }
+        bank = {str(p['id']): p for p in problems()}
+
+        for problem in contest.get('problems', []):
+            pid = str(problem.get('id'))
+            if problem.get('is_custom'):
+                source_subtasks = custom_subtasks.get(pid, [])
+            else:
+                source_subtasks = bank.get(pid, {}).get('subtasks', [])
+
+            # Gắn test đầy đủ vào đúng subtask; không đưa dữ liệu này ra API công khai.
+            tests_by_id = {
+                str(st.get('id')): st.get('tests', [])
+                for st in source_subtasks
+            }
+            for subtask in problem.get('subtasks', []):
+                subtask['tests'] = tests_by_id.get(str(subtask.get('id')), [])
+
+        return jsonify(contest)
+
     @app.get('/api/admin/contests')
     def admin_list_contests():
         if not admin_required():
