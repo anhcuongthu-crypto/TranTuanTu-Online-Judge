@@ -3180,14 +3180,9 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             ).fetchone()
             if not exists:
                 return jsonify(error='Không tìm thấy cuộc thi.'), 404
-            submissions = db.execute(
-                'SELECT COUNT(*) AS n FROM submissions WHERE contest_id=?',
-                (contest_id,)
-            ).fetchone()['n']
-            if submissions:
-                return jsonify(
-                    error='Cuộc thi đã có bài nộp, không thể xóa.'
-                ), 409
+            # Cho phép xóa đề kể cả khi đã có bài nộp.
+            # submissions.contest_id dùng ON DELETE SET NULL nên lịch sử
+            # bài nộp và mã nguồn vẫn được giữ lại, chỉ bỏ liên kết tới đề.
             db.execute('DELETE FROM contests WHERE id=?', (contest_id,))
         return jsonify(ok=True)
             # ==================== SỬA TEST TRONG CONTEST ====================
