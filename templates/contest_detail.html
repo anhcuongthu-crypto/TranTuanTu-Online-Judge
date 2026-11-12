@@ -1280,32 +1280,47 @@ async function loadContestStats() {
     const target = $("contestStatsSummary");
     if (!target) return;
     try {
-        const rows = normalizeRows(await api(`/api/contests/${CONTEST_ID}/submissions`));
-        const counts = { accepted: 0, wrong: 0, pending: 0, other: 0 };
-        rows.forEach(row => {
-            const v = String(row.verdict || '').toUpperCase();
-            if (v === 'ACCEPTED' || v === 'AC' || v.includes('ACCEPTED')) counts.accepted++;
-            else if (v === 'WA' || v.includes('WRONG ANSWER')) counts.wrong++;
-            else if (/QUEUED|PENDING|PROCESSING|RUNNING/.test(v)) counts.pending++;
-            else counts.other++;
-        });
-        const total = rows.length;
-        const pct = n => total ? Math.round(n * 100 / total) : 0;
-        target.innerHTML = total ? `
-            <div class="contest-stats-grid">
-                <div><strong>${total}</strong><span>Tổng bài nộp</span></div>
-                <div><strong>${counts.accepted}</strong><span>Accepted</span></div>
-                <div><strong>${counts.wrong}</strong><span>Wrong Answer</span></div>
-                <div><strong>${counts.pending}</strong><span>Đang chấm</span></div>
-            </div>
-            <div class="contest-stats-bar">
-                <i class="accepted" style="width:${pct(counts.accepted)}%"></i>
-                <i class="wrong" style="width:${pct(counts.wrong)}%"></i>
-                <i class="pending" style="width:${pct(counts.pending)}%"></i>
-                <i class="other" style="width:${pct(counts.other)}%"></i>
-            </div>` : '<p class="muted">Chưa có dữ liệu bài nộp.</p>';
+        const data = await api(`/api/contests/${CONTEST_ID}/stats`);
+        const rows = Array.isArray(data.problems) ? data.problems : [];
+        const total = Number(data.total || 0);
+        if (!rows.length || !total) {
+            target.innerHTML = '<p class="muted">Chưa có dữ liệu bài nộp.</p>';
+            return;
+        }
+        const keys = ['AC', 'WA', 'CE', 'TLE', 'ERR'];
+        const colors = {AC:'#00a82d', WA:'#f04424', CE:'#40596e', TLE:'#a8c0c0', ERR:'#ffa51b'};
+        const labels = {AC:'AC', WA:'WA', CE:'CE', TLE:'TLE', ERR:'ERR'};
+        const max = Math.max(1, ...rows.map(row => keys.reduce((sum,key)=>sum+Number(row[key]||0),0)));
+        const left = 310, chartWidth = 900, rowHeight = 34, top = 46;
+        const height = top + rows.length * rowHeight + 42;
+        const ticks = 5;
+        const axis = Array.from({length:ticks+1},(_,i)=>{
+            const x=left+chartWidth*i/ticks, value=Math.round(max*i/ticks);
+            return `<line x1="${x}" y1="${top-5}" x2="${x}" y2="${height-30}" stroke="#dfe3e6"/><text x="${x}" y="${height-9}" text-anchor="middle" fill="#666" font-size="12">${value}</text>`;
+        }).join('');
+        const legend = keys.map((key,i)=>`<rect x="${left+i*92}" y="13" width="28" height="15" fill="${colors[key]}"/><text x="${left+i*92+35}" y="26" fill="#666" font-size="13">${labels[key]}</text>`).join('');
+        const bars = rows.map((row,index)=>{
+            let x=left;
+            const y=top+index*rowHeight;
+            const bar=keys.map(key=>{
+                const value=Number(row[key]||0);
+                const width=value/max*chartWidth;
+                const part=width>0?`<rect x="${x}" y="${y}" width="${width}" height="23" fill="${colors[key]}"><title>${labels[key]}: ${value}</title></rect>`:'';
+                x+=width;
+                return part;
+            }).join('');
+            return `<text x="${left-10}" y="${y+16}" text-anchor="end" fill="#555" font-size="13">${esc(row.title||row.problem_id)}</text>${bar}<line x1="${left}" y1="${y+27}" x2="${left+chartWidth}" y2="${y+27}" stroke="#e4e4e4"/>`;
+        }).join('');
+        target.innerHTML = `
+          <h3 class="contest-chart-title">Phân phối theo trạng thái</h3>
+          <div class="contest-chart-scroll">
+            <svg class="contest-status-chart" viewBox="0 0 ${left+chartWidth+12} ${height}" role="img" aria-label="Biểu đồ số lượng bài nộp theo trạng thái cho từng bài tập">
+              ${legend}${axis}${bars}
+            </svg>
+          </div>
+          <div class="contest-chart-total">Total: ${total.toLocaleString('vi-VN')}</div>`;
     } catch (error) {
-        target.innerHTML = '<p class="muted">Thống kê sẽ hiển thị khi có dữ liệu bài nộp.</p>';
+        target.innerHTML = `<p class="muted">Không tải được thống kê: ${esc(error.message)}</p>`;
     }
 }
 
@@ -1471,5 +1486,13 @@ init();
 @media(max-width:560px){ #problems .problem{gap:10px!important;padding:12px!important} #problems .problem .score{min-width:65px!important;font-size:12px!important}}
 </style>
 
+<style id="contest-status-chart-style">
+#contestStats{display:block!important}
+#contestStatsSummary{min-width:0!important}
+.contest-chart-title{margin:0 0 10px!important;font-size:23px!important;font-weight:400!important;color:#111!important}
+.contest-chart-scroll{width:100%!important;overflow-x:auto!important;overflow-y:hidden!important}
+.contest-status-chart{display:block!important;width:100%!important;min-width:900px!important;height:auto!important;font-family:Arial,sans-serif!important}
+.contest-chart-total{text-align:right!important;margin:8px 12px 0!important;color:#666!important;font-size:14px!important}
+</style>
 </body>
 </html>
