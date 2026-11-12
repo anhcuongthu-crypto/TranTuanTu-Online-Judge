@@ -179,7 +179,7 @@
         progressHtml='<div class="el-progress-bar"><span style="width:'+pg.pct.toFixed(1)+'%"></span></div>'+
           '<div class="el-progress-label">'+score+($('el-compare').checked?' · '+pg.pct.toFixed(1)+'%':'')+'</div>';
       }
-      return '<tr><td><a class="el-name" target="_self" data-open-contest="'+id+'" href="/contests/'+encodeURIComponent(id)+'">'+escape(c.title||('Kỳ thi #'+id))+'</a>'+
+      return '<tr><td><a class="el-name" target="_self" data-open-contest="'+id+'" href="/library/'+encodeURIComponent(id)+'">'+escape(c.title||('Kỳ thi #'+id))+'</a>'+
         '<div class="el-meta">'+escape(meta)+'</div>'+
         (date||place?'<div class="el-meta">'+date+place+'</div>':'')+
         '</td><td>'+progressHtml+'</td></tr>';
