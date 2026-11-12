@@ -404,6 +404,19 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
             Nút lưu sẽ đồng bộ toàn bộ ngân hàng đề hiện tại lên GitHub.
         </p>
 
+        <div class="panel" id="problem-bank-json-panel" style="margin:16px 0;padding:16px;background:#f7fbff;border:1px solid #dce8f2">
+            <h3>👁️ Xem JSON ngân hàng đề</h3>
+            <p class="muted">Xem toàn bộ dữ liệu bài tập đang có trong ngân hàng đề. Chỉ tài khoản admin truy cập được.</p>
+            <div class="toolbar">
+                <button type="button" id="load-problem-bank-json" class="secondary">Tải / làm mới JSON</button>
+                <button type="button" id="copy-problem-bank-json" class="secondary">Sao chép JSON</button>
+            </div>
+            <div id="problem-bank-json-message" class="message" aria-live="polite"></div>
+            <textarea id="problem-bank-json" rows="22" readonly spellcheck="false"
+                style="font-family:monospace;white-space:pre;overflow:auto"
+                placeholder="Nhấn Tải / làm mới JSON để xem ngân hàng đề..."></textarea>
+        </div>
+
         <div id="problem-list">Đang tải danh sách bài...</div>
     </section>
     
@@ -2679,6 +2692,59 @@ contestTestContest.addEventListener('change', async () => {
 })();
 </script>
 
+
+<script id="admin-problem-bank-json-script">
+(() => {
+    const view = document.getElementById('problem-bank-json');
+    if (!view) return;
+    const load = document.getElementById('load-problem-bank-json');
+    const copy = document.getElementById('copy-problem-bank-json');
+    const message = document.getElementById('problem-bank-json-message');
+    const show = (text, error=false) => {
+        message.textContent = text;
+        message.className = 'message ' + (error ? 'error-message' : 'success-message');
+    };
+
+    load.addEventListener('click', async () => {
+        load.disabled = true;
+        show('Đang tải JSON ngân hàng đề...');
+        try {
+            const response = await fetch('/api/admin/problems', {
+                credentials: 'same-origin',
+                cache: 'no-store'
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Không tải được ngân hàng đề.');
+            }
+            if (!Array.isArray(data)) {
+                throw new Error('Dữ liệu ngân hàng không đúng định dạng JSON array.');
+            }
+            view.value = JSON.stringify(data, null, 2);
+            show('Đã tải ' + data.length + ' bài từ ngân hàng đề.');
+        } catch (error) {
+            show(error.message || 'Có lỗi khi tải JSON.', true);
+        } finally {
+            load.disabled = false;
+        }
+    });
+
+    copy.addEventListener('click', async () => {
+        if (!view.value) {
+            show('Hãy tải JSON trước khi sao chép.', true);
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(view.value);
+            show('Đã sao chép toàn bộ JSON ngân hàng đề.');
+        } catch (error) {
+            view.focus();
+            view.select();
+            show('JSON đã được chọn. Nhấn Ctrl+C để sao chép.', true);
+        }
+    });
+})();
+</script>
 
 <script id="admin-statistics-script">
 (() => {
