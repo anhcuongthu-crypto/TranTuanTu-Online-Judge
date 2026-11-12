@@ -2318,6 +2318,47 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
 
     
+    @app.get('/api/contests/<int:contest_id>/my-progress')
+    def contest_my_progress(contest_id):
+        with connect(app.config['DATABASE_PATH']) as db:
+            user = current_user(db=db)
+            if not user:
+                return jsonify(error='Cần đăng nhập.'), 401
+
+            contest = db.execute(
+                'SELECT id, is_visible FROM contests WHERE id=?',
+                (contest_id,)
+            ).fetchone()
+            if not contest or (
+                not contest['is_visible'] and not user['is_admin']
+            ):
+                return jsonify(error='Không tìm thấy cuộc thi.'), 404
+
+            # Đề thư viện tính lần nộp cuối cùng của từng bài,
+            # không dùng bảng solves (bảng này chỉ lưu bài ngoài contest).
+            rows = db.execute(
+                '''SELECT s.problem_id, s.score, s.max_score, s.verdict
+                   FROM submissions s
+                   JOIN (
+                       SELECT problem_id, MAX(id) AS last_id
+                       FROM submissions
+                       WHERE user_id=? AND contest_id=?
+                       GROUP BY problem_id
+                   ) latest ON latest.last_id=s.id
+                   WHERE s.user_id=? AND s.contest_id=?''',
+                (user['id'], contest_id, user['id'], contest_id)
+            ).fetchall()
+
+        return jsonify([
+            {
+                'problem_id': str(row['problem_id']),
+                'best_score': float(row['score'] or 0),
+                'max_score': float(row['max_score'] or 0),
+                'verdict': row['verdict']
+            }
+            for row in rows
+        ])
+
     # ==================== CONTEST SUBMISSIONS HISTORY ====================
 
     @app.get('/api/contests/<int:contest_id>/submissions')
