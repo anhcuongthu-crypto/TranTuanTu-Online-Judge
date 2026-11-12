@@ -1183,6 +1183,10 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
     @app.get('/library')
     def library_page():
         return render_template('library.html')
+
+    @app.get('/library/<int:contest_id>')
+    def library_exam_detail(contest_id):
+        return render_template('library_exam_detail.html', contest_id=contest_id)
     
     @app.get('/problems/<pid>')
     def problem_page(pid):
