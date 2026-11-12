@@ -72,7 +72,7 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
     </noscript>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='20261112.1') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='20261112.2') }}">
 
     <style>
         .language-switch {
@@ -703,10 +703,9 @@
             </a>
 
             <nav aria-label="Điều hướng chính" data-i18n-aria-label="main_nav_aria" class="clue-nav">
-                <a href="/" data-i18n="nav_home" {% if request.path == '/' %}aria-current="page"{% endif %}>Trang chủ</a>
-                <a href="/problems" data-i18n="nav_problems" {% if request.path == '/problems' or request.path.startswith('/problems/') %}aria-current="page"{% endif %}>Bài tập</a>
-                <a href="/submissions" data-i18n="nav_submissions" {% if request.path.startswith('/submissions') %}aria-current="page"{% endif %}>Bài nộp</a>
-                <a href="/contests" data-i18n="nav_contests" {% if request.path.startswith('/contests') %}aria-current="page"{% endif %}>Kỳ thi</a>
+                <a href="/problems" data-i18n="nav_problems" {% if request.path == '/problems' or request.path.startswith('/problems/') %}aria-current="page"{% endif %}>Danh sách bài</a>
+                <a href="/submissions" data-i18n="nav_submissions" {% if request.path.startswith('/submissions') %}aria-current="page"{% endif %}>Các bài nộp</a>
+                <a href="/contests" data-i18n="nav_contests" {% if request.path.startswith('/contests') %}aria-current="page"{% endif %}>Các kỳ thi</a>
                 <a href="/library" data-i18n="nav_library" {% if request.path == '/library' %}aria-current="page"{% endif %}>Thư viện đề thi</a>
 
                 <details class="nav-dropdown">
