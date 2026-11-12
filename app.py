@@ -1957,6 +1957,8 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 return response
 
         # Chỉ truy vấn DB nếu cache hết hạn hoặc chưa có dữ liệu.
+        result = []
+        contest_problem_map = {}
         with connect(app.config['DATABASE_PATH']) as db:
             if is_admin:
                 rows = db.execute(
@@ -1968,25 +1970,24 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                        ORDER BY start_time DESC, id DESC'''
                 ).fetchall()
 
-        result = []
-        contest_problem_map = {}
-        contest_ids = [int(row['id']) for row in rows]
-        if contest_ids:
-            placeholders = ','.join('?' for _ in contest_ids)
-            problem_rows = db.execute(
-                f'''SELECT contest_id, problem_id, total_score
-                    FROM contest_problems
-                    WHERE contest_id IN ({placeholders})
-                    ORDER BY position, problem_id''',
-                contest_ids
-            ).fetchall()
-            for problem_row in problem_rows:
-                contest_problem_map.setdefault(
-                    int(problem_row['contest_id']), []
-                ).append({
-                    'id': str(problem_row['problem_id']),
-                    'total_score': float(problem_row['total_score'] or 0)
-                })
+            # Phải đọc danh sách bài thi khi kết nối DB vẫn còn mở.
+            contest_ids = [int(row['id']) for row in rows]
+            if contest_ids:
+                placeholders = ','.join('?' for _ in contest_ids)
+                problem_rows = db.execute(
+                    f'''SELECT contest_id, problem_id, total_score
+                        FROM contest_problems
+                        WHERE contest_id IN ({placeholders})
+                        ORDER BY position, problem_id''',
+                    contest_ids
+                ).fetchall()
+                for problem_row in problem_rows:
+                    contest_problem_map.setdefault(
+                        int(problem_row['contest_id']), []
+                    ).append({
+                        'id': str(problem_row['problem_id']),
+                        'total_score': float(problem_row['total_score'] or 0)
+                    })
 
         for row in rows:
             item = dict(row)
