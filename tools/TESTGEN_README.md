@@ -31,3 +31,39 @@ The framework deliberately does not guess a problem's input format or answer. A 
 ## Safety
 
 Generated output is written to a separate file when `--output` is supplied. Review the generated JSON and run it through a local validator before importing it into a live contest.
+
+
+## Test Generator Pro (differential + mutation testing)
+
+Use the enhanced runner when you want to test candidate solutions against generated cases:
+
+```bash
+python tools/testgen_pro.py XAU_KY_TU.json tools.test_generators.xau_ky_tu \
+  --seed 20261113 --output XAU_KY_TU.generated.json
+```
+
+To test one or more intentionally wrong/student implementations, pass their commands.
+Each program receives one test input on stdin; stdout is compared with the generator's
+trusted expected output (whitespace-insensitive):
+
+```bash
+python tools/testgen_pro.py XAU_KY_TU.json tools.test_generators.xau_ky_tu \
+  --seed 20261113 --output XAU_KY_TU.generated.json \
+  --candidate correct="python solution.py" \
+  --candidate mutant="python wrong_solution.py" \
+  --timeout 2 --dedupe
+```
+
+The runner:
+- validates problem/subtask structure and verifies that subtask scores sum to total_score;
+- checks generated case formats and subtask IDs;
+- computes expected outputs with the generator's `solve(input_text)` when output is omitted;
+- reproducibly regenerates and checks reference outputs when `solve` is available;
+- optionally skips duplicate inputs, executes candidate programs, detects WA/RE/TLE,
+  and reports a mutation kill rate;
+- writes a separate JSON report beside the generated JSON by default.
+
+Important: a candidate kill rate is meaningful only when candidate programs are
+deliberately selected mutants or known incorrect solutions. It is not a formal
+proof of test completeness. The generator and its reference solution must still
+be reviewed against the statement and constraints before importing tests into a contest.
