@@ -1494,5 +1494,49 @@ init();
 .contest-status-chart{display:block!important;width:100%!important;min-width:900px!important;height:auto!important;font-family:Arial,sans-serif!important}
 .contest-chart-total{text-align:right!important;margin:8px 12px 0!important;color:#666!important;font-size:14px!important}
 </style>
+
+<style id="trantu-contest-detail-led-final">
+:root{color-scheme:dark!important;--bg:#06111f!important;--panel:#0b1b2d!important;--line:rgba(91,197,235,.22)!important;--text:#e4f2ff!important;--muted:#91abc2!important;--primary:#4bd9f0!important;--link:#70def4!important;--input-bg:#071727!important;--hover-bg:#14314a!important}
+html,body{background:radial-gradient(ellipse at 12% 0%,rgba(29,126,160,.13),transparent 34%),radial-gradient(ellipse at 88% 12%,rgba(103,77,190,.13),transparent 32%),#06111f!important;color:#e4f2ff!important;color-scheme:dark!important}
+header,.topbar{background:#081a2b!important;color:#e5f5ff!important;border-color:rgba(91,197,235,.2)!important;box-shadow:0 8px 28px rgba(0,0,0,.25)!important}
+main{color:#e4f2ff!important}
+:where(.panel,.card,.contest-card,.contest-stat,.contest-admin,#contestHeader,#contestInfo,#problems,#leaderboard,#contestSubmissions,section,article,.problem-card,#problemDetailPanel,.grid>div>section,.grid>aside>section){background:#0b1b2d!important;color:#e1efff!important;border:1px solid rgba(91,197,235,.2)!important;border-radius:15px!important;box-shadow:0 12px 34px rgba(0,0,0,.2)!important}
+h1,h2,h3,h4,strong,label,.contest-title-tabs h1,.grid h2{color:#e7f5ff!important}
+p,.muted,small,.contest-state-summary,.contest-state-summary>strong{color:#9bb2c7!important}
+a,.item-link{color:#71def5!important}
+a:hover,.item-link:hover{color:#c0f5ff!important}
+input,select,textarea,#submitForm #sourceCode{background:#071727!important;color:#e2f3ff!important;border:1px solid rgba(91,197,235,.28)!important;color-scheme:dark!important;caret-color:#69e5ff!important}
+input::placeholder,textarea::placeholder{color:#708da5!important}
+button,.button,.btn{background:linear-gradient(110deg,#126b88,#4c55a6)!important;color:#effcff!important;border:1px solid rgba(104,224,247,.42)!important;box-shadow:0 0 17px rgba(44,184,219,.12)!important}
+button:hover,.button:hover,.btn:hover{filter:brightness(1.15)!important;box-shadow:0 0 22px rgba(66,205,235,.2)!important}
+button.secondary,.button-ghost,.btn-secondary{background:#10243a!important;color:#bceeff!important;border-color:rgba(91,197,235,.24)!important}
+table,.table-wrap,#contestSubmissions{background:#091a2b!important;color:#dceeff!important;border-color:rgba(91,197,235,.2)!important}
+th{background:#102a42!important;color:#aeeeff!important;border-color:rgba(91,197,235,.22)!important}
+td{background:#0b1c2e!important;color:#d5e7f6!important;border-color:rgba(91,197,235,.14)!important}
+tbody tr:nth-child(even) td{background:#0e2237!important}
+tbody tr:hover td{background:#15334c!important}
+.problem,.problem:nth-child(even),#problems .problem,#problems .problem:nth-child(even){background:#0b1c2e!important;color:#dceeff!important;border-color:rgba(91,197,235,.15)!important}
+.problem:hover{background:#15334c!important}
+.score{color:#7ce5f7!important}
+pre,pre code,code{background:#071522!important;color:#9fe9ff!important;border-color:rgba(91,197,235,.2)!important}
+.contest-title-tabs{border-color:rgba(91,197,235,.2)!important}
+.contest-clue-tabs a,.contest-clue-tabs a:first-child{background:#0b1b2d!important;color:#9fc5dc!important;border-color:rgba(91,197,235,.2)!important}
+.contest-clue-tabs a.contest-join-button{background:linear-gradient(110deg,#126b88,#4c55a6)!important;color:#effcff!important}
+#contestInfo{padding:18px 24px!important}
+.contest-stats-grid>div{background:#10243a!important;border:1px solid rgba(91,197,235,.2)!important}
+.contest-stats-grid strong{color:#9deeff!important}
+.contest-stats-grid span{color:#9bb2c7!important}
+.contest-stats-bar{background:#061321!important;border:1px solid rgba(91,197,235,.18)!important}
+.contest-chart-title,.contest-chart-total{color:#c5d9e9!important}
+.contest-status-chart text{fill:#b7ccdd!important}
+.status-pill,.pill{background:#102c43!important;color:#9cecff!important;border:1px solid rgba(91,197,235,.25)!important}
+.status-ac,.status-accepted,.pill.accepted{background:rgba(40,180,135,.14)!important;color:#7de8c5!important;border-color:rgba(72,218,174,.35)!important}
+.status-wa,.status-wrong,.pill.wrong{background:rgba(220,85,105,.12)!important;color:#ff9caa!important;border-color:rgba(240,110,130,.3)!important}
+.status-pending,.status-running,.pill.pending{background:rgba(210,160,70,.12)!important;color:#f3cf8c!important;border-color:rgba(210,160,70,.3)!important}
+:focus-visible{outline:2px solid #66e4ff!important;outline-offset:3px!important;box-shadow:0 0 0 5px rgba(77,211,240,.12)!important}
+@media(max-width:700px){#contestInfo{padding:12px!important}.contest-title-tabs{flex-wrap:wrap}.grid{grid-template-columns:minmax(0,1fr)!important}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
 </body>
 </html>
