@@ -482,6 +482,10 @@
 .submissions-page .stat-value{color:#183b5b!important}
 </style>
 
+<div class="clue-submission-tabs" role="tablist" aria-label="Danh sách bài nộp">
+ <a role="tab" class="{{ 'active' if scope == 'all' else '' }}" href="{{ url_for('submissions_page', scope='all', problem_id=problem_id) if problem_id else url_for('submissions_page') }}"><span class="tab-icon">▤</span> Tất cả</a>
+ <a role="tab" class="{{ 'active' if scope == 'mine' or scope == 'history' else '' }}" href="{{ url_for('submissions_page', scope='mine', problem_id=problem_id) if problem_id else url_for('submissions_page') }}"><span class="tab-icon">♟</span> Bài nộp của tôi</a>
+</div>
 <div class="submissions-page">
     <div class="submissions-header">
         <div>
@@ -1186,4 +1190,35 @@ const response = await fetch(
 @media(max-width:620px){.submissions-page{padding:14px 10px 32px!important}.submissions-page .submission-sidebar{grid-template-columns:1fr}.submissions-page .submission-list-table tbody tr.submission-row{grid-template-columns:76px minmax(0,1fr);min-height:90px}.submissions-page .submission-list-table tbody tr.submission-row .submission-time-cell{grid-column:2;align-items:flex-start;text-align:left;padding:0 12px 10px 14px;border:0}.submissions-page .submission-list-table tbody tr.submission-row .score-cell{grid-row:1 / span 2}.submissions-page .submission-info-cell{padding-bottom:4px!important}.submissions-page .submission-info-cell .problem-link{font-size:14px}.submissions-page .list-footer{align-items:flex-start}.submissions-page .submission-header{gap:8px}}
 </style>
 
+<style id="clueoj-submissions-reference-match">
+.clue-submission-tabs{display:flex;align-items:stretch;gap:0;margin:0 auto 28px;max-width:1500px;border-bottom:1px solid #cfd4d8;background:#fff;min-height:43px}
+.clue-submission-tabs a{display:inline-flex;align-items:center;gap:9px;padding:9px 17px;color:#526879!important;background:#fff!important;text-decoration:none!important;border:1px solid transparent;border-bottom:0;font:400 16px/1.4 Roboto,Arial,sans-serif!important}
+.clue-submission-tabs a.active{color:#172f45!important;background:#fff!important;border:1px solid #cfd4d8;border-bottom:1px solid #fff;margin-bottom:-1px}
+.clue-submission-tabs .tab-icon{font-size:18px;color:#111}
+.submissions-page{max-width:1500px!important;padding:16px 30px 42px!important;color:#243b50!important}
+.submissions-page .submissions-header{display:none!important}
+.submissions-page .submissions-layout{display:grid!important;grid-template-columns:minmax(0,1fr) 416px!important;gap:28px!important;align-items:start!important}
+.submissions-page .submission-main{min-width:0!important}
+.submissions-page .submission-list-heading{margin:0 0 12px!important}
+.submissions-page .submission-list-heading h2{font-size:20px!important;font-weight:400!important;color:#34495e!important}
+.submissions-page .submission-list-heading p{display:none!important}
+.submissions-page .submission-list-card,.submissions-page .side-panel{background:#fff!important;border:1px solid #cfd4d8!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important}
+.submissions-page .submission-list-table tbody tr.submission-row,.submissions-page .submission-list-table tbody tr.submission-row td{background:#fff!important}
+.submissions-page .submission-list-table tbody tr.submission-row .score-cell:has(.accepted),.submissions-page .submission-list-table tbody tr.submission-row .score-cell:has(.verdict-ac){background:#e7f6ee!important}
+.submissions-page .submission-sidebar{display:grid!important;grid-template-columns:1fr!important;gap:28px!important}
+.submissions-page .side-panel h2{min-height:42px!important;padding:7px 10px!important;background:#17334e!important;color:#fff!important;font:400 20px/1.35 Roboto,Arial,sans-serif!important;border-radius:0!important}
+.submissions-page .side-panel h2 span{font-size:22px!important}
+.submissions-page .side-panel-content{padding:12px 9px!important}
+.submissions-page .side-panel-content label{display:block!important;margin:5px 0!important;color:#111!important;font:italic 16px/1.35 Georgia,serif!important}
+.submissions-page .side-panel-content input,.submissions-page .side-panel-content select{width:100%!important;height:44px!important;padding:8px 10px!important;margin:0 0 7px!important;border:1px solid #aaa!important;border-radius:5px!important;background:#fff!important;color:#52616d!important;font:16px Roboto,Arial,sans-serif!important;box-shadow:none!important}
+.submissions-page .side-panel-content select{height:36px!important}
+.submissions-page .filter-submit{margin:8px 8px 0 auto!important;padding:7px 15px!important;min-width:56px!important;border-radius:5px!important;background:#08718a!important;color:#fff!important;font-size:16px!important;font-weight:400!important}
+.submissions-page .stats-content{padding:18px 14px 14px!important}
+.submissions-page .donut-chart{width:286px!important;height:286px!important;max-width:100%!important;margin:3px auto 16px!important;border:0!important}
+.submissions-page .donut-hole{display:none!important}
+.submissions-page .stat-legend{max-width:290px!important;margin:0 auto!important}
+.submissions-page .accepted-rate{max-width:290px!important;margin:12px auto 0!important}
+@media(max-width:1050px){.submissions-page .submissions-layout{grid-template-columns:minmax(0,1fr) 360px!important;gap:18px!important}.submissions-page .donut-chart{width:245px!important;height:245px!important}}
+@media(max-width:760px){.clue-submission-tabs{margin-bottom:16px;overflow-x:auto}.submissions-page{padding:12px 10px 30px!important}.submissions-page .submissions-layout{grid-template-columns:1fr!important}.submissions-page .submission-sidebar{grid-template-columns:1fr!important;gap:16px!important}.submissions-page .donut-chart{width:260px!important;height:260px!important}}
+</style>
 {% endblock %}
