@@ -2039,6 +2039,73 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         return jsonify(item)
 
         
+    @app.get('/api/contests/<int:contest_id>/stats')
+    def contest_statistics(contest_id):
+        user = current_user()
+        with connect(app.config['DATABASE_PATH']) as db:
+            contest = db.execute(
+                'SELECT id, is_visible FROM contests WHERE id=?',
+                (contest_id,)
+            ).fetchone()
+            if not contest:
+                return jsonify(error='Không tìm thấy cuộc thi.'), 404
+            if not contest['is_visible'] and not (user and user['is_admin']):
+                return jsonify(error='Không tìm thấy cuộc thi.'), 404
+
+            contest_data = get_contest_data(
+                contest_id, allow_hidden=bool(user and user['is_admin']), db=db
+            )
+            rows = db.execute(
+                '''SELECT problem_id, verdict, COUNT(*) AS total
+                   FROM submissions
+                   WHERE contest_id=?
+                   GROUP BY problem_id, verdict''',
+                (contest_id,)
+            ).fetchall()
+
+        titles = {
+            str(problem['id']): problem.get('title', str(problem['id']))
+            for problem in (contest_data or {}).get('problems', [])
+        }
+        grouped = {}
+        for row in rows:
+            pid = str(row['problem_id'])
+            item = grouped.setdefault(pid, {
+                'problem_id': pid,
+                'title': titles.get(pid, pid),
+                'AC': 0, 'WA': 0, 'CE': 0, 'TLE': 0, 'ERR': 0,
+                'total': 0
+            })
+            verdict = str(row['verdict'] or '').strip().upper()
+            count = int(row['total'] or 0)
+            if verdict in ('AC', 'ACCEPTED'):
+                key = 'AC'
+            elif verdict in ('WA', 'WRONG ANSWER'):
+                key = 'WA'
+            elif verdict in ('CE', 'COMPILATION ERROR'):
+                key = 'CE'
+            elif verdict in ('TLE', 'TIME LIMIT EXCEEDED', 'TIME LIMIT'):
+                key = 'TLE'
+            elif verdict in ('QUEUED', 'PROCESSING', 'PENDING', 'RUNNING'):
+                key = 'ERR'
+            elif verdict in ('RE', 'RTE', 'RUNTIME ERROR', 'ERR', 'ERROR', 'JUDGE UNAVAILABLE'):
+                key = 'ERR'
+            else:
+                key = 'ERR'
+            item[key] += count
+            item['total'] += count
+
+        result = list(grouped.values())
+        result.sort(key=lambda item: next(
+            (i for i, problem in enumerate((contest_data or {}).get('problems', []))
+             if str(problem['id']) == item['problem_id']),
+            10**9
+        ))
+        return jsonify({
+            'problems': result,
+            'total': sum(item['total'] for item in result)
+        })
+
     @app.get('/api/contests/<int:contest_id>/leaderboard')
     def contest_leaderboard(contest_id):
         with connect(app.config['DATABASE_PATH']) as db:
