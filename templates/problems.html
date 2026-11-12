@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 
-{% block title %}Bài tập — TranTu OJ
+{% block title %}Bài tập — TranTu OJ{% endblock %}
+
+<style id="trantu-problemset-refresh">
 <style id="trantu-problemset-refresh">
 .problemset-page{max-width:1280px!important;margin:0 auto!important;padding:0 4px 28px!important}
 .problemset-hero{display:flex!important;align-items:center!important;justify-content:space-between!important;margin:0 0 22px!important;padding:28px 32px!important;border:1px solid #e3e8f5!important;border-radius:22px!important;background:linear-gradient(115deg,#fff,#f0f3ff)!important;box-shadow:0 12px 34px rgba(27,43,86,.06)!important}
@@ -34,7 +36,6 @@
 @media(max-width:900px){.problemset-workspace{grid-template-columns:minmax(0,1fr)!important}.problemset-filters{grid-column:1!important;grid-row:2!important;display:grid!important;grid-template-columns:1fr 1fr!important}.problemset-filter-title,.problemset-search{grid-column:1/-1!important}.problemset-table-head{grid-row:3!important}.problemset-table-wrap{grid-row:4!important}.problemset-pagination{grid-row:5!important}}
 @media(max-width:560px){.problemset-page{padding:0!important}.problemset-hero{padding:22px!important}.problemset-hero-mark{width:54px!important;height:54px!important;font-size:27px!important;border-radius:16px!important}.problemset-filters{grid-template-columns:1fr!important;padding:14px!important}.problemset-filter-title{margin:-14px -14px 3px!important}.problemset-table-head{align-items:flex-start!important;flex-direction:column!important}.problemset-table-wrap{border-radius:12px!important}}
 </style>
-{% endblock %}
 {% block meta_description %}Kho bài tập lập trình TranTu OJ: tìm kiếm, lọc chủ đề, độ khó, theo dõi trạng thái giải và luyện thuật toán.{% endblock %}
 
 {% block content %}
