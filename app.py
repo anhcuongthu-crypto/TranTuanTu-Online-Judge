@@ -893,7 +893,8 @@ def create_app(test_config=None):
         custom_rows = db.execute(
             '''SELECT problem_id, title, statement,
                       input_desc, output_desc, total_score,
-                      sample_input, sample_output, subtasks_json
+                      sample_input, sample_output, subtasks_json,
+                      use_freopen, input_file, output_file
                FROM contest_custom_problems
                WHERE contest_id=?''',
             (contest_id,)
@@ -940,7 +941,10 @@ def create_app(test_config=None):
                     'input_desc': p['input_desc'],
                     'output_desc': p['output_desc'],
                     'sample_input': p['sample_input'] or '',
-                    'sample_output': p['sample_output'] or ''
+                    'sample_output': p['sample_output'] or '',
+                    'use_freopen': bool(p.get('use_freopen', 0)),
+                    'input_file': p.get('input_file', ''),
+                    'output_file': p.get('output_file', '')
                 })
 
             elif pid in bank:
@@ -2505,7 +2509,10 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 'subtasks': json.loads(row['subtasks_json']),
                 'total_score': row['total_score'],
                 'time_limit': row['time_limit'],
-                'memory_limit': row['memory_limit']
+                'memory_limit': row['memory_limit'],
+                'use_freopen': bool(row['use_freopen']),
+                'input_file': row['input_file'],
+                'output_file': row['output_file']
             }
         else:
             p = next((x for x in problems() if str(x['id']) == pid), None)
@@ -2975,8 +2982,9 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                            (contest_id, problem_id, title, statement,
                             input_desc, output_desc, subtasks_json,
                             total_score, time_limit, memory_limit,
-                            sample_input, sample_output)
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                            sample_input, sample_output,
+                            use_freopen, input_file, output_file)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                         (
                             contest_id,
                             pid,
@@ -2989,7 +2997,10 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                             p['time_limit'],
                             p['memory_limit'],
                             str(p.get('sample_input', '')),
-                            str(p.get('sample_output', ''))
+                            str(p.get('sample_output', '')),
+                            int(bool(p.get('use_freopen', False))),
+                            str(p.get('input_file', '')) if p.get('use_freopen') else '',
+                            str(p.get('output_file', '')) if p.get('use_freopen') else ''
                         )
                     )
 
@@ -3079,9 +3090,9 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 next_position = db.execute('SELECT COALESCE(MAX(position), -1) + 1 AS n FROM contest_problems WHERE contest_id=?', (contest_id,)).fetchone()['n']
                 for offset, p in enumerate(checked):
                     db.execute('''INSERT INTO contest_custom_problems
-                        (contest_id, problem_id, title, statement, input_desc, output_desc, subtasks_json, total_score, time_limit, memory_limit, sample_input, sample_output)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                        (contest_id, p['id'], p['title'], p['statement'], str(p.get('input_desc', p.get('input', p.get('input_format', '')))), str(p.get('output_desc', p.get('output', p.get('output_format', '')))), json.dumps(p['subtasks'], ensure_ascii=False), p['total_score'], p['time_limit'], p['memory_limit'], str(p.get('sample_input', '')), str(p.get('sample_output', ''))))
+                        (contest_id, problem_id, title, statement, input_desc, output_desc, subtasks_json, total_score, time_limit, memory_limit, sample_input, sample_output, use_freopen, input_file, output_file)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                        (contest_id, p['id'], p['title'], p['statement'], str(p.get('input_desc', p.get('input', p.get('input_format', '')))), str(p.get('output_desc', p.get('output', p.get('output_format', '')))), json.dumps(p['subtasks'], ensure_ascii=False), p['total_score'], p['time_limit'], p['memory_limit'], str(p.get('sample_input', '')), str(p.get('sample_output', '')), int(bool(p.get('use_freopen', False))), str(p.get('input_file', '')) if p.get('use_freopen') else '', str(p.get('output_file', '')) if p.get('use_freopen') else ''))
                     db.execute('''INSERT INTO contest_problems (contest_id, problem_id, position, total_score) VALUES (?, ?, ?, ?)''', (contest_id, p['id'], next_position + offset, p['total_score']))
         except DB_INTEGRITY_ERRORS as exc:
             return jsonify(error='Khong the them bai do ID trung/du lieu khong hop le: ' + str(exc)), 409
