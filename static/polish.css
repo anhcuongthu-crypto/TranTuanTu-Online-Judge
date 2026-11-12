@@ -189,3 +189,21 @@ body:not(.login-page) ::selection { color: #fff; background: #6578eb; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* Homepage hero: clean typography-led layout, no decorative mascot */
+body:not(.login-page) .hero {
+  grid-template-columns: minmax(0, 1fr) !important;
+  min-height: 360px !important;
+  align-items: center !important;
+}
+body:not(.login-page) .hero-copy {
+  width: 100% !important;
+  max-width: 850px !important;
+}
+body:not(.login-page) .hero h1 {
+  max-width: 780px !important;
+  font-size: clamp(36px, 5vw, 60px) !important;
+}
+@media (max-width: 700px) {
+  body:not(.login-page) .hero { min-height: 0 !important; }
+}
