@@ -13,7 +13,17 @@
     <!-- Basic SEO -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#07111f">
-    <meta name="color-scheme" content="dark">
+    <meta name="color-scheme" content="dark" id="oj-color-scheme">\n
+    <script>
+    (function(){
+      try{
+        const saved=localStorage.getItem("oj_theme");
+        document.documentElement.classList.toggle("theme-light",saved==="light");
+        document.documentElement.classList.toggle("theme-dark",saved!=="light");
+      }catch(_){}
+    })();
+    </script>
+
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.svg') }}">
 
@@ -747,7 +757,12 @@
                 >🇬🇧</button>
             </div>
 
-            <div class="top-user">
+
+            <div class="theme-switch" role="group" aria-label="Giao diện">
+                <button type="button" class="theme-btn" data-theme-choice="light" aria-pressed="false" title="Giao diện sáng">☀️ <span>Sáng</span></button>
+                <button type="button" class="theme-btn" data-theme-choice="dark" aria-pressed="true" title="Giao diện tối">🌙 <span>Tối</span></button>
+            </div>
+\n            <div class="top-user">
                 <span id="user-status">
                     {% if logged_in_user %}
                         <span data-i18n="hello">Xin chào</span>, {{ logged_in_user.username }}
@@ -872,6 +887,48 @@
       body :is(.modal,.modal-content,.dropdown-menu,.popover,.offcanvas) :is(p,small,.muted){color:#9bb2c7!important}
       body :is(.modal,.modal-content,.dropdown-menu,.popover,.offcanvas) :is(input,select,textarea){background:#071727!important;color:#e2f3ff!important;border-color:rgba(91,197,235,.28)!important;color-scheme:dark!important}
       body :is(.modal,.modal-content,.dropdown-menu,.popover,.offcanvas) a{color:#71def5!important}
+
+      /* User-selectable light appearance */
+      html.theme-light{color-scheme:light!important;background:#f4f8fc!important}
+      html.theme-light body{background:radial-gradient(ellipse at 12% 0%,rgba(42,153,190,.09),transparent 34%),radial-gradient(ellipse at 88% 12%,rgba(124,103,218,.07),transparent 32%),#f4f8fc!important;color:#20354b!important;color-scheme:light!important}
+      html.theme-light main#main-content{color:#20354b!important}
+      html.theme-light main#main-content :is(.contest-page,.problemset-page,.panel,.card,.glass-card,.section,.box,.modal-content,.editbox,.contest-hero,.contest-stat,.contest-card,.contest-admin,.my-progress-card,.home-shortcut-card,.workflow-step,.profile-card,.leaderboard-card,.library-card,.exam-question-card,.problem-card,.submission-card,.table-wrap,.problemset-table-wrap,#contestHeader,#contestInfo,#problems,#leaderboard,#contestSubmissions,#problemDetailPanel,section,article,aside,form,fieldset,details,dialog,[role="dialog"],.widget,.tile,.stat,.stat-card,.content-card,.form-card,.table-card,.list-card,.admin-card,.exam-card,.history-card,.settings-card,.notice,.alert){
+        background:#fff!important;color:#263e55!important;border-color:#dce6ef!important;box-shadow:0 8px 26px rgba(36,69,100,.07)!important
+      }
+      html.theme-light main#main-content :is(.contest-hero,.problemset-hero,.my-progress-card){background:linear-gradient(130deg,#fff,#edf5ff)!important}
+      html.theme-light main#main-content :is(h1,h2,h3,h4,h5,strong,label,legend,th){color:#1c3852!important}
+      html.theme-light main#main-content :is(p,small,.muted,.description,.help-text,.text-muted,.contest-muted){color:#687f94!important}
+      html.theme-light main#main-content a{color:#176eaa!important}
+      html.theme-light main#main-content a:hover{color:#075985!important}
+      html.theme-light main#main-content :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea,output,.CodeMirror,.cm-editor,.cm-scroller){background:#fff!important;color:#243d54!important;border:1px solid #cbd9e6!important;color-scheme:light!important;caret-color:#176eaa!important}
+      html.theme-light main#main-content :is(input,textarea)::placeholder{color:#91a2b2!important}
+      html.theme-light main#main-content :is(button,.button,.btn,input[type=submit],input[type=button],.contest-btn){background:linear-gradient(110deg,#197da5,#526bd0)!important;color:#fff!important;border:1px solid #347eaf!important;box-shadow:0 5px 14px rgba(35,117,164,.13)!important}
+      html.theme-light main#main-content :is(button.secondary,.button.secondary,.btn-secondary,.button-ghost,.ghost){background:#eef5fb!important;color:#315b7b!important;border-color:#cfdeea!important}
+      html.theme-light main#main-content :is(table,.table-wrap,.table-responsive,.table-container){background:#fff!important;color:#29445c!important;border-color:#dce6ef!important}
+      html.theme-light main#main-content th{background:#eaf3fa!important;color:#315a78!important;border-color:#dce6ef!important}
+      html.theme-light main#main-content td{background:#fff!important;color:#405c73!important;border-color:#e2eaf1!important}
+      html.theme-light main#main-content tbody tr:nth-child(even) td{background:#f6f9fc!important}
+      html.theme-light main#main-content tbody tr:hover td{background:#edf5fc!important}
+      html.theme-light main#main-content :is(pre,pre code,code,.code,.source-code,.code-block){background:#f1f6fa!important;color:#28465f!important;border-color:#dce6ef!important}
+      html.theme-light main#main-content :is(.tabs a,.tab,.nav-tabs a,.pagination a,.pagination button){background:#f5f9fc!important;color:#3c607b!important;border-color:#dce6ef!important}
+      html.theme-light main#main-content :is(.tabs .active,.tab.active,.nav-tabs .active,.pagination .active,[aria-current="page"]){background:linear-gradient(110deg,#197da5,#526bd0)!important;color:#fff!important;border-color:#347eaf!important}
+      html.theme-light main#main-content :is(.badge,.pill,.status,.status-pill,.tag){background:#eaf4fb!important;color:#28658f!important;border:1px solid #d2e4f1!important}
+      html.theme-light body :is(.modal,.modal-content,.modal-dialog,.dropdown-menu,.popover,.tooltip,.offcanvas,.toast,.notification,.alert){background:#fff!important;color:#263e55!important;border-color:#dce6ef!important;box-shadow:0 12px 34px rgba(36,69,100,.16)!important}
+      html.theme-light body :is(.modal,.modal-content,.dropdown-menu,.popover,.offcanvas) :is(h1,h2,h3,h4,strong,label){color:#1c3852!important}
+      html.theme-light body :is(.modal,.modal-content,.dropdown-menu,.popover,.offcanvas) :is(p,small,.muted){color:#687f94!important}
+      html.theme-light body :is(.modal,.modal-content,.dropdown-menu,.popover,.offcanvas) :is(input,select,textarea){background:#fff!important;color:#243d54!important;border-color:#cbd9e6!important;color-scheme:light!important}
+      html.theme-light body>header,html.theme-light body>nav,html.theme-light body>footer,html.theme-light header.site-header,html.theme-light footer.site-footer,html.theme-light .navbar,html.theme-light .topbar,html.theme-light .site-nav,html.theme-light .sidebar{background:#fff!important;color:#29445c!important;border-color:#dce6ef!important;box-shadow:0 2px 12px rgba(36,69,100,.06)!important}
+      html.theme-light body>header a,html.theme-light body>nav a,html.theme-light body>footer a,html.theme-light .navbar a,html.theme-light .topbar a{color:#28658f!important}
+      html.theme-light footer{background:#f0f5f9!important;color:#647b90!important;border-top:1px solid #dce6ef!important}
+      .theme-switch{display:flex;align-items:center;gap:5px;margin:0 10px;flex-shrink:0;padding:4px;border:1px solid rgba(111,172,204,.22);border-radius:12px;background:rgba(8,26,43,.42)}
+      .theme-btn{display:inline-flex;align-items:center;gap:5px;padding:7px 10px;border:1px solid transparent;border-radius:8px;background:transparent;color:#b7d2e6;font-size:12px;font-weight:700;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}
+      .theme-btn:hover{transform:translateY(-1px);background:rgba(90,190,225,.1)}
+      .theme-btn[aria-pressed="true"]{background:linear-gradient(110deg,rgba(33,130,160,.28),rgba(90,88,170,.28));border-color:rgba(91,197,235,.38);color:#effcff}
+      html.theme-light .theme-switch{background:#edf4f9;border-color:#d7e3ed}
+      html.theme-light .theme-btn{color:#46657e}
+      html.theme-light .theme-btn[aria-pressed="true"]{background:linear-gradient(110deg,#d9f1f8,#e5e9ff);border-color:#a9cddd;color:#174a68}
+      @media(max-width:900px){.theme-switch{margin:7px 0}.theme-btn{padding:6px 8px}}
+      @media(max-width:560px){.theme-btn span{display:none}.theme-btn{font-size:16px;padding:6px 9px}}
 </style>
 
     {% if request.path != '/login' and request.path != '/login/' %}
@@ -891,6 +948,29 @@
         </footer>
     {% endif %}
 
-    <script src="{{ url_for('static', filename='app.js', v='20261103.6') }}" defer></script>
+
+    <script id="trantu-theme-controller">
+    (function(){
+      const root=document.documentElement;
+      const meta=document.getElementById("oj-color-scheme");
+      function applyTheme(theme,save){
+        const light=theme==="light";
+        root.classList.toggle("theme-light",light);
+        root.classList.toggle("theme-dark",!light);
+        if(meta)meta.setAttribute("content",light?"light":"dark");
+        document.querySelectorAll("[data-theme-choice]").forEach(btn=>{
+          const active=btn.dataset.themeChoice===(light?"light":"dark");
+          btn.setAttribute("aria-pressed",active?"true":"false");
+        });
+        if(save){try{localStorage.setItem("oj_theme",light?"light":"dark")}catch(_){}}
+      }
+      applyTheme(root.classList.contains("theme-light")?"light":"dark",false);
+      document.addEventListener("click",e=>{
+        const btn=e.target.closest("[data-theme-choice]");
+        if(btn)applyTheme(btn.dataset.themeChoice,true);
+      });
+    })();
+    </script>
+\n    <script src="{{ url_for('static', filename='app.js', v='20261103.6') }}" defer></script>
 </body>
 </html>
