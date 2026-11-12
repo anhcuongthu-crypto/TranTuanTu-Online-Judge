@@ -24,15 +24,23 @@ def prime(n):
     return True
 
 
+_DIVISOR_PRIME_PREFIX = None
+
+
 def divisor_prime_prefix(limit):
-    tau = [0] * (limit + 1)
-    for d in range(1, limit + 1):
-        for x in range(d, limit + 1, d):
-            tau[x] += 1
-    pref = [0] * (limit + 1)
-    for x in range(1, limit + 1):
-        pref[x] = pref[x - 1] + int(prime(tau[x]))
-    return pref
+    global _DIVISOR_PRIME_PREFIX
+    # Build once for the largest documented bound; all test cases reuse it.
+    if _DIVISOR_PRIME_PREFIX is None:
+        maximum = 1_000_000
+        tau = [0] * (maximum + 1)
+        for d in range(1, maximum + 1):
+            for x in range(d, maximum + 1, d):
+                tau[x] += 1
+        pref = [0] * (maximum + 1)
+        for x in range(1, maximum + 1):
+            pref[x] = pref[x - 1] + int(prime(tau[x]))
+        _DIVISOR_PRIME_PREFIX = pref
+    return _DIVISOR_PRIME_PREFIX
 
 
 def is_special(x):
