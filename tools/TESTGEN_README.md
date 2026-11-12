@@ -102,3 +102,18 @@ constraints, or correct outputs from a statement automatically. The shared toolk
 provides reusable patterns and verification infrastructure; each problem still needs
 a reviewed generator and independent reference solution. Do not publish generated
 tests until their validity and expected outputs have been reviewed.
+
+
+### Validate an entire problem JSON
+
+Run structural checks, duplicate detection, subtask-score validation and optional
+reference-answer verification:
+
+```bash
+python tools/testgen_validate.py PROBLEM.generated.json
+python tools/testgen_validate.py PROBLEM.generated.json --reference tools.test_generators.my_problem
+python tools/testgen_validate.py PROBLEM.generated.json --validator tools.test_generators.my_problem --reference tools.test_generators.my_problem --strict-duplicates
+```
+
+A problem-specific module may implement `validate_input(input_text, subtask_id)`
+to check that generated inputs obey the statement and subtask constraints.
