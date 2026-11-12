@@ -66,7 +66,7 @@
 </style>
 
 <div class="exam-library">
-  {% if is_admin %}
+  {% if logged_in_user and logged_in_user['is_admin'] %}
   <section class="el-admin-tools" id="el-admin-create" aria-label="Tạo đề thi trong thư viện">
     <h2>Quản trị thư viện đề — Tạo đề mới</h2>
     <p>Tạo đề trực tiếp tại đây, chọn bài có sẵn hoặc thêm bài riêng bằng JSON.</p>
