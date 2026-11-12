@@ -1,127 +1,199 @@
 {% extends 'base.html' %}
 {% block title %}Thư viện đề thi — TranTu OJ{% endblock %}
-{% block meta_description %}Tra cứu các kỳ thi trên TranTu OJ. Tìm kiếm, lọc theo năm, phạm vi và địa điểm tổ chức; xem danh sách bài thi và tiến độ của bạn.{% endblock %}
+{% block meta_description %}Tra cứu đề thi Tin học, lọc theo danh mục, phạm vi, địa điểm và năm; theo dõi tiến độ làm bài.{% endblock %}
 {% block content %}
 <style>
-.exam-library{max-width:1180px;margin:28px auto;padding:0 20px;color:#263b50}
+/* ClueOJ-inspired exam library */
+.exam-library{max-width:1500px;margin:22px auto 42px;padding:0 24px;color:#273746;font-family:inherit}
 .exam-library *{box-sizing:border-box}
-.exam-library .el-title{font-size:clamp(27px,3vw,34px);font-weight:650;margin:0 0 8px;color:#182f46}
-.exam-library .el-rule{height:1px;background:#d7dee5;margin:12px 0 18px}
-.exam-library .el-filters{display:grid;grid-template-columns:minmax(230px,2fr) repeat(4,minmax(125px,1fr));gap:12px;align-items:end;padding:16px;background:#f7f8fa;border:1px solid #d5dbe1;border-radius:9px}
-.exam-library label{display:block;font-size:13px;font-weight:700;margin:0 0 7px;color:#263b50}
-.exam-library input,.exam-library select{width:100%;height:40px;border:1px solid #cfd6dd;border-radius:7px;background:#fff;color:#263b50;padding:8px 11px;font:inherit;min-width:0}
-.exam-library .el-actions{display:flex;gap:8px;justify-content:center;grid-column:1/-1}
-.exam-library button{height:39px;padding:0 22px;border:1px solid #0d7182;border-radius:7px;background:#0d7182;color:#fff;font:inherit;font-weight:650;cursor:pointer}
-.exam-library button.secondary{background:#f2f3f5;color:#3e5367;border-color:#cfd5db}
-.exam-library .el-checks{display:flex;gap:22px;flex-wrap:wrap;margin:20px 0;color:#263b50;font-weight:600}
-.exam-library .el-checks label{display:flex;align-items:center;gap:8px;margin:0;font-size:14px}
-.exam-library .el-checks input{width:16px;height:16px}
-.exam-library .el-pagination{font-size:14px;margin:18px 0 14px}
-.exam-library .el-table-wrap{overflow-x:auto;border:1px solid #d0d5da;border-radius:7px;background:#fff}
-.exam-library table{width:100%;border-collapse:collapse;min-width:650px}
-.exam-library th{background:#17324b;color:#fff;font-weight:700;padding:13px 14px;text-align:center}
-.exam-library td{padding:18px 14px;border-top:1px solid #d2d6da;text-align:center;vertical-align:middle}
-.exam-library tbody tr:nth-child(even){background:#f3f3f3}
-.exam-library .el-name{color:#3975a8;font-weight:700;text-decoration:none}
-.exam-library .el-name:hover{text-decoration:underline}
-.exam-library .el-meta{font-size:13px;color:#536779;margin-top:7px;line-height:1.6}
-.exam-library .el-progress{height:8px;background:#d9d9d9;border-radius:30px;max-width:205px;margin:0 auto 8px;overflow:hidden}
-.exam-library .el-progress span{height:100%;display:block;background:linear-gradient(90deg,#3485e8,#20ad67);border-radius:30px}
-.exam-library .el-progress-label{font-size:13px;font-weight:650;color:#202a34}
-.exam-library .el-empty{padding:35px;text-align:center;color:#718096}
-.exam-library .el-detail{display:none;margin-top:16px;border:1px solid #d3dce4;border-radius:8px;background:#fff;padding:18px}
-.exam-library .el-detail.open{display:block}
-.exam-library .el-detail-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}
-.exam-library .el-detail h2{font-size:20px;margin:0;color:#19344e}
-.exam-library .el-problems{width:100%;border-collapse:collapse}
-.exam-library .el-problems td{padding:11px;border-top:1px solid #e0e5e9;text-align:left}
-.exam-library .el-problems td:last-child{text-align:right}
-.exam-library .el-problems a{color:#3975a8;text-decoration:none;font-weight:650}
-@media(max-width:900px){.exam-library .el-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.exam-library .el-search{grid-column:1/-1}}
-@media(max-width:580px){.exam-library{padding:0 12px;margin:18px auto}.exam-library .el-filters{grid-template-columns:1fr}.exam-library .el-search{grid-column:auto}.exam-library .el-actions{justify-content:stretch}.exam-library .el-actions button{flex:1}.exam-library .el-checks{gap:12px;flex-direction:column}.exam-library td{padding:13px 9px}}
+.exam-library .el-breadcrumb{font-size:13px;color:#82909c;margin:0 0 14px}
+.exam-library .el-breadcrumb a{color:#3975a8;text-decoration:none}
+.exam-library .el-title{font-size:28px;font-weight:650;color:#273f55;margin:0 0 13px}
+.exam-library .el-rule{height:1px;background:#d8dde2;margin:0 0 18px}
+.exam-library .el-filters{display:grid;grid-template-columns:minmax(240px,2fr) repeat(4,minmax(130px,1fr));gap:12px;align-items:end}
+.exam-library label{display:block;font-size:14px;color:#34495e;margin:0 0 5px}
+.exam-library input[type=search],.exam-library select{width:100%;height:38px;padding:7px 10px;border:1px solid #c8cdd2;border-radius:4px;background:#fff;color:#34495e;font:inherit;font-size:14px;min-width:0}
+.exam-library input:focus,.exam-library select:focus{outline:2px solid rgba(40,109,168,.16);border-color:#3975a8}
+.exam-library .el-actions{display:flex;gap:9px;align-items:center;margin-top:12px}
+.exam-library button{border:1px solid #08718a;border-radius:4px;background:#08718a;color:#fff;padding:8px 16px;font:inherit;font-size:14px;cursor:pointer}
+.exam-library button:hover{filter:brightness(.95)}
+.exam-library button.secondary{background:#fff;color:#3f566b;border-color:#cbd2d8}
+.exam-library .el-checks{display:flex;gap:22px;flex-wrap:wrap;margin:18px 0 14px}
+.exam-library .el-checks label{display:flex;align-items:center;gap:7px;margin:0;font-size:14px;cursor:pointer}
+.exam-library .el-checks input{width:15px;height:15px;margin:0;accent-color:#08718a}
+.exam-library .el-page-label{font-size:14px;color:#34495e;margin:12px 0 8px}
+.exam-library .el-pagination{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:0 0 9px}
+.exam-library .el-pagination button{min-width:32px;height:31px;padding:4px 9px;background:#fff;color:#28658f;border:1px solid #d5dce2;border-radius:3px;font-size:13px}
+.exam-library .el-pagination button.active{background:#17354f;color:#fff;border-color:#17354f}
+.exam-library .el-pagination button:disabled{color:#aab3bb;background:#f6f7f8;cursor:default}
+.exam-library .el-pagination .el-ellipsis{padding:0 5px;color:#718394}
+.exam-library .el-table-wrap{overflow-x:auto;border:1px solid #d0d5da;background:#fff}
+.exam-library table{width:100%;border-collapse:collapse;min-width:650px;background:#fff}
+.exam-library thead th{background:#17354f;color:#fff;font-weight:650;padding:11px 14px;text-align:center;font-size:14px}
+.exam-library thead th:first-child{text-align:left}
+.exam-library tbody tr{background:#fff}
+.exam-library tbody tr:nth-child(even){background:#f2f2f2}
+.exam-library tbody tr:hover{background:#edf4f8}
+.exam-library td{padding:13px 14px;border-top:1px solid #d1d5d9;text-align:center;vertical-align:middle;font-size:14px}
+.exam-library td:first-child{text-align:left}
+.exam-library .el-name{color:#3975a8;font-weight:700;font-size:16px;text-decoration:none}
+.exam-library .el-name:hover{text-decoration:underline;color:#245a86}
+.exam-library .el-meta{font-size:13px;color:#788896;margin-top:3px;line-height:1.55}
+.exam-library .el-progress-label{font-size:13px;color:#273746;white-space:nowrap}
+.exam-library .el-progress-bar{height:7px;max-width:210px;margin:0 auto 6px;background:#d8dde1;overflow:hidden;border-radius:2px}
+.exam-library .el-progress-bar span{height:100%;display:block;background:#20a45a}
+.exam-library .el-empty{padding:30px!important;text-align:center!important;color:#718096!important}
+.exam-library .el-bottom-page{margin-top:10px}
+@media(max-width:980px){.exam-library .el-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.exam-library .el-search{grid-column:1/-1}}
+@media(max-width:600px){.exam-library{padding:0 12px;margin:16px auto 30px}.exam-library .el-title{font-size:25px}.exam-library .el-filters{grid-template-columns:1fr}.exam-library .el-search{grid-column:auto}.exam-library .el-actions button{flex:1}.exam-library .el-checks{gap:12px;flex-direction:column}.exam-library td{padding:11px 9px}.exam-library .el-name{font-size:14px}}
 </style>
+
 <div class="exam-library">
-  <div class="breadcrumbs"><a href="/">Trang chủ</a><span>/</span><span>Thư viện đề thi</span></div>
-  <h1 class="el-title">Đề thi</h1><div class="el-rule"></div>
+  <div class="el-breadcrumb"><a href="/">Trang chủ</a>　/　<span>Thư viện đề thi</span></div>
+  <h1 class="el-title">Đề thi</h1>
+  <div class="el-rule"></div>
+
   <section class="el-filters" aria-label="Bộ lọc đề thi">
-    <div class="el-search"><label for="el-q">Từ khóa</label><input id="el-q" type="search" placeholder="Tìm theo tên đề, mô tả..."></div>
+    <div class="el-search">
+      <label for="el-q">Từ khóa</label>
+      <input id="el-q" type="search" placeholder="Tìm theo tên đề, note...">
+    </div>
     <div><label for="el-category">Danh mục</label><select id="el-category"><option value="">Tất cả</option></select></div>
-    <div><label for="el-scope">Phạm vi</label><select id="el-scope"><option value="">Tất cả</option></select></div>
-    <div><label for="el-location">Nơi tổ chức</label><select id="el-location"><option value="">Tất cả</option></select></div>
+    <div><label for="el-scope">Scope</label><select id="el-scope"><option value="">Tất cả</option></select></div>
+    <div><label for="el-location">Host location</label><select id="el-location"><option value="">Tất cả</option></select></div>
     <div><label for="el-year">Năm</label><select id="el-year"><option value="">Tất cả</option></select></div>
-    <div class="el-actions"><button id="el-filter" type="button">Lọc đề</button><button id="el-reset" class="secondary" type="button">Xóa lọc</button></div>
   </section>
-  <div class="el-checks"><label><input id="el-hide-done" type="checkbox"> Ẩn đề đã hoàn thành</label><label><input id="el-compare" type="checkbox"> Đối chiếu mốc điểm</label></div>
-  <div class="el-pagination" id="el-page">Trang: 1/1</div>
-  <div class="el-table-wrap"><table><thead><tr><th>Đề thi</th><th style="width:20%">Tiến độ của bạn</th></tr></thead><tbody id="el-rows"><tr><td colspan="2" class="el-empty">Đang tải đề thi...</td></tr></tbody></table></div>
-  <section class="el-detail" id="el-detail" aria-live="polite"><div class="el-detail-head"><h2 id="el-detail-title">Danh sách bài thi</h2><button id="el-detail-close" class="secondary" type="button">Đóng</button></div><div id="el-detail-body"></div></section>
+  <div class="el-actions">
+    <button id="el-filter" type="button">Lọc đề</button>
+    <button id="el-reset" class="secondary" type="button">Xóa lọc</button>
+  </div>
+
+  <div class="el-checks">
+    <label><input id="el-hide-done" type="checkbox"> Ẩn đề đã hoàn thành</label>
+    <label><input id="el-compare" type="checkbox"> Đối chiếu mốc điểm</label>
+  </div>
+
+  <div class="el-page-label" id="el-page-label">Trang: 1/1</div>
+  <nav class="el-pagination" id="el-pagination-top" aria-label="Phân trang phía trên"></nav>
+  <div class="el-table-wrap">
+    <table>
+      <thead><tr><th>Đề thi</th><th style="width:23%">Tiến độ của bạn</th></tr></thead>
+      <tbody id="el-rows"><tr><td colspan="2" class="el-empty">Đang tải đề thi...</td></tr></tbody>
+    </table>
+  </div>
+  <nav class="el-pagination el-bottom-page" id="el-pagination-bottom" aria-label="Phân trang phía dưới"></nav>
 </div>
+
 <script>
 (() => {
   const root=document.querySelector('.exam-library'); if(!root)return;
   const $=id=>document.getElementById(id);
-  let contests=[],problems=[],progress={},filtered=[];
+  const PAGE_SIZE=20;
+  let contests=[],progress={},filtered=[],currentPage=1,progressAvailable=false;
   const fields={category:'category',scope:'scope',location:'host_location',year:'year'};
   const text=v=>String(v??'').trim();
   const norm=v=>text(v).toLocaleLowerCase('vi');
   const unique=xs=>[...new Set(xs.map(text).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'vi',{numeric:true}));
-  function fillSelect(id,values){const el=$(id);for(const v of unique(values))el.add(new Option(v,v));}
+  const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function fillSelect(id,values){
+    const el=$(id),selected=el.value;
+    el.innerHTML='<option value="">Tất cả</option>'+unique(values).map(v=>'<option value="'+escape(v)+'">'+escape(v)+'</option>').join('');
+    el.value=selected;
+  }
   function progressFor(contest){
-    const list=(contest.problems||[]);
+    const list=Array.isArray(contest.problems)?contest.problems:[];
     let max=0,score=0;
-    for(const p of list){const item=progress[String(p.id)]||{};max+=Number(p.total_score)||0;score+=Math.min(Number(item.score)||0,Number(p.total_score)||0);}
+    for(const p of list){
+      const cap=Number(p.total_score)||0;
+      const best=Number(progress[String(p.id)]?.score)||0;
+      max+=cap;score+=Math.min(best,cap);
+    }
     const pct=max?Math.min(100,score/max*100):0;
     return {max,score,pct,done:max>0&&score>=max};
+  }
+  function makePagination(totalPages){
+    const pages=new Set([1,totalPages,currentPage-1,currentPage,currentPage+1]);
+    const valid=[...pages].filter(p=>p>=1&&p<=totalPages).sort((a,b)=>a-b);
+    let html='<button type="button" data-page="'+(currentPage-1)+'" '+(currentPage===1?'disabled':'')+'>«</button>';
+    let previous=0;
+    for(const p of valid){
+      if(previous&&p-previous>1)html+='<span class="el-ellipsis">...</span>';
+      html+='<button type="button" data-page="'+p+'" class="'+(p===currentPage?'active':'')+'">'+p+'</button>';
+      previous=p;
+    }
+    html+='<button type="button" data-page="'+(currentPage+1)+'" '+(currentPage===totalPages?'disabled':'')+'>»</button>';
+    return html;
   }
   function render(){
     const q=norm($('el-q').value),hide=$('el-hide-done').checked;
     filtered=contests.filter(c=>{
-      const hay=norm([c.title,c.description,c.year,c.category,c.scope,c.host_location].join(' '));
+      const hay=norm([c.title,c.description,c.note,c.year,c.category,c.scope,c.host_location].join(' '));
       const pg=progressFor(c);
-      return (!q||hay.includes(q))&&(!hide||!pg.done)&&Object.entries(fields).every(([id,key])=>!$( 'el-'+id).value||text(c[key])=== $('el-'+id).value);
+      return (!q||hay.includes(q))&&(!hide||!pg.done)&&Object.entries(fields).every(([id,key])=>!$('el-'+id).value||text(c[key])===$('el-'+id).value);
     });
-    $('el-rows').innerHTML=filtered.length?filtered.map(c=>{
+    const totalPages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
+    currentPage=Math.min(Math.max(1,currentPage),totalPages);
+    const begin=(currentPage-1)*PAGE_SIZE;
+    const pageItems=filtered.slice(begin,begin+PAGE_SIZE);
+    $('el-rows').innerHTML=pageItems.length?pageItems.map(c=>{
       const pg=progressFor(c),id=Number(c.id);
-      const meta=[c.year,c.category,c.scope?'Phạm vi: '+c.scope:'',c.host_location?'Tổ chức tại: '+c.host_location:''].filter(Boolean).join(' · ');
-      return '<tr><td><a class="el-name" href="/contests/'+id+'" data-contest="'+id+'">'+escape(c.title||('Kỳ thi #'+id))+'</a><div class="el-meta">'+escape(meta)+'</div><div class="el-meta">'+(c.start_time?'Ngày thi: '+escape(String(c.start_time).slice(0,10)):'')+'</div></td><td><div class="el-progress"><span style="width:'+pg.pct.toFixed(1)+'%"></span></div><div class="el-progress-label">'+pg.score.toFixed(2)+'/'+pg.max.toFixed(0)+' · '+pg.pct.toFixed(1)+'%</div></td></tr>';
+      const meta=[c.year,c.category,c.scope?'Phạm vi: '+c.scope:''].filter(Boolean).join(' · ');
+      const date=c.start_time?'Ngày thi: '+escape(String(c.start_time).slice(0,10)):'';
+      const place=c.host_location?' · Tổ chức tại: '+escape(c.host_location):'';
+      let progressHtml='-';
+      if(progressAvailable){
+        const score=pg.max?pg.score.toFixed(2)+'/'+pg.max.toFixed(0):'0/0';
+        progressHtml='<div class="el-progress-bar"><span style="width:'+pg.pct.toFixed(1)+'%"></span></div>'+
+          '<div class="el-progress-label">'+score+($('el-compare').checked?' · '+pg.pct.toFixed(1)+'%':'')+'</div>';
+      }
+      return '<tr><td><a class="el-name" href="/contests/'+encodeURIComponent(id)+'">'+escape(c.title||('Kỳ thi #'+id))+'</a>'+
+        '<div class="el-meta">'+escape(meta)+'</div>'+
+        (date||place?'<div class="el-meta">'+date+place+'</div>':'')+
+        '</td><td>'+progressHtml+'</td></tr>';
     }).join(''):'<tr><td colspan="2" class="el-empty">Không tìm thấy đề thi phù hợp.</td></tr>';
-    $('el-page').textContent='Trang: 1/1 · '+filtered.length+' kỳ thi';
+    $('el-page-label').textContent='Trang: '+currentPage+'/'+totalPages;
+    const pager=makePagination(totalPages);
+    $('el-pagination-top').innerHTML=pager;
+    $('el-pagination-bottom').innerHTML=pager;
+    $('el-pagination-top').querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>goPage(Number(b.dataset.page))));
+    $('el-pagination-bottom').querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>goPage(Number(b.dataset.page))));
   }
-  function escape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-  async function openContest(id){
-    const c=contests.find(x=>Number(x.id)===id);if(!c)return;
-    $('el-detail-title').textContent=c.title||'Danh sách bài thi';
-    $('el-detail-body').innerHTML='<div class="el-empty">Đang tải danh sách bài...</div>';
-    $('el-detail').classList.add('open');
-    $('el-detail').scrollIntoView({behavior:'smooth',block:'start'});
-    try{
-      const data=await fetch('/api/contests/'+id,{credentials:'same-origin'}).then(r=>{if(!r.ok)throw Error('Không tải được kỳ thi');return r.json();});
-      const rows=data.problems||[];
-      $('el-detail-body').innerHTML=rows.length?'<table class="el-problems"><tbody>'+rows.map(p=>{
-        const pg=progress[String(p.id)]||{},max=Number(p.total_score)||0,score=Math.min(Number(pg.score)||0,max);
-        return '<tr><td><a href="/problems/'+encodeURIComponent(p.id)+'">'+escape(p.id)+'</a></td><td>'+escape(p.title)+'</td><td>'+score.toFixed(2)+'/'+max.toFixed(2)+'</td></tr>';
-      }).join('')+'</tbody></table>':'<div class="el-empty">Kỳ thi chưa có bài tập.</div>';
-    }catch(e){$('el-detail-body').textContent=e.message;}
+  function goPage(page){
+    const totalPages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
+    if(page<1||page>totalPages||page===currentPage)return;
+    currentPage=page;render();
+    const url=new URL(location.href);if(page===1)url.searchParams.delete('page');else url.searchParams.set('page',page);
+    history.replaceState(null,'',url);
+    $('el-page-label').scrollIntoView({behavior:'smooth',block:'nearest'});
   }
-  $('el-rows').addEventListener('click',e=>{const a=e.target.closest('[data-contest]');if(a){e.preventDefault();openContest(Number(a.dataset.contest));}});
-  $('el-detail-close').addEventListener('click',()=>$('el-detail').classList.remove('open'));
-  $('el-filter').addEventListener('click',render);
-  $('el-q').addEventListener('keydown',e=>{if(e.key==='Enter')render();});
-  $('el-hide-done').addEventListener('change',render);
-  $('el-reset').addEventListener('click',()=>{['el-q','el-category','el-scope','el-location','el-year'].forEach(id=>$(id).value='');$('el-hide-done').checked=false;$('el-compare').checked=false;render();});
+  function applyFilters(){currentPage=1;render();const url=new URL(location.href);url.searchParams.delete('page');history.replaceState(null,'',url);}
+  $('el-filter').addEventListener('click',applyFilters);
+  $('el-q').addEventListener('keydown',e=>{if(e.key==='Enter')applyFilters();});
+  $('el-hide-done').addEventListener('change',applyFilters);
   $('el-compare').addEventListener('change',render);
+  Object.keys(fields).forEach(id=>$('el-'+id).addEventListener('change',applyFilters));
+  $('el-reset').addEventListener('click',()=>{
+    $('el-q').value='';
+    Object.keys(fields).forEach(id=>$('el-'+id).value='');
+    $('el-hide-done').checked=false;$('el-compare').checked=false;applyFilters();
+  });
   Promise.all([
-    fetch('/api/contests',{credentials:'same-origin'}).then(r=>r.json()),
-    fetch('/api/my-progress',{credentials:'same-origin'}).then(r=>r.ok?r.json():{}).catch(()=>({}))
+    fetch('/api/contests',{credentials:'same-origin'}).then(r=>{if(!r.ok)throw Error('Không tải được danh sách đề thi');return r.json();}),
+    fetch('/api/my-progress',{credentials:'same-origin'}).then(r=>{if(!r.ok)return null;return r.json();}).catch(()=>null)
   ]).then(([cs,pr])=>{
     contests=Array.isArray(cs)?cs:[];
-    (pr.problems||[]).forEach(p=>progress[String(p.problem_id)]={score:Number(p.best_score??p.score)||0});
+    progressAvailable=!!pr;
+    (pr?.problems||[]).forEach(p=>progress[String(p.problem_id)]={score:Number(p.best_score??p.score)||0});
     fillSelect('el-category',contests.map(c=>c.category));
     fillSelect('el-scope',contests.map(c=>c.scope));
     fillSelect('el-location',contests.map(c=>c.host_location));
     fillSelect('el-year',contests.map(c=>c.year));
+    const requested=Number(new URLSearchParams(location.search).get('page'));
+    currentPage=Number.isInteger(requested)&&requested>0?requested:1;
     render();
-  }).catch(()=>{$('el-rows').innerHTML='<tr><td colspan="2" class="el-empty">Không tải được thư viện đề thi.</td></tr>';});
+  }).catch(error=>{
+    $('el-rows').innerHTML='<tr><td colspan="2" class="el-empty">'+escape(error.message||'Không tải được thư viện đề thi.')+'</td></tr>';
+  });
 })();
 </script>
 {% endblock %}
