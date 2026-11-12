@@ -1,6 +1,40 @@
 {% extends 'base.html' %}
 
-{% block title %}Bài tập — TranTu OJ{% endblock %}
+{% block title %}Bài tập — TranTu OJ
+<style id="trantu-problemset-refresh">
+.problemset-page{max-width:1280px!important;margin:0 auto!important;padding:0 4px 28px!important}
+.problemset-hero{display:flex!important;align-items:center!important;justify-content:space-between!important;margin:0 0 22px!important;padding:28px 32px!important;border:1px solid #e3e8f5!important;border-radius:22px!important;background:linear-gradient(115deg,#fff,#f0f3ff)!important;box-shadow:0 12px 34px rgba(27,43,86,.06)!important}
+.problemset-hero h1{margin:8px 0!important;font-size:clamp(25px,3vw,34px)!important;font-weight:800!important;color:#18243b!important}
+.problemset-hero p{margin:0!important;color:#66758f!important}
+.problemset-hero-mark{display:grid!important;place-items:center!important;width:76px!important;height:76px!important;border-radius:22px!important;background:linear-gradient(135deg,#6579ee,#21b3d0)!important;color:#fff!important;font-size:38px!important;box-shadow:0 12px 24px rgba(82,104,232,.22)!important}
+.problemset-workspace{display:grid!important;grid-template-columns:minmax(0,1fr) 310px!important;grid-template-rows:auto auto auto auto!important;gap:14px 22px!important;align-items:start!important;background:transparent!important;border:0!important;box-shadow:none!important}
+.problemset-heading{grid-column:1/-1!important;grid-row:1!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0 0 12px!important;border:0!important;border-bottom:1px solid #e4e9f2!important}
+.problemset-heading h2{font-size:22px!important;font-weight:800!important;color:#18243b!important;margin:0!important}
+.problemset-heading p{display:block!important;margin:4px 0 0!important;color:#71809a!important}
+.problemset-total{display:flex!important;align-items:baseline!important;gap:7px!important;color:#5268e8!important;font-weight:800!important}
+.problemset-total span{font-size:25px!important}
+.problemset-filters{grid-column:2!important;grid-row:2/span 3!important;display:flex!important;flex-direction:column!important;gap:12px!important;padding:18px!important;background:#fff!important;border:1px solid #e4e9f2!important;border-radius:18px!important;box-shadow:0 12px 36px rgba(27,43,86,.06)!important;overflow:visible!important}
+.problemset-filter-title{display:flex!important;justify-content:space-between!important;align-items:center!important;margin:-18px -18px 4px!important;padding:15px 18px!important;border-radius:17px 17px 0 0!important;background:#f1f4ff!important;color:#293b78!important;font-size:14px!important;font-weight:800!important}
+.problemset-filter-title span{color:#5268e8!important}
+.problemset-search{width:100%!important;margin:0!important}
+.problemset-search input,.problemset-filters select{width:100%!important;min-height:43px!important;height:auto!important;padding:9px 12px!important;border:1px solid #e0e6f1!important;border-radius:10px!important;background:#fbfcff!important;color:#26334d!important;font-size:12px!important}
+.problemset-filters .button{width:100%!important;min-height:40px!important;align-self:stretch!important;justify-content:center!important;padding:9px 12px!important;border-radius:10px!important;font-size:12px!important}
+.problemset-filters #reset-problem-filters{background:#fff!important;color:#52617d!important;border:1px solid #e0e6f1!important}
+.problemset-table-head{grid-column:1!important;grid-row:2!important;display:flex!important;justify-content:space-between!important;align-items:center!important;gap:12px!important;padding:3px 2px!important;color:#66758f!important}
+.problemset-table-head strong{color:#283653!important;font-size:13px!important}
+.problemset-page-size{display:flex!important;align-items:center!important;gap:8px!important;white-space:nowrap!important}
+.problemset-page-size select{min-height:34px!important;padding:5px 9px!important;border-radius:9px!important}
+.problemset-table-wrap{grid-column:1!important;grid-row:3!important;overflow-x:auto!important;border:1px solid #e4e9f2!important;border-radius:16px!important;background:#fff!important;box-shadow:0 10px 30px rgba(27,43,86,.045)!important}
+.problemset-table-wrap table{min-width:650px!important;width:100%!important}
+.problemset-table-wrap th{font-size:10px!important;padding:13px 14px!important}
+.problemset-table-wrap td{font-size:12px!important;padding:12px 14px!important}
+.problemset-table-wrap tbody tr:nth-child(even) td{background:#fbfcff!important}
+.problemset-table-wrap tbody tr:hover td{background:#f0f3ff!important}
+.problemset-pagination{grid-column:1!important;grid-row:4!important;padding:12px 0!important;border:0!important;background:transparent!important}
+@media(max-width:900px){.problemset-workspace{grid-template-columns:minmax(0,1fr)!important}.problemset-filters{grid-column:1!important;grid-row:2!important;display:grid!important;grid-template-columns:1fr 1fr!important}.problemset-filter-title,.problemset-search{grid-column:1/-1!important}.problemset-table-head{grid-row:3!important}.problemset-table-wrap{grid-row:4!important}.problemset-pagination{grid-row:5!important}}
+@media(max-width:560px){.problemset-page{padding:0!important}.problemset-hero{padding:22px!important}.problemset-hero-mark{width:54px!important;height:54px!important;font-size:27px!important;border-radius:16px!important}.problemset-filters{grid-template-columns:1fr!important;padding:14px!important}.problemset-filter-title{margin:-14px -14px 3px!important}.problemset-table-head{align-items:flex-start!important;flex-direction:column!important}.problemset-table-wrap{border-radius:12px!important}}
+</style>
+{% endblock %}
 {% block meta_description %}Kho bài tập lập trình TranTu OJ: tìm kiếm, lọc chủ đề, độ khó, theo dõi trạng thái giải và luyện thuật toán.{% endblock %}
 
 {% block content %}
