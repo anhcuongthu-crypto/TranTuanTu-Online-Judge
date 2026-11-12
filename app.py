@@ -2893,6 +2893,75 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
 
 
+    # THEM BAI RIENG VAO CONTEST DA TAO
+    @app.post('/api/admin/contests/<int:contest_id>/problems')
+    def admin_append_contest_problems(contest_id):
+        if not admin_required():
+            return jsonify(error='Chi admin.'), 403
+        data = request.get_json(silent=True) or {}
+        custom_problems = data.get('custom_problems', [])
+        if not isinstance(custom_problems, list) or not custom_problems:
+            return jsonify(error='Hay gui mang JSON co it nhat mot bai.'), 400
+        bank_ids = {str(p.get('id')) for p in problems(refresh=True)}
+        checked, seen = [], set()
+        for p in custom_problems:
+            if not isinstance(p, dict): return jsonify(error='Moi bai phai la object JSON.'), 400
+            pid = str(p.get('id', '')).strip()
+            title = str(p.get('title', '')).strip()
+            statement = str(p.get('statement', '')).strip()
+            if not pid or not title or not statement:
+                return jsonify(error='Moi bai phai co id, title va statement.'), 400
+            if pid in bank_ids: return jsonify(error=f'ID {pid} da ton tai trong ngan hang de.'), 400
+            if pid in seen: return jsonify(error=f'ID bai bi trung trong JSON: {pid}.'), 400
+            subtasks = p.get('subtasks')
+            if not isinstance(subtasks, list) or not subtasks:
+                return jsonify(error=f'Bai {pid} phai co it nhat mot subtask.'), 400
+            try:
+                total_score = float(p.get('total_score', 0))
+                time_limit = float(p.get('time_limit', 1))
+                memory_limit = int(p.get('memory_limit', 256000))
+            except (TypeError, ValueError, OverflowError):
+                return jsonify(error=f'Thong so bai {pid} khong hop le.'), 400
+            if not math.isfinite(total_score) or not math.isfinite(time_limit) or total_score <= 0 or time_limit <= 0 or memory_limit <= 0:
+                return jsonify(error=f'Thong so bai {pid} phai la so duong hop le.'), 400
+            subtask_ids, score_sum = set(), 0.0
+            for sub in subtasks:
+                if not isinstance(sub, dict): return jsonify(error=f'Subtask cua {pid} khong hop le.'), 400
+                sid, name, tests = str(sub.get('id', '')).strip(), str(sub.get('name', '')).strip(), sub.get('tests')
+                try: score = float(sub.get('score', 0))
+                except (TypeError, ValueError, OverflowError): return jsonify(error=f'Diem subtask cua {pid} khong hop le.'), 400
+                if not sid or not name or sid in subtask_ids or not math.isfinite(score) or score <= 0:
+                    return jsonify(error=f'Subtask cua {pid} thieu thong tin hoac trung ID.'), 400
+                if not isinstance(tests, list) or not tests:
+                    return jsonify(error=f'Subtask {sid} cua {pid} phai co test.'), 400
+                for test in tests:
+                    if not isinstance(test, dict) or not isinstance(test.get('input'), str) or not isinstance(test.get('output'), str):
+                        return jsonify(error=f'Test cua {pid} phai co input/output dang chuoi.'), 400
+                subtask_ids.add(sid); score_sum += score
+            if abs(score_sum - total_score) > 1e-9:
+                return jsonify(error=f'Tong diem subtask cua {pid} phai bang total_score.'), 400
+            seen.add(pid)
+            checked.append({**p, 'id': pid, 'title': title, 'statement': statement, 'total_score': total_score, 'time_limit': time_limit, 'memory_limit': memory_limit})
+        try:
+            with connect(app.config['DATABASE_PATH']) as db:
+                if not db.execute('SELECT id FROM contests WHERE id=?', (contest_id,)).fetchone():
+                    return jsonify(error='Khong tim thay de thi.'), 404
+                existing = {str(row['problem_id']) for row in db.execute('SELECT problem_id FROM contest_problems WHERE contest_id=?', (contest_id,)).fetchall()}
+                duplicates = existing.intersection(seen)
+                if duplicates: return jsonify(error='Bai da co trong de: ' + ', '.join(sorted(duplicates))), 409
+                next_position = db.execute('SELECT COALESCE(MAX(position), -1) + 1 AS n FROM contest_problems WHERE contest_id=?', (contest_id,)).fetchone()['n']
+                for offset, p in enumerate(checked):
+                    db.execute('''INSERT INTO contest_custom_problems
+                        (contest_id, problem_id, title, statement, input_desc, output_desc, subtasks_json, total_score, time_limit, memory_limit, sample_input, sample_output)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                        (contest_id, p['id'], p['title'], p['statement'], str(p.get('input_desc', p.get('input', p.get('input_format', '')))), str(p.get('output_desc', p.get('output', p.get('output_format', '')))), json.dumps(p['subtasks'], ensure_ascii=False), p['total_score'], p['time_limit'], p['memory_limit'], str(p.get('sample_input', '')), str(p.get('sample_output', ''))))
+                    db.execute('''INSERT INTO contest_problems (contest_id, problem_id, position, total_score) VALUES (?, ?, ?, ?)''', (contest_id, p['id'], next_position + offset, p['total_score']))
+        except DB_INTEGRITY_ERRORS as exc:
+            return jsonify(error='Khong the them bai do ID trung/du lieu khong hop le: ' + str(exc)), 409
+        except Exception as exc:
+            app.logger.exception('Khong them duoc bai vao Contest')
+            return jsonify(error='Loi khi them bai: ' + str(exc)), 500
+        return jsonify(ok=True, added=len(checked), message=f'Da them {len(checked)} bai vao de.'), 201
     @app.put('/api/admin/contests/<int:contest_id>')
     def admin_update_contest(contest_id):
         if not admin_required():
