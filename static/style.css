@@ -3634,3 +3634,12 @@ html,body{background:#f4f5f6!important;color:#465766!important;color-scheme:ligh
 input,select,textarea{border:1px solid #d4d9de!important;border-radius:3px!important;background:#fff!important;color:#52616d!important;box-shadow:none!important}button,.button{border-radius:3px!important;box-shadow:none!important}button.primary,.button-primary,.btn-primary,.contest-btn{background:#526f83!important;border:1px solid #526f83!important;color:#fff!important}button.secondary,.button-ghost,.button-dark,.button-glass,.btn:not(.btn-primary){background:#edf0f2!important;color:#526879!important;border:1px solid #cbd3d9!important}
 table{border-collapse:collapse!important;background:#fff!important}th{background:#344b5e!important;color:#fff!important;border:1px solid #536779!important}td{background:#fff!important;color:#65727d!important;border-bottom:1px solid #dce0e3!important}tbody tr:nth-child(even) td{background:#f8f9fa!important}tbody tr:hover td{background:#eef3f6!important}
 @media(max-width:900px){.topbar{flex-wrap:wrap!important;gap:5px!important;padding:7px 10px!important}.clue-nav{order:3;width:100%;overflow-x:auto}.clue-nav>a,.clue-nav .nav-dropdown>summary{min-height:38px!important;padding:0 8px!important}.language-switch{margin-left:auto!important}#main-content{padding:14px 10px 28px!important}}
+
+
+/* Final consistency pass: ClueOJ-style white list surfaces */
+table tbody tr:nth-child(even) td,
+table tbody tr:hover td{background:#fff!important}
+.list-table tbody tr:nth-child(even),
+.list-table tbody tr:hover,
+.data-table tbody tr:nth-child(even),
+.data-table tbody tr:hover{background:#fff!important}
