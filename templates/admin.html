@@ -2786,7 +2786,7 @@ contestTestContest.addEventListener('change', async () => {
             // Lấy chi tiết từng đề qua API có kiểm tra quyền admin,
             // bao gồm các bài ngân hàng và bài tự tạo cùng toàn bộ subtasks/tests.
             const details = await Promise.all(contests.map(async contest => {
-                const detailResponse = await fetch('/api/contests/' + encodeURIComponent(contest.id), {
+                const detailResponse = await fetch('/api/admin/contests/' + encodeURIComponent(contest.id) + '/full', {
                     credentials: 'same-origin',
                     cache: 'no-store'
                 });
