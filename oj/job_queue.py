@@ -1,5 +1,6 @@
 
 import json
+import re
 import threading
 import time
 import uuid
@@ -62,6 +63,55 @@ def _is_judge_error(status):
         'Unknown'
     )
 
+
+
+def _prepare_freopen_source(problem, code, language):
+    """Require configured C++ freopen calls and map their files to Judge0 streams."""
+    if not problem.get('use_freopen'):
+        return code, None
+
+    if int(language) != 54:
+        return code, 'Bài này yêu cầu freopen và hiện chỉ hỗ trợ C++ (GNU G++).'
+
+    input_file = str(problem.get('input_file', '')).strip()
+    output_file = str(problem.get('output_file', '')).strip()
+    if (
+        not re.fullmatch(r'[A-Za-z0-9_-]+\.INP', input_file)
+        or not re.fullmatch(r'[A-Za-z0-9_-]+\.OUT', output_file)
+    ):
+        return code, 'Cấu hình tên file freopen của bài không hợp lệ.'
+
+    def replace_call(source, filename, mode, stream, target):
+        pattern = re.compile(
+            r'freopen\s*\(\s*([\"\'])'
+            + re.escape(filename)
+            + r'\1\s*,\s*([\"\'])'
+            + re.escape(mode)
+            + r'\2\s*,\s*'
+            + re.escape(stream)
+            + r'\s*\)'
+        )
+        return pattern.sub(
+            lambda match: match.group(0).replace(filename, target),
+            source
+        ), bool(pattern.search(source))
+
+    transformed, has_input = replace_call(
+        code, input_file, 'r', 'stdin', '/dev/stdin'
+    )
+    transformed, has_output = replace_call(
+        transformed, output_file, 'w', 'stdout', '/dev/stdout'
+    )
+
+    if not has_input or not has_output:
+        missing = []
+        if not has_input:
+            missing.append(f'freopen("{input_file}", "r", stdin)')
+        if not has_output:
+            missing.append(f'freopen("{output_file}", "w", stdout)')
+        return code, 'Thiếu lệnh bắt buộc: ' + ' và '.join(missing)
+
+    return transformed, None
 
 
 def _get_test_scores(st):
@@ -365,6 +415,10 @@ def _run_job(
             app.config.get('JUDGE0_API_KEY', '')
         )
 
+        code_to_run, freopen_error = _prepare_freopen_source(
+            problem, code, language
+        )
+
         subtasks = problem.get('subtasks', [])
 
         # Gửi test của tất cả subtasks trong cùng một batch để tránh
@@ -385,15 +439,24 @@ def _run_job(
             subtask_ranges.append((st, first, len(flat_tests), scores))
 
         batch_started = time.perf_counter()
-        results = _run_batch_with_retry(
-            judge,
-            code,
-            language,
+        if freopen_error:
+            results = [
+                {
+                    'status': 'Wrong Answer',
+                    'message': freopen_error
+                }
+                for _ in flat_tests
+            ]
+        else:
+            results = _run_batch_with_retry(
+                judge,
+                code_to_run,
+                language,
             flat_tests,
-            problem.get('time_limit', 1),
-            problem.get('memory_limit', 256000),
-            max_attempts=1
-        )
+                problem.get('time_limit', 1),
+                problem.get('memory_limit', 256000),
+                max_attempts=1
+            )
 
         for st, first, last, test_scores in subtask_ranges:
             subtask_started = time.perf_counter()
