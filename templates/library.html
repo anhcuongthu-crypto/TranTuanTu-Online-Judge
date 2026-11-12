@@ -1,39 +1,127 @@
 {% extends 'base.html' %}
-{% block title %}Thư viện đề tuyển sinh và HSG — TranTu OJ{% endblock %}
-{% block meta_description %}Thư viện đề tuyển sinh, đề thi học sinh giỏi Tin học được sắp xếp theo kỳ thi và năm trên TranTu OJ.{% endblock %}
+{% block title %}Thư viện đề thi — TranTu OJ{% endblock %}
+{% block meta_description %}Tra cứu các kỳ thi trên TranTu OJ. Tìm kiếm, lọc theo năm, phạm vi và địa điểm tổ chức; xem danh sách bài thi và tiến độ của bạn.{% endblock %}
 {% block content %}
 <style>
-.library-header{background:linear-gradient(120deg,#fff,#f1f8fd)!important;border:1px solid #dce8f2!important;border-radius:18px;padding:26px}
-.library-header h1{color:#183b5b}
-.library-header p,.library-results-head span{color:#718ba0}
-.library-total{background:#eaf3fa!important;color:#176eaf!important;border:1px solid #dce8f2;border-radius:14px}
-.library-tools{grid-template-columns:minmax(220px,1.7fr) repeat(2,minmax(150px,1fr)) auto;background:#fff!important;border:1px solid #dce8f2!important;box-shadow:0 4px 16px rgba(34,91,135,.05)}
-.library-tools input,.library-tools select{background:#fff!important;color:#244761!important;border:1px solid #cbddea!important;min-width:0}
-.library-tools input:focus,.library-tools select:focus{outline:2px solid #b8d9f1;outline-offset:1px}
-.library-results-head{color:#365d79}
-.library-grid .glass-card,.library-card{background:#fff!important;color:#244761!important;border:1px solid #dce8f2!important;box-shadow:0 4px 14px rgba(34,91,135,.045)!important}.library-card:hover{background:#f7fbfe!important;border-color:#a9cce6!important}.library-card h3,.library-card strong{color:#244761!important}.library-card p,.library-card small{color:#718ba0!important}.library-card-top span{color:#2879bd!important}
-.library-grid a{color:#176eaf}
-.library-empty{color:#718ba0}
-@media(max-width:650px){.library-header{padding:18px!important}.library-tools{display:grid;grid-template-columns:1fr!important}.library-tools>*{width:100%;min-width:0}}
+.exam-library{max-width:1180px;margin:28px auto;padding:0 20px;color:#263b50}
+.exam-library *{box-sizing:border-box}
+.exam-library .el-title{font-size:clamp(27px,3vw,34px);font-weight:650;margin:0 0 8px;color:#182f46}
+.exam-library .el-rule{height:1px;background:#d7dee5;margin:12px 0 18px}
+.exam-library .el-filters{display:grid;grid-template-columns:minmax(230px,2fr) repeat(4,minmax(125px,1fr));gap:12px;align-items:end;padding:16px;background:#f7f8fa;border:1px solid #d5dbe1;border-radius:9px}
+.exam-library label{display:block;font-size:13px;font-weight:700;margin:0 0 7px;color:#263b50}
+.exam-library input,.exam-library select{width:100%;height:40px;border:1px solid #cfd6dd;border-radius:7px;background:#fff;color:#263b50;padding:8px 11px;font:inherit;min-width:0}
+.exam-library .el-actions{display:flex;gap:8px;justify-content:center;grid-column:1/-1}
+.exam-library button{height:39px;padding:0 22px;border:1px solid #0d7182;border-radius:7px;background:#0d7182;color:#fff;font:inherit;font-weight:650;cursor:pointer}
+.exam-library button.secondary{background:#f2f3f5;color:#3e5367;border-color:#cfd5db}
+.exam-library .el-checks{display:flex;gap:22px;flex-wrap:wrap;margin:20px 0;color:#263b50;font-weight:600}
+.exam-library .el-checks label{display:flex;align-items:center;gap:8px;margin:0;font-size:14px}
+.exam-library .el-checks input{width:16px;height:16px}
+.exam-library .el-pagination{font-size:14px;margin:18px 0 14px}
+.exam-library .el-table-wrap{overflow-x:auto;border:1px solid #d0d5da;border-radius:7px;background:#fff}
+.exam-library table{width:100%;border-collapse:collapse;min-width:650px}
+.exam-library th{background:#17324b;color:#fff;font-weight:700;padding:13px 14px;text-align:center}
+.exam-library td{padding:18px 14px;border-top:1px solid #d2d6da;text-align:center;vertical-align:middle}
+.exam-library tbody tr:nth-child(even){background:#f3f3f3}
+.exam-library .el-name{color:#3975a8;font-weight:700;text-decoration:none}
+.exam-library .el-name:hover{text-decoration:underline}
+.exam-library .el-meta{font-size:13px;color:#536779;margin-top:7px;line-height:1.6}
+.exam-library .el-progress{height:8px;background:#d9d9d9;border-radius:30px;max-width:205px;margin:0 auto 8px;overflow:hidden}
+.exam-library .el-progress span{height:100%;display:block;background:linear-gradient(90deg,#3485e8,#20ad67);border-radius:30px}
+.exam-library .el-progress-label{font-size:13px;font-weight:650;color:#202a34}
+.exam-library .el-empty{padding:35px;text-align:center;color:#718096}
+.exam-library .el-detail{display:none;margin-top:16px;border:1px solid #d3dce4;border-radius:8px;background:#fff;padding:18px}
+.exam-library .el-detail.open{display:block}
+.exam-library .el-detail-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}
+.exam-library .el-detail h2{font-size:20px;margin:0;color:#19344e}
+.exam-library .el-problems{width:100%;border-collapse:collapse}
+.exam-library .el-problems td{padding:11px;border-top:1px solid #e0e5e9;text-align:left}
+.exam-library .el-problems td:last-child{text-align:right}
+.exam-library .el-problems a{color:#3975a8;text-decoration:none;font-weight:650}
+@media(max-width:900px){.exam-library .el-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.exam-library .el-search{grid-column:1/-1}}
+@media(max-width:580px){.exam-library{padding:0 12px;margin:18px auto}.exam-library .el-filters{grid-template-columns:1fr}.exam-library .el-search{grid-column:auto}.exam-library .el-actions{justify-content:stretch}.exam-library .el-actions button{flex:1}.exam-library .el-checks{gap:12px;flex-direction:column}.exam-library td{padding:13px 9px}}
 </style>
-
-<div class="breadcrumbs"><a href="/" data-i18n="nav_home">Trang chủ</a><span>/</span><span data-i18n="lib_title">Thư viện đề thi</span></div>
-<section class="library-header">
-    <div>
-        <span class="eyebrow">EXAM ARCHIVE</span>
-        <h1 data-i18n="lib_title">Thư viện đề thi</h1>
-        <p data-i18n="lib_intro">Nơi lưu trữ các câu hỏi thuộc đề tuyển sinh và đề thi học sinh giỏi. Các bài luyện tập C++ hằng ngày nằm riêng tại mục Bài tập.</p>
-    </div>
-    <div class="library-total"><strong id="library-total">—</strong><span data-i18n="lib_count">câu hỏi từ đề thi</span></div>
-</section>
-<section class="library-tools glass-card">
-    <div class="library-search"><span>⌕</span><input id="library-search" type="search" placeholder="Tìm kỳ thi, năm hoặc tên câu hỏi..." data-i18n-placeholder="lib_search"></div>
-    <select id="library-exam"><option value="">Tất cả kỳ thi</option></select>
-    <select id="library-sort"><option value="exam" data-i18n="lib_sort_exam">Sắp xếp theo kỳ thi</option><option value="title" data-i18n="lib_sort_title">Tên câu hỏi: A → Z</option><option value="difficulty" data-i18n="lib_sort_diff">Độ khó</option></select>
-    <button type="button" class="button button-ghost" id="library-reset" data-i18n="lib_reset">Đặt lại</button>
-</section>
-<section class="library-results">
-    <div class="library-results-head"><strong id="library-result-count" data-i18n="lib_loading">Đang tải đề thi...</strong><span data-i18n="lib_open">Chọn câu hỏi để mở đề và nộp bài</span></div>
-    <div id="library-grid" class="library-grid"><div class="glass-card library-empty" data-i18n="lib_loading_grid">Đang tải thư viện...</div></div>
-</section>
+<div class="exam-library">
+  <div class="breadcrumbs"><a href="/">Trang chủ</a><span>/</span><span>Thư viện đề thi</span></div>
+  <h1 class="el-title">Đề thi</h1><div class="el-rule"></div>
+  <section class="el-filters" aria-label="Bộ lọc đề thi">
+    <div class="el-search"><label for="el-q">Từ khóa</label><input id="el-q" type="search" placeholder="Tìm theo tên đề, mô tả..."></div>
+    <div><label for="el-category">Danh mục</label><select id="el-category"><option value="">Tất cả</option></select></div>
+    <div><label for="el-scope">Phạm vi</label><select id="el-scope"><option value="">Tất cả</option></select></div>
+    <div><label for="el-location">Nơi tổ chức</label><select id="el-location"><option value="">Tất cả</option></select></div>
+    <div><label for="el-year">Năm</label><select id="el-year"><option value="">Tất cả</option></select></div>
+    <div class="el-actions"><button id="el-filter" type="button">Lọc đề</button><button id="el-reset" class="secondary" type="button">Xóa lọc</button></div>
+  </section>
+  <div class="el-checks"><label><input id="el-hide-done" type="checkbox"> Ẩn đề đã hoàn thành</label><label><input id="el-compare" type="checkbox"> Đối chiếu mốc điểm</label></div>
+  <div class="el-pagination" id="el-page">Trang: 1/1</div>
+  <div class="el-table-wrap"><table><thead><tr><th>Đề thi</th><th style="width:20%">Tiến độ của bạn</th></tr></thead><tbody id="el-rows"><tr><td colspan="2" class="el-empty">Đang tải đề thi...</td></tr></tbody></table></div>
+  <section class="el-detail" id="el-detail" aria-live="polite"><div class="el-detail-head"><h2 id="el-detail-title">Danh sách bài thi</h2><button id="el-detail-close" class="secondary" type="button">Đóng</button></div><div id="el-detail-body"></div></section>
+</div>
+<script>
+(() => {
+  const root=document.querySelector('.exam-library'); if(!root)return;
+  const $=id=>document.getElementById(id);
+  let contests=[],problems=[],progress={},filtered=[];
+  const fields={category:'category',scope:'scope',location:'host_location',year:'year'};
+  const text=v=>String(v??'').trim();
+  const norm=v=>text(v).toLocaleLowerCase('vi');
+  const unique=xs=>[...new Set(xs.map(text).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'vi',{numeric:true}));
+  function fillSelect(id,values){const el=$(id);for(const v of unique(values))el.add(new Option(v,v));}
+  function progressFor(contest){
+    const list=(contest.problems||[]);
+    let max=0,score=0;
+    for(const p of list){const item=progress[String(p.id)]||{};max+=Number(p.total_score)||0;score+=Math.min(Number(item.score)||0,Number(p.total_score)||0);}
+    const pct=max?Math.min(100,score/max*100):0;
+    return {max,score,pct,done:max>0&&score>=max};
+  }
+  function render(){
+    const q=norm($('el-q').value),hide=$('el-hide-done').checked;
+    filtered=contests.filter(c=>{
+      const hay=norm([c.title,c.description,c.year,c.category,c.scope,c.host_location].join(' '));
+      const pg=progressFor(c);
+      return (!q||hay.includes(q))&&(!hide||!pg.done)&&Object.entries(fields).every(([id,key])=>!$( 'el-'+id).value||text(c[key])=== $('el-'+id).value);
+    });
+    $('el-rows').innerHTML=filtered.length?filtered.map(c=>{
+      const pg=progressFor(c),id=Number(c.id);
+      const meta=[c.year,c.category,c.scope?'Phạm vi: '+c.scope:'',c.host_location?'Tổ chức tại: '+c.host_location:''].filter(Boolean).join(' · ');
+      return '<tr><td><a class="el-name" href="/contests/'+id+'" data-contest="'+id+'">'+escape(c.title||('Kỳ thi #'+id))+'</a><div class="el-meta">'+escape(meta)+'</div><div class="el-meta">'+(c.start_time?'Ngày thi: '+escape(String(c.start_time).slice(0,10)):'')+'</div></td><td><div class="el-progress"><span style="width:'+pg.pct.toFixed(1)+'%"></span></div><div class="el-progress-label">'+pg.score.toFixed(2)+'/'+pg.max.toFixed(0)+' · '+pg.pct.toFixed(1)+'%</div></td></tr>';
+    }).join(''):'<tr><td colspan="2" class="el-empty">Không tìm thấy đề thi phù hợp.</td></tr>';
+    $('el-page').textContent='Trang: 1/1 · '+filtered.length+' kỳ thi';
+  }
+  function escape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  async function openContest(id){
+    const c=contests.find(x=>Number(x.id)===id);if(!c)return;
+    $('el-detail-title').textContent=c.title||'Danh sách bài thi';
+    $('el-detail-body').innerHTML='<div class="el-empty">Đang tải danh sách bài...</div>';
+    $('el-detail').classList.add('open');
+    $('el-detail').scrollIntoView({behavior:'smooth',block:'start'});
+    try{
+      const data=await fetch('/api/contests/'+id,{credentials:'same-origin'}).then(r=>{if(!r.ok)throw Error('Không tải được kỳ thi');return r.json();});
+      const rows=data.problems||[];
+      $('el-detail-body').innerHTML=rows.length?'<table class="el-problems"><tbody>'+rows.map(p=>{
+        const pg=progress[String(p.id)]||{},max=Number(p.total_score)||0,score=Math.min(Number(pg.score)||0,max);
+        return '<tr><td><a href="/problems/'+encodeURIComponent(p.id)+'">'+escape(p.id)+'</a></td><td>'+escape(p.title)+'</td><td>'+score.toFixed(2)+'/'+max.toFixed(2)+'</td></tr>';
+      }).join('')+'</tbody></table>':'<div class="el-empty">Kỳ thi chưa có bài tập.</div>';
+    }catch(e){$('el-detail-body').textContent=e.message;}
+  }
+  $('el-rows').addEventListener('click',e=>{const a=e.target.closest('[data-contest]');if(a){e.preventDefault();openContest(Number(a.dataset.contest));}});
+  $('el-detail-close').addEventListener('click',()=>$('el-detail').classList.remove('open'));
+  $('el-filter').addEventListener('click',render);
+  $('el-q').addEventListener('keydown',e=>{if(e.key==='Enter')render();});
+  $('el-hide-done').addEventListener('change',render);
+  $('el-reset').addEventListener('click',()=>{['el-q','el-category','el-scope','el-location','el-year'].forEach(id=>$(id).value='');$('el-hide-done').checked=false;$('el-compare').checked=false;render();});
+  $('el-compare').addEventListener('change',render);
+  Promise.all([
+    fetch('/api/contests',{credentials:'same-origin'}).then(r=>r.json()),
+    fetch('/api/my-progress',{credentials:'same-origin'}).then(r=>r.ok?r.json():{}).catch(()=>({}))
+  ]).then(([cs,pr])=>{
+    contests=Array.isArray(cs)?cs:[];
+    (pr.problems||[]).forEach(p=>progress[String(p.problem_id)]={score:Number(p.best_score??p.score)||0});
+    fillSelect('el-category',contests.map(c=>c.category));
+    fillSelect('el-scope',contests.map(c=>c.scope));
+    fillSelect('el-location',contests.map(c=>c.host_location));
+    fillSelect('el-year',contests.map(c=>c.year));
+    render();
+  }).catch(()=>{$('el-rows').innerHTML='<tr><td colspan="2" class="el-empty">Không tải được thư viện đề thi.</td></tr>';});
+})();
+</script>
 {% endblock %}
