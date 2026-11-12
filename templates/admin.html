@@ -422,6 +422,19 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
     
 
         
+<section class="panel" id="library-json-panel">
+    <h2>📚 JSON Thư viện đề</h2>
+    <p class="muted">Xem dữ liệu các đề thi đang được lưu trong Thư viện đề (không phải ngân hàng bài tập).</p>
+    <div class="toolbar">
+        <button type="button" id="load-library-json" class="secondary">Tải / làm mới JSON thư viện</button>
+        <button type="button" id="copy-library-json" class="secondary">Sao chép JSON</button>
+    </div>
+    <div id="library-json-message" class="message" aria-live="polite"></div>
+    <textarea id="library-json" rows="24" readonly spellcheck="false"
+        style="font-family:monospace;white-space:pre;overflow:auto"
+        placeholder="Nhấn Tải / làm mới JSON thư viện để xem dữ liệu..."></textarea>
+</section>
+
 <section class="panel" id="test-editor-panel">
     <h2>🧪 Sửa test chấm bài bằng JSON</h2>
     <p class="muted">
@@ -2737,6 +2750,55 @@ contestTestContest.addEventListener('change', async () => {
         try {
             await navigator.clipboard.writeText(view.value);
             show('Đã sao chép toàn bộ JSON ngân hàng đề.');
+        } catch (error) {
+            view.focus();
+            view.select();
+            show('JSON đã được chọn. Nhấn Ctrl+C để sao chép.', true);
+        }
+    });
+})();
+</script>
+
+<script id="admin-library-json-script">
+(() => {
+    const view = document.getElementById('library-json');
+    if (!view) return;
+    const load = document.getElementById('load-library-json');
+    const copy = document.getElementById('copy-library-json');
+    const message = document.getElementById('library-json-message');
+    const show = (text, error=false) => {
+        message.textContent = text;
+        message.className = 'message ' + (error ? 'error-message' : 'success-message');
+    };
+
+    load.addEventListener('click', async () => {
+        load.disabled = true;
+        show('Đang tải JSON Thư viện đề...');
+        try {
+            const response = await fetch('/api/admin/contests', {
+                credentials: 'same-origin',
+                cache: 'no-store'
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Không tải được JSON Thư viện đề.');
+            if (!Array.isArray(data)) throw new Error('Dữ liệu Thư viện đề không đúng định dạng mảng JSON.');
+            view.value = JSON.stringify(data, null, 2);
+            show('Đã tải ' + data.length + ' đề từ Thư viện đề.');
+        } catch (error) {
+            show(error.message || 'Có lỗi khi tải JSON Thư viện đề.', true);
+        } finally {
+            load.disabled = false;
+        }
+    });
+
+    copy.addEventListener('click', async () => {
+        if (!view.value) {
+            show('Hãy tải JSON thư viện trước khi sao chép.', true);
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(view.value);
+            show('Đã sao chép JSON Thư viện đề.');
         } catch (error) {
             view.focus();
             view.select();
