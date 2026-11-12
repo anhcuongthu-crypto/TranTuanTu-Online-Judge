@@ -6,10 +6,11 @@
 {% block content %}
 <style>
 .submit-workspace{max-width:1120px;margin:0 auto}
-.submit-workspace .submit-editor{width:100%;min-height:420px;box-sizing:border-box;background:#f5f8fb!important;color:#203e56!important;border:1px solid #d5e3ee!important;border-radius:10px;padding:16px;font:14px/1.6 'JetBrains Mono',monospace;tab-size:4;resize:vertical}
+.submit-workspace .submit-editor{width:100%;min-height:420px;box-sizing:border-box;background:#fff!important;color:#34495e!important;border:1px solid #cbd3d9!important;border-radius:3px!important;padding:14px;font:13px/1.6 'JetBrains Mono',monospace;tab-size:4;resize:vertical;box-shadow:none!important}
 .submit-workspace .submit-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px}
-.submit-workspace .submit-result{background:#f4f8fb!important;color:#315773!important;border:1px solid #dce8f2!important;border-radius:10px;padding:14px}
+.submit-workspace .submit-result{background:#fff!important;color:#52616d!important;border:1px solid #d4d9de!important;border-radius:3px!important;padding:14px}
 @media(max-width:650px){.submit-workspace .submit-editor{min-height:320px;font-size:12px}}
+ .submit-workspace .submit-toolbar button{border-radius:3px!important}
 </style>
 <div class="breadcrumbs">
     <a href="/problems/{{ problem.id }}"><span data-i18n="submit_back">← Quay lại đề bài</span></a>
