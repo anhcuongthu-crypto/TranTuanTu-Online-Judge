@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}{{ problem.id }} · {{ problem.title }} — {{ contest_title }}{% endblock %}
+{% block content %}
+<style>
+.lib-problem{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;max-width:1500px;margin:24px auto;padding:0 24px;color:#142f49}
+.lib-problem main{min-width:0}.lib-problem aside{position:sticky;top:90px;align-self:start}
+.lp-head{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid #ddd;padding-bottom:14px;margin-bottom:18px}
+.lp-head h1{font-size:30px;font-weight:400;margin:0;color:#101820}
+.lp-pdf{width:100%;height:calc(100vh - 310px);min-height:620px;border:0;background:#eee}
+.lp-statement{background:#fff;border:1px solid #ddd;padding:20px;margin-bottom:16px;line-height:1.7}
+.lp-side{border-bottom:1px solid #ddd;padding:14px 0}
+.lp-side strong{display:block;margin-bottom:8px}
+.lp-submit{display:block;text-align:center;background:#08718a;color:#fff;padding:12px;border-radius:5px;text-decoration:none}
+@media(max-width:900px){.lib-problem{grid-template-columns:1fr}.lib-problem aside{position:static}.lp-pdf{height:70vh;min-height:450px}}
+</style>
+<div class="lib-problem">
+ <main>
+  <div class="lp-head"><h1>{{ problem.title }}</h1><a href="/library/{{ contest_id }}">← Quay lại đề thi</a></div>
+  {% if problem.pdf_url %}
+   <iframe class="lp-pdf" src="{{ problem.pdf_url }}" title="Đề bài PDF"></iframe>
+   <p>Nếu PDF không hiển thị, <a href="{{ problem.pdf_url }}" target="_blank" rel="noopener">mở đề bài trong tab mới</a>.</p>
+  {% else %}
+   <section class="lp-statement"><h2>{{ problem.title }}</h2><div>{{ problem.statement|safe }}</div>
+    {% if problem.input_desc %}<h3>Input</h3><p>{{ problem.input_desc }}</p>{% endif %}
+    {% if problem.output_desc %}<h3>Output</h3><p>{{ problem.output_desc }}</p>{% endif %}
+   </section>
+  {% endif %}
+ </main>
+ <aside>
+  <a class="lp-submit" href="/problems/{{ problem.id }}/submit?contest_id={{ contest_id }}">Gửi bài giải</a>
+  <div class="lp-side"><strong>Điểm tối đa</strong>{{ problem.total_score }} điểm</div>
+  <div class="lp-side"><strong>Cuộc thi</strong>{{ contest_title }}</div>
+  <div class="lp-side"><a href="/submissions?scope=mine&problem_id={{ problem.id }}">Bài nộp của tôi</a></div>
+ </aside>
+</div>
+{% endblock %}
