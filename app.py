@@ -1849,6 +1849,36 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         return jsonify(result)
 
 
+    @app.get('/api/my-library-progress')
+    def my_library_progress():
+        user = current_user()
+        if not user:
+            return jsonify(error='Cần đăng nhập để xem tiến độ.'), 401
+
+        with connect(app.config['DATABASE_PATH']) as db:
+            rows = db.execute(
+                '''SELECT s.contest_id, s.problem_id, s.score, s.max_score
+                   FROM submissions s
+                   JOIN (
+                       SELECT contest_id, problem_id, MAX(id) AS last_id
+                       FROM submissions
+                       WHERE user_id=? AND contest_id IS NOT NULL
+                       GROUP BY contest_id, problem_id
+                   ) latest ON latest.last_id=s.id
+                   WHERE s.user_id=? AND s.contest_id IS NOT NULL''',
+                (user['id'], user['id'])
+            ).fetchall()
+
+        return jsonify([
+            {
+                'contest_id': int(row['contest_id']),
+                'problem_id': str(row['problem_id']),
+                'best_score': float(row['score'] or 0),
+                'max_score': float(row['max_score'] or 0)
+            }
+            for row in rows
+        ])
+
     @app.get('/api/my-progress')
     def my_progress():
         bank = problems()
