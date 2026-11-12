@@ -89,7 +89,20 @@
   const $=id=>document.getElementById(id);
   const PAGE_SIZE=25;
   let contests=[],progress={},filtered=[],currentPage=1,progressAvailable=false;
-  const fields={category:'category',scope:'scope',location:'host_location',year:'year'};
+  const provinces63=[
+    'An Giang','Bà Rịa - Vũng Tàu','Bắc Giang','Bắc Kạn','Bạc Liêu','Bắc Ninh',
+    'Bến Tre','Bình Định','Bình Dương','Bình Phước','Bình Thuận','Cà Mau',
+    'Cao Bằng','Cần Thơ','Đà Nẵng','Đắk Lắk','Đắk Nông','Điện Biên',
+    'Đồng Nai','Đồng Tháp','Gia Lai','Hà Giang','Hà Nam','Hà Nội',
+    'Hà Tĩnh','Hải Dương','Hải Phòng','Hậu Giang','Hòa Bình','Hưng Yên',
+    'Khánh Hòa','Kiên Giang','Kon Tum','Lai Châu','Lâm Đồng','Lạng Sơn',
+    'Lào Cai','Long An','Nam Định','Nghệ An','Ninh Bình','Ninh Thuận',
+    'Phú Thọ','Phú Yên','Quảng Bình','Quảng Nam','Quảng Ngãi','Quảng Ninh',
+    'Quảng Trị','Sóc Trăng','Sơn La','Tây Ninh','Thái Bình','Thái Nguyên',
+    'Thanh Hóa','Thừa Thiên Huế','Tiền Giang','TP. Hồ Chí Minh','Trà Vinh',
+    'Tuyên Quang','Vĩnh Long','Vĩnh Phúc','Yên Bái'
+  ];
+  const fields={scope:'scope',location:'host_location',year:'year'};
   const text=v=>String(v??'').trim();
   const norm=v=>text(v).toLocaleLowerCase('vi');
   const unique=xs=>[...new Set(xs.map(text).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'vi',{numeric:true}));
@@ -98,6 +111,26 @@
     const el=$(id),selected=el.value;
     el.innerHTML='<option value="">Tất cả</option>'+unique(values).map(v=>'<option value="'+escape(v)+'">'+escape(v)+'</option>').join('');
     el.value=selected;
+  }
+  function contestCategory(contest){
+    const raw=norm([contest.category,contest.title,contest.description,contest.note].join(' '));
+    if(raw.includes('tuyển sinh')||raw.includes('ts10')||raw.includes('chuyên'))return 'ts10_chuyen';
+    if(raw.includes('hsg')||raw.includes('học sinh giỏi')||raw.includes('thcs'))return 'hsg_thcs';
+    return 'other';
+  }
+  function contestYear(contest){
+    const explicit=text(contest.year);
+    if(/^\\d{4}$/.test(explicit))return explicit;
+    const match=String(contest.start_time||'').match(/(20\\d{2})/);
+    return match?match[1]:'';
+  }
+  function setupFilters(){
+    $('el-category').innerHTML='<option value="">Tất cả</option>'+
+      '<option value="hsg_thcs">HSG THCS</option>'+
+      '<option value="ts10_chuyen">Tuyển sinh 10 chuyên</option>';
+    fillSelect('el-scope',provinces63);
+    fillSelect('el-location',provinces63);
+    fillSelect('el-year',unique(contests.map(contestYear)).sort((a,b)=>Number(b)-Number(a)));
   }
   function progressFor(contest){
     const list=Array.isArray(contest.problems)?contest.problems:[];
@@ -128,7 +161,8 @@
     filtered=contests.filter(c=>{
       const hay=norm([c.title,c.description,c.note,c.year,c.category,c.scope,c.host_location].join(' '));
       const pg=progressFor(c);
-      return (!q||hay.includes(q))&&(!hide||!pg.done)&&Object.entries(fields).every(([id,key])=>!$('el-'+id).value||text(c[key])===$('el-'+id).value);
+      const categoryMatch=!$('el-category').value||contestCategory(c)===$('el-category').value;
+      return categoryMatch&&(!q||hay.includes(q))&&(!hide||!pg.done)&&Object.entries(fields).every(([id,key])=>!$('el-'+id).value||text(c[key])===$('el-'+id).value);
     });
     const totalPages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
     currentPage=Math.min(Math.max(1,currentPage),totalPages);
@@ -183,10 +217,7 @@
     contests=Array.isArray(cs)?cs:[];
     progressAvailable=!!pr;
     (pr?.problems||[]).forEach(p=>progress[String(p.problem_id)]={score:Number(p.best_score??p.score)||0});
-    fillSelect('el-category',contests.map(c=>c.category));
-    fillSelect('el-scope',contests.map(c=>c.scope));
-    fillSelect('el-location',contests.map(c=>c.host_location));
-    fillSelect('el-year',contests.map(c=>c.year));
+    setupFilters();
     const requested=Number(new URLSearchParams(location.search).get('page'));
     currentPage=Number.isInteger(requested)&&requested>0?requested:1;
     render();
