@@ -376,7 +376,8 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
                 <div id="problems" data-i18n="loading">Đang tải...</div>
             </section>
 
-            <section class="panel" id="problemDetailPanel" hidden>
+            <section class="panel contest-stats-anchor" id="contestStats"><h2>Thống kê</h2><p class="muted">Thống kê bài nộp và kết quả trong kỳ thi sẽ hiển thị tại đây.</p><div id="contestStatsSummary"></div></section>
+<section class="panel" id="problemDetailPanel" hidden>
                 <div id="problemDetail"></div>
             </section>
 
@@ -790,9 +791,22 @@ function renderContest() {
     const data = contestData;
 
     $("contestHeader").innerHTML = `
-        <span class="badge">${esc(stateText(data.state))}</span>
-        <h1>${esc(data.title || 'Contest')}</h1>
-        <div class="muted">${esc(data.description || t("noDescription"))}</div>
+        <div class="contest-title-tabs">
+            <h1>${esc(data.title || 'Contest')}</h1>
+            <nav class="contest-clue-tabs" aria-label="Contest navigation">
+                <a class="active" href="#contestInfo">● Thông tin</a>
+                <a href="#contestStats">◔ Thống kê</a>
+                <a href="#leaderboard">▥ Bảng xếp hạng</a>
+                <a href="#submitForm">♟ Tham gia</a>
+                <a href="#contestSubmissions">▤ Các bài nộp</a>
+                <a class="contest-join-button" href="#submitForm">Tham gia ảo</a>
+            </nav>
+        </div>
+        <div class="contest-state-summary">
+            <div class="contest-state-title">${esc(data.state === 'ended' ? 'Kỳ thi đã kết thúc.' : data.state === 'upcoming' ? 'Kỳ thi chưa bắt đầu.' : 'Kỳ thi đang diễn ra.')}</div>
+            <strong>${esc(dateText(data.start_time))}</strong>
+            <div class="muted">${esc(data.description || t("noDescription"))}</div>
+        </div>
     `;
 
     $("contestInfo").innerHTML = `
@@ -1378,5 +1392,36 @@ window.addEventListener('beforeunload', () => {
 
 init();
 </script>
+<style id="clueoj-contest-overview-layout">
+#contestHeader{padding:0!important;margin:0 0 16px!important;background:#fff!important;border:0!important;border-bottom:1px solid #cfd4d8!important;border-radius:0!important;box-shadow:none!important}
+.contest-title-tabs{display:flex!important;align-items:stretch!important;justify-content:space-between!important;gap:18px!important;min-height:58px!important;border-bottom:1px solid #cfd4d8!important}
+.contest-title-tabs h1{flex:1 1 auto!important;align-self:center!important;margin:0!important;font:400 34px/1.2 Roboto,Arial,sans-serif!important;color:#173b5d!important}
+.contest-clue-tabs{display:flex!important;align-items:stretch!important;gap:0!important;flex-wrap:nowrap!important;white-space:nowrap!important}
+.contest-clue-tabs a{display:flex!important;align-items:center!important;gap:7px!important;padding:0 13px!important;color:#536b80!important;background:#fff!important;text-decoration:none!important;border:1px solid transparent!important;border-bottom:0!important;font:400 15px/1.3 Roboto,Arial,sans-serif!important}
+.contest-clue-tabs a:first-child{color:#173b5d!important;border:1px solid #cfd4d8!important;border-top:2px solid #173b5d!important;border-bottom:1px solid #fff!important;margin-bottom:-1px!important}
+.contest-clue-tabs a.contest-join-button{align-self:center!important;min-height:48px!important;margin-left:5px!important;background:#08718a!important;color:#fff!important;border:0!important;font-weight:700!important}
+.contest-state-summary{text-align:center!important;padding:18px 10px 14px!important;color:#173b5d!important}
+.contest-state-title{font:400 36px/1.25 Roboto,Arial,sans-serif!important;margin-bottom:5px!important;color:#173b5d!important}
+.contest-state-summary>strong{font-size:16px!important;color:#173b5d!important}
+.contest-state-summary .muted{margin-top:12px!important;color:#526879!important;text-align:left!important;white-space:pre-line!important}
+#contestInfo{background:#fff!important;border:0!important;box-shadow:none!important;padding:0 40px 10px!important}
+#contestInfo p{border:0!important;padding:3px 0!important}
+.grid{display:grid!important;grid-template-columns:minmax(0,1fr) 330px!important;gap:18px!important}
+.grid>div>section,.grid>aside>section{background:#fff!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+.grid h2{font-size:26px!important;font-weight:400!important;color:#173b5d!important;border-bottom:1px solid #cfd4d8!important;padding-bottom:8px!important}
+#problems{border:1px solid #cfd4d8!important;background:#fff!important}
+#problems .problem{display:grid!important;grid-template-columns:36px 1fr 100px!important;align-items:center!important;gap:10px!important;padding:10px 13px!important;border:0!important;border-bottom:1px solid #ccc!important;background:#fff!important}
+#problems .problem:nth-child(even){background:#f5f5f5!important}
+#problems .problem h3{margin:0!important;font-size:16px!important;font-weight:400!important}
+#problems .problem h3 a{color:#3975a6!important}
+#problems .problem .score{text-align:center!important;color:#111!important;font-size:15px!important}
+#contestSubmissions table,#leaderboard table{width:100%!important;border-collapse:collapse!important}
+#contestSubmissions th,#leaderboard th{background:#17334e!important;color:#fff!important;padding:10px!important}
+#contestSubmissions td,#leaderboard td{background:#fff!important;border:1px solid #ccc!important;padding:8px!important}
+#contestSubmissions tbody tr:nth-child(even) td,#leaderboard tbody tr:nth-child(even) td{background:#f5f5f5!important}
+@media(max-width:1050px){.contest-title-tabs{flex-direction:column!important;gap:8px!important}.contest-title-tabs h1{font-size:27px!important}.contest-clue-tabs{overflow-x:auto!important;min-height:48px!important}.grid{grid-template-columns:1fr!important}}
+@media(max-width:600px){.contest-state-title{font-size:27px!important}#contestInfo{padding:0 10px 10px!important}.contest-clue-tabs a{padding:0 10px!important;font-size:13px!important}}
+</style>
+
 </body>
 </html>
