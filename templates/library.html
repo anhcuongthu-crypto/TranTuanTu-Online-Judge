@@ -162,7 +162,7 @@
       const hay=norm([c.title,c.description,c.note,c.year,c.category,c.scope,c.host_location].join(' '));
       const pg=progressFor(c);
       const categoryMatch=!$('el-category').value||contestCategory(c)===$('el-category').value;
-      return categoryMatch&&(!q||hay.includes(q))&&(!hide||!pg.done)&&Object.entries(fields).every(([id,key])=>!$('el-'+id).value||text(c[key])===$('el-'+id).value);
+      return categoryMatch&&(!q||hay.includes(q))&&(!hide||!pg.done)&&Object.entries(fields).every(([id,key])=>!$('el-'+id).value||(key==='year'?contestYear(c):text(c[key]))===$('el-'+id).value);
     });
     const totalPages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
     currentPage=Math.min(Math.max(1,currentPage),totalPages);
