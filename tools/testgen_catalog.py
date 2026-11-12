@@ -24,20 +24,15 @@ def prime(n):
     return True
 
 
-def count_divisors_prime(a, b):
-    if b < 1:
-        return 0
-    tau = [0] * (b + 1)
-    for d in range(1, b + 1):
-        for x in range(d, b + 1, d):
+def divisor_prime_prefix(limit):
+    tau = [0] * (limit + 1)
+    for d in range(1, limit + 1):
+        for x in range(d, limit + 1, d):
             tau[x] += 1
-    prime_tau = [0] * (b + 1)
-    for x in range(1, b + 1):
-        prime_tau[x] = int(prime(tau[x]))
-    pref = [0] * (b + 1)
-    for x in range(1, b + 1):
-        pref[x] = pref[x - 1] + prime_tau[x]
-    return pref[b] - pref[a - 1]
+    pref = [0] * (limit + 1)
+    for x in range(1, limit + 1):
+        pref[x] = pref[x - 1] + int(prime(tau[x]))
+    return pref
 
 
 def is_special(x):
@@ -129,11 +124,9 @@ def solve(problem_id, inp):
     t = inp.split()
     if problem_id == "tuyen-sinh-lam-son-2024":
         q = int(t[0])
-        ans = []
-        for i in range(q):
-            a, b = map(int, t[1 + 2*i:3 + 2*i])
-            ans.append(str(count_divisors_prime(a, b)))
-        return "\n".join(ans)
+        pairs = [tuple(map(int, t[1 + 2*i:3 + 2*i])) for i in range(q)]
+        pref = divisor_prime_prefix(max((b for _, b in pairs), default=1))
+        return "\n".join(str(pref[b] - pref[a - 1]) for a, b in pairs)
     if problem_id == "chu-vi-dien-tich-hcn":
         d, r = map(int, t[:2])
         return f"{2*(d+r)}\n{d*r}"
@@ -286,6 +279,17 @@ def main():
         old_count = sum(len(s.get("tests", [])) for s in problem.get("subtasks", []))
         total_old += old_count
         try:
+            # Audit stored expected answers against an independent reference.
+            old_mismatches = []
+            for sub in problem.get("subtasks", []):
+                for ti, old_test in enumerate(sub.get("tests", []), 1):
+                    actual = solve(pid, old_test["input"])
+                    if " ".join(actual.split()) != " ".join(str(old_test["output"]).split()):
+                        old_mismatches.append({
+                            "subtask": str(sub["id"]), "test": ti,
+                            "expected": str(old_test["output"])[:160],
+                            "reference": actual[:160]
+                        })
             generated = cases_for(problem, rng, args.per_subtask)
             submap = {str(s["id"]): s for s in problem["subtasks"]}
             added = 0
@@ -309,7 +313,8 @@ def main():
                 "added_tests": added,
                 "total_tests": old_count + added,
                 "subtasks": len(problem.get("subtasks", [])),
-                "status": "generated"
+                "existing_answer_mismatches": old_mismatches,
+                "status": "generated" if not old_mismatches else "generated_needs_audit"
             })
         except Exception as exc:
             report["errors"].append({"id": pid, "error": str(exc)})
