@@ -1213,6 +1213,27 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         problem = dict(bank_item or {})
         problem.update(item)
         problem['id'] = str(pid)
+
+        # Chuẩn hóa dữ liệu bài trong thư viện trước khi dùng mẫu problem.html.
+        # Bài tự tạo có thể không có các trường của ngân hàng bài tập thường.
+        problem.setdefault('title', str(pid))
+        problem.setdefault('category', 'Bài thi')
+        problem.setdefault('difficulty', '')
+        problem.setdefault('statement', '')
+        problem.setdefault('input_format', problem.get('input_desc', ''))
+        problem.setdefault('output_format', problem.get('output_desc', ''))
+        problem.setdefault('explanation', '')
+        problem.setdefault('author', '')
+        problem.setdefault('created_by', 'Admin')
+        problem.setdefault('time_limit', 1)
+        problem.setdefault('memory_limit', 1024)
+        problem.setdefault('total_score', item.get('total_score', 0))
+        problem.setdefault('subtasks', [])
+        problem.setdefault('sample_input', '')
+        problem.setdefault('sample_output', '')
+        if not isinstance(problem.get('subtasks'), list):
+            problem['subtasks'] = []
+
         return render_template(
             'problem.html',
             problem=problem,
