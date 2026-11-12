@@ -403,17 +403,6 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
                 </form>
             </section>
 
-            <section class="panel">
-                <h2 data-i18n="contestSubmissions">Bài nộp trong contest</h2>
-                <p class="muted" data-i18n="submissionHistory">
-                    <span data-i18n="submissionHistory">Lịch sử các lần nộp bài của tài khoản đang đăng nhập.</span>
-                </p>
-                <div id="contestSubmissions">
-                    <p class="muted" data-i18n="loadingHistory">Đang tải lịch sử...</p>
-                </div>
-                <button id="refreshSubmissions" type="button" class="secondary"
-                    data-i18n="refreshHistory">Làm mới lịch sử</button>
-            </section>
         </div>
 
         <aside>
@@ -422,10 +411,6 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
                 <div id="contestInfo" class="muted" data-i18n="loading">Đang tải...</div>
             </section>
 
-            <section class="panel">
-                <h2 data-i18n="leaderboard">Bảng xếp hạng</h2>
-                <div id="leaderboard" data-i18n="loading">Đang tải...</div>
-            </section>
         </aside>
     </div>
 </main>
@@ -796,9 +781,9 @@ function renderContest() {
             <nav class="contest-clue-tabs" aria-label="Contest navigation">
                 <a class="active" href="#contestInfo">● Thông tin</a>
                 <a href="#contestStats">◔ Thống kê</a>
-                <a href="#leaderboard">▥ Bảng xếp hạng</a>
+                <a href="/contests/${CONTEST_ID}/leaderboard">▥ Bảng xếp hạng</a>
                 <a href="#submitForm">♟ Tham gia</a>
-                <a href="#contestSubmissions">▤ Các bài nộp</a>
+                <a href="/contests/${CONTEST_ID}/submissions">▤ Các bài nộp</a>
                 <a class="contest-join-button" href="#submitForm">Tham gia ảo</a>
             </nav>
         </div>
@@ -1464,6 +1449,20 @@ init();
 .contest-stats-bar .pending{background:#f5a623!important}
 .contest-stats-bar .other{background:#9aabb6!important}
 @media(max-width:560px){.contest-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+</style>
+
+<style id="contest-problem-layout-repair">
+#problems{display:block!important;width:100%!important;min-width:0!important;overflow:hidden!important;border:1px solid #d4d9de!important;background:#fff!important}
+#problems .problem{display:flex!important;flex-direction:row!important;justify-content:space-between!important;align-items:center!important;gap:20px!important;width:100%!important;min-width:0!important;margin:0!important;padding:15px 18px!important;border:0!important;border-bottom:1px solid #d4d9de!important;border-radius:0!important;background:#fff!important}
+#problems .problem:nth-child(even){background:#f5f6f7!important}
+#problems .problem>div{display:block!important;flex:1 1 auto!important;width:auto!important;min-width:0!important;max-width:none!important;overflow-wrap:anywhere!important}
+#problems .problem h3{display:block!important;width:auto!important;max-width:none!important;margin:0 0 5px!important;font-size:16px!important;line-height:1.45!important;overflow-wrap:anywhere!important;word-break:normal!important}
+#problems .problem h3 a{display:inline!important;white-space:normal!important;overflow-wrap:anywhere!important}
+#problems .problem .muted{display:block!important;width:auto!important;max-width:none!important;font-size:12px!important;overflow-wrap:anywhere!important;word-break:normal!important}
+#problems .problem .score{display:block!important;flex:0 0 auto!important;width:auto!important;min-width:90px!important;text-align:right!important;white-space:nowrap!important;color:#173b5d!important;font-size:14px!important}
+#contestStatsSummary{min-width:0!important}
+#contestStats{display:block!important}
+@media(max-width:560px){#problems .problem{gap:10px!important;padding:12px!important}#problems .problem .score{min-width:65px!important;font-size:12px!important}}
 </style>
 
 </body>
