@@ -862,6 +862,16 @@
       main#main-content :focus-visible{outline:2px solid #66e4ff!important;outline-offset:3px!important;box-shadow:0 0 0 5px rgba(77,211,240,.12)!important}
       footer{background:#071522!important;color:#8faec5!important;border-top:1px solid rgba(91,197,235,.2)!important}
       @media(prefers-reduced-motion:reduce){body *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+      body :is(.modal,.modal-content,.modal-dialog,.dropdown-menu,.popover,.tooltip,.offcanvas,.toast,.toast-container,.notification,.alert){
+        background:#0b1b2d!important;color:#dceeff!important;border-color:rgba(91,197,235,.24)!important;
+        box-shadow:0 14px 40px rgba(0,0,0,.32),0 0 22px rgba(55,190,225,.08)!important
+      }
+      body :is(.modal-backdrop,.overlay){background:rgba(2,8,18,.78)!important;backdrop-filter:blur(5px)!important}
+      body :is(.modal,.modal-content,.dropdown-menu,.popover,.offcanvas) :is(h1,h2,h3,h4,strong,label){color:#e7f5ff!important}
+      body :is(.modal,.modal-content,.dropdown-menu,.popover,.offcanvas) :is(p,small,.muted){color:#9bb2c7!important}
+      body :is(.modal,.modal-content,.dropdown-menu,.popover,.offcanvas) :is(input,select,textarea){background:#071727!important;color:#e2f3ff!important;border-color:rgba(91,197,235,.28)!important;color-scheme:dark!important}
+      body :is(.modal,.modal-content,.dropdown-menu,.popover,.offcanvas) a{color:#71def5!important}
 </style>
 
     {% if request.path != '/login' and request.path != '/login/' %}
