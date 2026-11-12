@@ -784,6 +784,40 @@
         {% block content %}{% endblock %}
     </main>
 
+
+    <style id="trantu-global-led-system">
+      :root{color-scheme:dark!important;--oj-bg:#06111f;--oj-panel:#0b1b2d;--oj-panel-2:#10243a;--oj-line:rgba(91,197,235,.22);--oj-text:#e4f2ff;--oj-muted:#91abc2;--oj-cyan:#58ddf4;--oj-violet:#9a8cff}
+      html{background:#06111f!important;color-scheme:dark!important}
+      body{background:radial-gradient(ellipse at 12% 0%,rgba(29,126,160,.12),transparent 34%),radial-gradient(ellipse at 88% 12%,rgba(103,77,190,.12),transparent 32%),#06111f!important;color:#e4f2ff!important;color-scheme:dark!important}
+      body *{scrollbar-color:#28506b #081727}
+      main#main-content{background:transparent!important;color:#e4f2ff!important}
+      main#main-content :is(.contest-page,.problemset-page,.panel,.card,.glass-card,.section,.box,.modal-content,.editbox,.contest-hero,.contest-stat,.contest-card,.contest-admin,.my-progress-card,.home-shortcut-card,.workflow-step,.profile-card,.leaderboard-card,.library-card,.exam-question-card,.problem-card,.submission-card,.table-wrap,.problemset-table-wrap,#contestHeader,#contestInfo,#problems,#leaderboard,#contestSubmissions,#problemDetailPanel){background-color:#0b1b2d!important;color:#e1efff!important;border-color:rgba(91,197,235,.22)!important;box-shadow:0 12px 34px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.025)!important}
+      main#main-content :is(.contest-hero,.problemset-hero,.my-progress-card){background:radial-gradient(ellipse at 90% 0%,rgba(65,135,226,.16),transparent 42%),linear-gradient(135deg,#102b43,#0a192b 70%,#151b39)!important}
+      main#main-content :is(.contest-grid,.contest-list,.contest-card,.contest-stat,.contest-admin,.problemset-filters,.problemset-table-wrap,.table-wrap,.table-container,#problems,#contestSubmissions){background-color:#091a2b!important;color:#e1efff!important;border-color:rgba(91,197,235,.22)!important}
+      main#main-content :is(h1,h2,h3,h4,h5,strong,label,th,.contest-heading h2,.contest-card h3,.problemset-heading h2){color:#e7f5ff!important}
+      main#main-content :is(p,small,.muted,.description,.contest-muted,.contest-hero p,.contest-card p,.contest-admin p){color:#9bb2c7!important}
+      main#main-content a{color:#69def5}
+      main#main-content a:hover{color:#b8f4ff}
+      main#main-content :is(input:not([type=checkbox]):not([type=radio]),select,textarea,.CodeMirror,.cm-editor,.cm-scroller){background:#071727!important;color:#e2f3ff!important;border:1px solid rgba(91,197,235,.28)!important;color-scheme:dark!important;caret-color:#69e5ff!important}
+      main#main-content :is(input,textarea)::placeholder{color:#708da5!important}
+      main#main-content :is(button,.button,.btn,.contest-btn){background:linear-gradient(110deg,#126b88,#4c55a6)!important;color:#effcff!important;border:1px solid rgba(104,224,247,.42)!important;box-shadow:0 0 17px rgba(44,184,219,.12)!important}
+      main#main-content :is(button:hover,.button:hover,.btn:hover,.contest-btn:hover){filter:brightness(1.15)!important;box-shadow:0 0 22px rgba(66,205,235,.2)!important}
+      main#main-content :is(button.secondary,.button-ghost,.button-glass,.contest-btn.secondary){background:#10243a!important;color:#bceeff!important;border-color:rgba(91,197,235,.24)!important}
+      main#main-content table{background:#091a2b!important;color:#dceeff!important;border-color:rgba(91,197,235,.2)!important}
+      main#main-content th{background:#102a42!important;color:#aeeeff!important;border-color:rgba(91,197,235,.22)!important}
+      main#main-content td{background:#0b1c2e!important;color:#d5e7f6!important;border-color:rgba(91,197,235,.14)!important}
+      main#main-content tbody tr:nth-child(even) td{background:#0e2237!important}
+      main#main-content tbody tr:hover td{background:#15334c!important}
+      main#main-content :is(pre,pre code,code,.code,.source-code){background:#071522!important;color:#9fe9ff!important;border-color:rgba(91,197,235,.2)!important}
+      main#main-content :is(.contest-badge,.badge,.pill,.status-pill){background:#102c43!important;color:#9cecff!important;border:1px solid rgba(91,197,235,.25)!important}
+      main#main-content :is(.contest-card-foot,.contest-card-foot .contest-muted,.problemset-heading,.problemset-table-head){border-color:rgba(91,197,235,.18)!important;color:#a8c1d5!important}
+      main#main-content :is(.contest-checkitem,.contest-empty,.empty,.error){background:#0c2034!important;color:#b8cde0!important;border-color:rgba(91,197,235,.2)!important}
+      main#main-content :is(.progress-track,.contest-stats-bar){background:#061321!important;border:1px solid rgba(91,197,235,.18)!important}
+      main#main-content :is(.progress-track span){background:linear-gradient(90deg,#42d8eb,#668bff,#a28bff)!important;box-shadow:0 0 18px rgba(66,205,235,.3)!important}
+      main#main-content :focus-visible{outline:2px solid #66e4ff!important;outline-offset:3px!important;box-shadow:0 0 0 5px rgba(77,211,240,.12)!important}
+      @media(prefers-reduced-motion:reduce){main#main-content *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+    </style>
+
     {% if request.path != '/login' and request.path != '/login/' %}
         <footer>
             <div class="footer-brand">
