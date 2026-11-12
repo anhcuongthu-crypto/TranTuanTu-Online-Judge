@@ -1132,10 +1132,10 @@ const response = await fetch(
 .submissions-page .submission-list-table{width:100%;min-width:0;border-collapse:collapse;white-space:normal;background:#fff}
 .submissions-page .submission-list-table thead{display:none}
 .submissions-page .submission-list-table tbody tr.submission-row{display:grid;grid-template-columns:112px minmax(0,1fr) 150px;min-height:82px;border-bottom:1px solid #d8dde2;background:#fff}
-.submissions-page .submission-list-table tbody tr.submission-row:nth-child(even){background:#fbfcfd}
-.submissions-page .submission-list-table tbody tr.submission-row:hover{background:#f3f8fc}
+.submissions-page .submission-list-table tbody tr.submission-row:nth-child(even){background:#fff!important}
+.submissions-page .submission-list-table tbody tr.submission-row:hover{background:#fff!important}
 .submissions-page .submission-list-table tbody tr.submission-row td{display:flex;flex-direction:column;justify-content:center;padding:10px 14px;border:0;border-right:1px solid #d8dde2;background:transparent!important;color:#314e67!important;min-width:0}
-.submissions-page .submission-list-table tbody tr.submission-row .score-cell{align-items:center;text-align:center;background:#f0f1f2!important;gap:5px}
+.submissions-page .submission-list-table tbody tr.submission-row .score-cell{align-items:center;text-align:center;background:#fff!important;gap:5px}
 .submissions-page .score-cell strong{font-size:16px;color:#243d53!important}
 /* ClueOJ-style verdict colours: accepted score panel is green, not neutral grey. */
 .submissions-page .submission-list-table tbody tr.submission-row .score-cell:has(.accepted),
@@ -1180,7 +1180,7 @@ const response = await fetch(
 .submissions-page .legend-dot.ac{background:#16a34a}.submissions-page .legend-dot.wa{background:#ef4444}.submissions-page .legend-dot.pending{background:#f59e0b}.submissions-page .legend-dot.other{background:#64748b}
 .submissions-page .accepted-rate{display:flex;justify-content:space-between;border-top:1px solid #e3e8ed;margin-top:12px;padding-top:10px;font-size:13px;color:#687b8d}
 .submissions-page .accepted-rate strong{color:#187044!important}
-.submissions-page .detail-panel{background:#f7fafc!important}
+.submissions-page .detail-panel{background:#fff!important}
 .submissions-page .detail-panel table{min-width:560px}
 @media(max-width:900px){.submissions-page .submissions-layout{grid-template-columns:1fr}.submissions-page .submission-sidebar{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.submissions-page{padding:14px 10px 32px!important}.submissions-page .submission-sidebar{grid-template-columns:1fr}.submissions-page .submission-list-table tbody tr.submission-row{grid-template-columns:76px minmax(0,1fr);min-height:90px}.submissions-page .submission-list-table tbody tr.submission-row .submission-time-cell{grid-column:2;align-items:flex-start;text-align:left;padding:0 12px 10px 14px;border:0}.submissions-page .submission-list-table tbody tr.submission-row .score-cell{grid-row:1 / span 2}.submissions-page .submission-info-cell{padding-bottom:4px!important}.submissions-page .submission-info-cell .problem-link{font-size:14px}.submissions-page .list-footer{align-items:flex-start}.submissions-page .submission-header{gap:8px}}
