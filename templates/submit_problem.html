@@ -13,7 +13,7 @@
  .submit-workspace .submit-toolbar button{border-radius:3px!important}
 </style>
 <div class="breadcrumbs">
-    <a href="/problems/{{ problem.id }}"><span data-i18n="submit_back">← Quay lại đề bài</span></a>
+    <a href="{% if contest_id %}/library/{{ contest_id }}/problem/{{ problem.id }}{% else %}/problems/{{ problem.id }}{% endif %}"><span data-i18n="submit_back">← Quay lại đề bài</span></a>
     <span>/</span>
     <span>Nộp bài</span>
 </div>
@@ -24,7 +24,7 @@
 
     <p class="muted">
         <span data-i18n="submit_read_problem">Đọc kỹ đề bài trước khi nộp.</span>
-        <a href="/problems/{{ problem.id }}" data-i18n="submit_view_problem">Xem đề bài</a>
+        <a href="{% if contest_id %}/library/{{ contest_id }}/problem/{{ problem.id }}{% else %}/problems/{{ problem.id }}{% endif %}" data-i18n="submit_view_problem">Xem đề bài</a>
     </p>
 
     <label for="language" data-i18n="submit_language">Ngôn ngữ</label>
@@ -55,7 +55,7 @@ int main() {
             id="submit"
             class="button button-primary"
             style="min-width:160px;"
-            data-problem="{{ problem.id }}"
+            data-problem="{{ problem.id }}" data-contest="{{ contest_id or '' }}"
             type="button"
         >
             <span data-i18n="common_submit">Nộp bài</span> <span>↗</span>
@@ -124,7 +124,8 @@ if __name__ == "__main__":
         result.textContent = 'Đang gửi mã nguồn lên hệ thống...';
 
         try {
-            const response = await fetch('/api/submit', {
+            const endpoint = button.dataset.contest ? '/api/contests/' + encodeURIComponent(button.dataset.contest) + '/submit' : '/api/submit';
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
