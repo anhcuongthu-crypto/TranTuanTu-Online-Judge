@@ -93,6 +93,20 @@
     </form>
   </section>
   {% endif %}
+  {% if logged_in_user and logged_in_user['is_admin'] %}
+  <section class="el-admin-tools" id="el-admin-append" aria-label="Bổ sung bài vào đề đã có">
+    <h2>Bổ sung bài vào đề đã tạo</h2>
+    <p>Chọn đề trong thư viện rồi nhập JSON của bài mới. Các bài hiện tại được giữ nguyên.</p>
+    <form id="el-append-problems">
+      <label for="el-existing-contest">Chọn đề cần bổ sung</label>
+      <select id="el-existing-contest" required><option value="">Đang tải danh sách đề...</option></select>
+      <label for="el-append-json">JSON bài mới (mảng JSON, không cần trường solution)</label>
+      <textarea id="el-append-json" rows="10" spellcheck="false" placeholder='[{"id":"BAI_03","title":"Bài 3","statement":"...","input":"...","output":"...","total_score":10,"time_limit":1,"memory_limit":256000,"subtasks":[{"id":"SUB1","name":"Subtask 1","score":10,"tests":[{"input":"5","output":"5"}]}]}]'></textarea>
+      <div class="el-admin-actions"><button type="submit" id="el-append-submit">Thêm bài vào đề</button></div>
+      <p id="el-append-message" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+  {% endif %}
   <h1 class="el-title">Đề thi</h1>
   <div class="el-rule"></div>
 
@@ -173,6 +187,41 @@
 })();
 </script>
 
+<script id="el-admin-append-script">
+(() => {
+  const form=document.getElementById('el-append-problems');
+  if(!form)return;
+  const $=id=>document.getElementById(id);
+  const select=$('el-existing-contest'),message=$('el-append-message'),submit=$('el-append-submit');
+  const show=(value,error=false)=>{message.textContent=value;message.style.color=error?'#c0392b':'#176da5';};
+  fetch('/api/admin/contests',{credentials:'same-origin',cache:'no-store'})
+    .then(async response=>{const data=await response.json();if(!response.ok)throw Error(data.error||"Không tải được danh sách đề.");return data;})
+    .then(items=>{
+      select.replaceChildren(new Option('— Chọn đề cần bổ sung —',''));
+      (Array.isArray(items)?items:[]).forEach(contest=>select.add(new Option('#'+contest.id+' — '+(contest.title||'Đề chưa có tên'),String(contest.id))));
+      if(select.options.length===1)show('Chưa có đề nào để bổ sung.',true);
+    })
+    .catch(error=>show(error.message,true));
+  form.addEventListener('submit',async event=>{
+    event.preventDefault();
+    const contestId=select.value;
+    if(!contestId){show('Hãy chọn đề cần bổ sung.',true);return;}
+    let custom_problems;
+    try{custom_problems=JSON.parse($('el-append-json').value.trim());}
+    catch(error){show('JSON không hợp lệ: '+error.message,true);return;}
+    if(!Array.isArray(custom_problems)||!custom_problems.length){show('Dữ liệu phải là mảng JSON có ít nhất một bài.',true);return;}
+    submit.disabled=true;show('Đang thêm bài vào đề...');
+    try{
+      const response=await fetch('/api/admin/contests/'+encodeURIComponent(contestId)+'/problems',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({custom_problems})});
+      const result=await response.json();
+      if(!response.ok)throw Error(result.error||'Không thêm được bài.');
+      show(result.message||('Đã thêm '+result.added+' bài thành công.'));
+      $('el-append-json').value='';
+    }catch(error){show(error.message,true);}
+    finally{submit.disabled=false;}
+  });
+})();
+</script>
 <script>
 (() => {
   const root=document.querySelector('.exam-library'); if(!root)return;
