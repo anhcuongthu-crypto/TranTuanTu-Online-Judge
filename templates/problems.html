@@ -46,6 +46,8 @@
         </div>
 
         <div class="problemset-filters">
+        <div class="problemset-filter-title">Tìm kiếm bài tập <span aria-hidden="true">⌕</span></div>
+        
             <label class="problemset-search">
                 <span aria-hidden="true">⌕</span>
                 <input id="search" type="search" placeholder="Tìm theo mã bài, tên bài hoặc chủ đề..." data-i18n-placeholder="problemset_search" aria-label="Tìm bài tập" data-i18n-aria-label="problemset_search">
@@ -84,4 +86,47 @@
         <div class="problemset-pagination" id="problem-pagination" aria-label="Phân trang"></div>
     </section>
 </div>
+<style id="clueoj-problem-filter-reference">
+.problemset-page{max-width:1260px!important;margin:0 auto!important;padding:0 24px 36px!important}
+.problemset-workspace{display:grid!important;grid-template-columns:minmax(0,1fr) 410px!important;grid-template-rows:auto auto auto auto!important;gap:12px 24px!important}
+.problemset-heading{grid-column:1/-1!important}
+.problemset-filters{
+ grid-column:2!important;grid-row:2/span 3!important;display:flex!important;
+ flex-direction:column!important;gap:8px!important;padding:0 10px 10px!important;
+ background:#fff!important;border:1px solid #cfd4d8!important;border-radius:0!important;
+ overflow:hidden!important;box-shadow:none!important
+}
+.problemset-filter-title{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ margin:0 -10px 7px!important;padding:7px 10px!important;min-height:42px!important;
+ background:#17334e!important;color:#fff!important;font:400 21px/1.3 Roboto,Arial,sans-serif!important
+}
+.problemset-filter-title span{font-size:27px!important;font-weight:700!important;color:#fff!important}
+.problemset-search{position:relative!important;display:block!important;width:100%!important;margin:0 0 2px!important}
+.problemset-search>span{display:none!important}
+.problemset-search input{
+ width:100%!important;height:44px!important;box-sizing:border-box!important;
+ padding:8px 10px!important;border:1px solid #aaa!important;border-radius:5px!important;
+ background:#fff!important;color:#52616d!important;font:16px Roboto,Arial,sans-serif!important
+}
+.problemset-filters select{
+ width:100%!important;height:37px!important;min-height:37px!important;
+ padding:6px 10px!important;border:1px solid #aaa!important;border-radius:5px!important;
+ background:#fff!important;color:#52616d!important;font:16px Roboto,Arial,sans-serif!important
+}
+.problemset-filters select#filter-category:before{content:"Nhóm"}
+.problemset-filters .button{width:auto!important;min-height:38px!important;align-self:flex-end!important;padding:7px 15px!important;border-radius:5px!important;font:16px Roboto,Arial,sans-serif!important}
+.problemset-filters #reset-problem-filters{background:#fff!important;color:#52616d!important;border:1px solid #cfd4d8!important}
+.problemset-filters #random-problem{background:#08718a!important;color:#fff!important}
+.problemset-table-head{grid-column:1!important;grid-row:2!important}
+.problemset-table-wrap{grid-column:1!important;grid-row:3!important}
+.problemset-pagination{grid-column:1!important;grid-row:4!important}
+@media(max-width:850px){
+ .problemset-page{padding:0 12px 28px!important}
+ .problemset-workspace{grid-template-columns:minmax(0,1fr)!important}
+ .problemset-filters{grid-column:1!important;grid-row:2!important}
+ .problemset-table-head{grid-row:3!important}.problemset-table-wrap{grid-row:4!important}.problemset-pagination{grid-row:5!important}
+}
+</style>
+
 {% endblock %}
