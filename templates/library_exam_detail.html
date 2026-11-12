@@ -49,14 +49,14 @@
  const date=s=>{if(!s)return '—';const d=new Date(s);return Number.isNaN(d.getTime())?esc(s):d.toLocaleDateString('vi-VN')};
  Promise.all([
   fetch('/api/contests/'+id,{credentials:'same-origin'}).then(r=>{if(!r.ok)throw Error('Không tìm thấy đề thi');return r.json()}),
-  fetch('/api/my-progress',{credentials:'same-origin'}).then(r=>r.ok?r.json():null).catch(()=>null)
+  fetch('/api/contests/'+id+'/my-progress',{credentials:'same-origin'}).then(r=>r.ok?r.json():null).catch(()=>null)
  ]).then(([contest,progress])=>{
   const start=contest.start_time||'',year=contest.year||((start.match(/20\d{2}/)||[])[0]||'');
   document.getElementById('le-meta').innerHTML='<b>Năm:</b> '+esc(year)+' · <b>Ngày thi:</b> '+date(start)+' · <b>Nơi tổ chức:</b> '+esc(contest.host_location||'—')+' · <b>Phạm vi thí sinh:</b> '+esc(contest.scope||'—');
   const duration=Number(contest.duration_minutes||contest.duration||180);
   document.getElementById('le-duration').textContent=duration+' phút';
   const ps=Array.isArray(contest.problems)?contest.problems:[];
-  const scores={};(progress?.problems||[]).forEach(p=>scores[String(p.problem_id)]=Number(p.best_score??p.score)||0);
+  const scores={};(Array.isArray(progress)?progress:[]).forEach(p=>scores[String(p.problem_id)]=Number(p.best_score??p.score)||0);
   document.getElementById('le-problems').innerHTML=ps.length?ps.map(p=>{
    const pid=String(p.id),cap=Number(p.total_score)||0,score=Math.min(cap,scores[pid]||0),pct=cap?Math.min(100,score/cap*100):0;
    const edit=isAdmin?'<div class="le-score-edit"><label>Điểm tối đa <input type="number" min="0.01" step="0.01" value="'+cap+'" data-score-pid="'+esc(pid)+'"></label><button type="button" data-save-score="'+esc(pid)+'">Lưu điểm</button></div>':'';
