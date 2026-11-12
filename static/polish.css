@@ -682,3 +682,53 @@ body:not(.login-page) .code-header{
 }
 body:not(.login-page) .modal-title,
 body:not(.login-page) .code-header h3{color:#eff8ff!important}
+
+
+/* Final refinement: quieter glow, stronger hierarchy, and polished interactions */
+body:not(.login-page) .topbar{isolation:isolate}
+body:not(.login-page) .brand{letter-spacing:-.025em!important}
+body:not(.login-page) .brand small{letter-spacing:.19em!important}
+body:not(.login-page) .clue-nav>a,
+body:not(.login-page) .clue-nav .nav-dropdown>summary{position:relative!important}
+body:not(.login-page) .clue-nav>a::after{
+ content:""!important;position:absolute!important;left:12px!important;right:12px!important;bottom:5px!important;
+ height:2px!important;border-radius:2px!important;background:linear-gradient(90deg,#45d7f1,#8c91ff)!important;
+ transform:scaleX(0)!important;transform-origin:left!important;transition:transform .2s ease!important;
+}
+body:not(.login-page) .clue-nav>a:hover::after,
+body:not(.login-page) .clue-nav>a[aria-current="page"]::after{transform:scaleX(1)!important}
+body:not(.login-page) .section-block,
+body:not(.login-page) .home-workflow{scroll-margin-top:100px}
+body:not(.login-page) .section-heading h2,
+body:not(.login-page) .workflow-intro h2{line-height:1.2!important}
+body:not(.login-page) .glass-card,
+body:not(.login-page) .panel,
+body:not(.login-page) .card,
+body:not(.login-page) .contest-card,
+body:not(.login-page) .profile-card,
+body:not(.login-page) .leaderboard-card{
+ transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease!important;
+}
+body:not(.login-page) .button-primary,
+body:not(.login-page) .button-glass,
+body:not(.login-page) .button-ghost{letter-spacing:.005em!important}
+body:not(.login-page) .button-primary:active,
+body:not(.login-page) button.primary:active{transform:translateY(0) scale(.985)!important}
+body:not(.login-page) .top-user #user-status{color:#b8cce0!important}
+body:not(.login-page) footer{position:relative!important;overflow:hidden!important}
+body:not(.login-page) footer::before{
+ content:""!important;position:absolute!important;left:0!important;right:0!important;top:0!important;height:1px!important;
+ background:linear-gradient(90deg,transparent,rgba(73,211,245,.6),rgba(132,130,255,.45),transparent)!important;
+}
+body:not(.login-page) footer .footer-brand{letter-spacing:-.035em!important}
+body:not(.login-page) footer .footer-brand span{text-shadow:0 0 14px rgba(89,217,243,.4)!important}
+@media(hover:none){
+ body:not(.login-page) .workflow-step:hover,
+ body:not(.login-page) .home-shortcut-card:hover,
+ body:not(.login-page) .library-card:hover,
+ body:not(.login-page) .exam-question-card:hover,
+ body:not(.login-page) .contest-item:hover{transform:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+ body:not(.login-page) .clue-nav>a::after{transition:none!important}
+}
