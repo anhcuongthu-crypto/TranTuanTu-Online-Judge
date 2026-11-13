@@ -1908,10 +1908,16 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 return response
 
         with connect(app.config['DATABASE_PATH']) as db:
+            # Lấy tiến độ trực tiếp từ lịch sử submissions để không phụ thuộc
+            # vào bảng solves (bảng tổng hợp có thể thiếu dữ liệu cũ).
             rows = db.execute(
-                '''SELECT problem_id, best_score
-                   FROM solves
-                   WHERE user_id=?
+                '''SELECT problem_id,
+                          MAX(score) AS best_score,
+                          MAX(CASE WHEN verdict='Accepted' THEN 1 ELSE 0 END) AS accepted
+                   FROM submissions
+                   WHERE user_id=? AND contest_id IS NULL
+                     AND verdict NOT IN ('Queued', 'Processing', 'Judge Unavailable')
+                   GROUP BY problem_id
                    ORDER BY problem_id''',
                 (user['id'],)
             ).fetchall()
@@ -1925,11 +1931,14 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             pid = str(row['problem_id'])
             score = float(row['best_score'] or 0)
             maximum = maximum_scores.get(pid, 0)
+            solved = bool(row['accepted']) or (
+                maximum > 0 and score >= maximum
+            )
             progress.append({
                 'problem_id': pid,
                 'best_score': score,
                 'max_score': maximum,
-                'solved': maximum > 0 and score >= maximum
+                'solved': solved
             })
 
         solved_count = sum(1 for item in progress if item['solved'])
