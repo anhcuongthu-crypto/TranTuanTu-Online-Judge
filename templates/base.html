@@ -715,6 +715,7 @@
                 <a href="/problems" data-i18n="nav_problems" {% if request.path == '/problems' or request.path.startswith('/problems/') %}aria-current="page"{% endif %}>Danh sách bài</a>
                 <a href="/submissions" data-i18n="nav_submissions" {% if request.path.startswith('/submissions') %}aria-current="page"{% endif %}>Các bài nộp</a>
                 <a href="/contests" data-i18n="nav_contests" {% if request.path.startswith('/contests') %}aria-current="page"{% endif %}>Các kỳ thi</a>
+                <a href="/leaderboard" data-i18n="nav_leaderboard" {% if request.path == '/leaderboard' %}aria-current="page"{% endif %}>🏆 Bảng xếp hạng</a>
                 <a href="/library" data-i18n="nav_library" {% if request.path == '/library' %}aria-current="page"{% endif %}>Thư viện đề thi</a>
                 {% if logged_in_user and logged_in_user.is_admin %}
                     <a id="admin-link" href="/admin" data-i18n="nav_admin">Quản trị</a>
