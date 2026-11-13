@@ -75,9 +75,8 @@ function formatScore(value) {
 let mySolvedProblems = {};
 
 async function loadMyProgress() {
-    const section = document.querySelector('#my-progress-section');
-    if (!section) return;
-
+    // Trang danh sách bài tập không có progress section riêng;
+    // vẫn phải tải tiến độ để render trạng thái từng bài.
     const solvedEl = document.querySelector('#progress-solved');
     const attemptedEl = document.querySelector('#progress-attempted');
     const totalEl = document.querySelector('#progress-total');
