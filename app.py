@@ -2370,27 +2370,31 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             ):
                 return jsonify(error='Không tìm thấy cuộc thi.'), 404
 
-            # Đề thư viện tính lần nộp cuối cùng của từng bài,
-            # không dùng bảng solves (bảng này chỉ lưu bài ngoài contest).
+            # Tiến độ phải giữ điểm tốt nhất của mỗi bài, không lấy lần nộp cuối.
+            # Một bài được xem là đã làm khi từng đạt Accepted hoặc đủ điểm tối đa.
             rows = db.execute(
-                '''SELECT s.problem_id, s.score, s.max_score, s.verdict
-                   FROM submissions s
-                   JOIN (
-                       SELECT problem_id, MAX(id) AS last_id
-                       FROM submissions
-                       WHERE user_id=? AND contest_id=?
-                       GROUP BY problem_id
-                   ) latest ON latest.last_id=s.id
-                   WHERE s.user_id=? AND s.contest_id=?''',
-                (user['id'], contest_id, user['id'], contest_id)
+                '''SELECT problem_id,
+                          MAX(score) AS best_score,
+                          MAX(max_score) AS max_score,
+                          MAX(
+                              CASE
+                                  WHEN verdict='Accepted' OR score>=max_score
+                                  THEN 1 ELSE 0
+                              END
+                          ) AS solved
+                   FROM submissions
+                   WHERE user_id=? AND contest_id=?
+                   GROUP BY problem_id''',
+                (user['id'], contest_id)
             ).fetchall()
 
         return jsonify([
             {
                 'problem_id': str(row['problem_id']),
-                'best_score': float(row['score'] or 0),
+                'best_score': float(row['best_score'] or 0),
                 'max_score': float(row['max_score'] or 0),
-                'verdict': row['verdict']
+                'solved': bool(row['solved']),
+                'verdict': 'Accepted' if row['solved'] else 'Not Accepted'
             }
             for row in rows
         ])
