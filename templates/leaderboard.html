@@ -2,139 +2,309 @@
 {% extends 'base.html' %}
 
 {% block title %}Bảng xếp hạng — TranTu OJ{% endblock %}
-
-{% block meta_description %}Bảng xếp hạng thành viên TranTu OJ.{% endblock %}
+{% block meta_description %}Bảng xếp hạng toàn hệ thống và từng cuộc thi trên TranTu OJ.{% endblock %}
 
 {% block content %}
 <style>
-#leaderboard{overflow-x:auto;color:#52616d}
-#leaderboard .clue-data-table{width:100%;min-width:560px;border-collapse:collapse;background:#fff}
-#leaderboard .clue-data-table th{background:#344b5e;color:#fff;font-size:12px;padding:9px 12px;text-align:left}
-#leaderboard .clue-data-table td{padding:9px 12px;border-bottom:1px solid #dce0e3;font-size:12px}
-#leaderboard .clue-data-table tbody tr:nth-child(even) td{background:#fff}
-#leaderboard .clue-data-table tbody tr:hover td{background:#fff}
-#leaderboard .clue-data-table td:first-child{width:52px;color:#7c8992;font-weight:500}
-#leaderboard .leader-handle{color:#8b5591;font-weight:700}
-.leaderboard-clue-card{padding:0!important;overflow:hidden}
-@media(max-width:640px){.section-block{padding:12px!important}#leaderboard .clue-data-table{min-width:500px}}
+.leader-page{max-width:1180px;margin:22px auto;padding:0 18px;color:#304b62}
+.leader-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.leader-kicker{font-size:11px;letter-spacing:1.5px;color:#71889b;font-weight:700}
+.leader-head h1{font-size:27px;font-weight:500;color:#244762;margin:5px 0}
+.leader-head p{font-size:13px;color:#718396;margin:5px 0}
+.leader-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.leader-tabs{display:flex;gap:0;border-bottom:1px solid #d8e1e9;margin-bottom:16px}
+.leader-tab{border:1px solid transparent;border-bottom:0;background:transparent;color:#536f84;padding:11px 16px;cursor:pointer;font:inherit;font-size:13px}
+.leader-tab.active{background:#fff;border-color:#d8e1e9;border-top:3px solid #286da8;color:#245b82;font-weight:700;margin-bottom:-1px}
+.leader-select-wrap{display:flex;align-items:center;gap:9px;margin:0 0 14px;font-size:13px;color:#5d7386}
+.leader-select{min-width:240px;max-width:100%;padding:9px 12px;border:1px solid #cbd8e3;border-radius:4px;background:#fff;color:#304b62;font:inherit}
+.leader-card{background:#fff;border:1px solid #dce5ed;border-radius:3px;overflow:hidden}
+.leader-card-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 15px;border-bottom:1px solid #e1e8ee;color:#6d8192;font-size:12px}
+.leader-table-wrap{overflow-x:auto}
+.leader-table{width:100%;min-width:570px;border-collapse:collapse;background:#fff}
+.leader-table th{background:#344b5e;color:#fff;text-align:left;padding:10px 13px;font-size:12px;font-weight:600;white-space:nowrap}
+.leader-table td{padding:10px 13px;border-bottom:1px solid #e1e7ec;color:#40596e;font-size:13px}
+.leader-table tbody tr:hover td{background:#f5f9fc}
+.leader-table td:first-child{width:76px;color:#758796;font-weight:600}
+.leader-table td:nth-child(3),.leader-table td:nth-child(4){font-variant-numeric:tabular-nums}
+.leader-user{color:#286da8;font-weight:700}
+.leader-empty,.leader-error{padding:32px 18px;text-align:center;color:#75899a;font-size:13px}
+.leader-refresh{border:1px solid #cbd8e3;background:#fff;color:#286da8;padding:8px 12px;border-radius:4px;cursor:pointer;font:inherit;font-size:12px}
+.leader-refresh:disabled{opacity:.55;cursor:wait}
+.leader-link{color:#286da8;text-decoration:none;font-size:12px}
+.leader-link:hover{text-decoration:underline}
+@media(max-width:650px){.leader-page{padding:0 10px;margin:14px auto}.leader-head h1{font-size:23px}.leader-tab{padding:10px 11px}.leader-select-wrap{align-items:flex-start;flex-direction:column}.leader-select{width:100%}.leader-card-top{align-items:flex-start;flex-direction:column}}
 </style>
-<style>
-#leaderboard{overflow-x:auto;color:#365d79}
-#leaderboard table{width:100%;border-collapse:collapse;min-width:560px;background:#fff}
-#leaderboard th{background:#eaf3fa;color:#365d79;font-weight:700}
-#leaderboard td,#leaderboard th{padding:14px 16px;border-bottom:1px solid #e4edf4;text-align:left}
-#leaderboard tbody tr:nth-child(even){background:#fff}
-#leaderboard tbody tr:hover{background:#fff}
-#leaderboard td:first-child{font-weight:800;color:#2879bd}
-#leaderboard td:nth-child(3),#leaderboard td:nth-child(4){font-variant-numeric:tabular-nums}
-#refresh-leaderboard{white-space:nowrap}
-@media(max-width:640px){.section-block{padding:14px!important}.section-heading{align-items:flex-start;gap:12px;flex-wrap:wrap}#leaderboard table{min-width:500px}}
-</style>
-<section class="section-block">
-    <div class="section-heading">
-        <div>
-            <span class="eyebrow">TRAN TU OJ</span>
-            <h2 data-i18n="leader_title">Bảng xếp hạng</h2>
-            <p class="muted">
-                Theo dõi điểm số và số bài giải được của các thành viên
-                trên TranTu OJ.
-            </p>
-        </div>
 
-        <button type="button" class="button button-glass" id="refresh-leaderboard">
-            <span data-i18n="leader_refresh">↻ Làm mới</span>
-        </button>
+<section class="leader-page">
+  <div class="leader-head">
+    <div>
+      <div class="leader-kicker">TRAN TU ONLINE JUDGE</div>
+      <h1 id="leaderTitle">Bảng xếp hạng</h1>
+      <p id="leaderDescription">Theo dõi thành tích của các thành viên trên toàn hệ thống và trong từng cuộc thi.</p>
     </div>
+    <div class="leader-actions">
+      <button type="button" class="leader-refresh" id="leaderRefresh">↻ Làm mới</button>
+    </div>
+  </div>
 
-    <div class="glass-card table-card leaderboard-clue-card">
-        <div id="leaderboard" data-i18n="leader_loading">Đang tải bảng xếp hạng...</div>
+  <nav class="leader-tabs" aria-label="Phạm vi bảng xếp hạng">
+    <button type="button" class="leader-tab active" id="globalTab" aria-selected="true">Toàn hệ thống</button>
+    <button type="button" class="leader-tab" id="contestTab" aria-selected="false">Theo cuộc thi</button>
+  </nav>
+
+  <div class="leader-select-wrap" id="contestPicker" hidden>
+    <label for="contestSelect" id="contestSelectLabel">Chọn cuộc thi</label>
+    <select class="leader-select" id="contestSelect">
+      <option value="">Đang tải danh sách cuộc thi...</option>
+    </select>
+    <a class="leader-link" id="contestPageLink" href="#" hidden>Xem trang cuộc thi →</a>
+  </div>
+
+  <section class="leader-card">
+    <div class="leader-card-top">
+      <span id="leaderScopeLabel">Xếp hạng toàn hệ thống</span>
+      <span id="leaderCount">—</span>
     </div>
+    <div id="leaderboard" aria-live="polite" class="leader-empty">Đang tải bảng xếp hạng...</div>
+  </section>
 </section>
 
 <script>
 (function () {
-    const box = document.getElementById('leaderboard');
-    const refreshButton = document.getElementById('refresh-leaderboard');
+  const $ = id => document.getElementById(id);
+  const box = $('leaderboard');
+  const refresh = $('leaderRefresh');
+  const globalTab = $('globalTab');
+  const contestTab = $('contestTab');
+  const picker = $('contestPicker');
+  const contestSelect = $('contestSelect');
+  const contestPageLink = $('contestPageLink');
+  let mode = 'global';
+  let contests = [];
+  let requestVersion = 0;
 
-    async function loadLeaderboard() {
-        const english = window.OJ_I18N && window.OJ_I18N.getLanguage() === 'en';
-        box.textContent = english ? 'Loading leaderboard...' : 'Đang tải bảng xếp hạng...';
-        refreshButton.disabled = true;
-
-        try {
-            const response = await fetch('/api/leaderboard', {
-                headers: { 'Accept': 'application/json' }
-            });
-
-            if (!response.ok) {
-                throw new Error(english ? 'Could not load data' : 'Không tải được dữ liệu');
-            }
-
-            const data = await response.json();
-
-            if (!Array.isArray(data) || data.length === 0) {
-                box.textContent = english ? 'No leaderboard data yet.' : 'Chưa có dữ liệu xếp hạng.';
-                return;
-            }
-
-            const table = document.createElement('table');
-            table.className = 'clue-data-table';
-            table.style.width = '100%';
-
-            const thead = document.createElement('thead');
-            const headerRow = document.createElement('tr');
-
-            (english ? ['Rank', 'Username', 'Score', 'Problems solved'] : ['Hạng', 'Tài khoản', 'Điểm', 'Bài đã giải']).forEach(title => {
-                const th = document.createElement('th');
-                th.textContent = title;
-                headerRow.appendChild(th);
-            });
-
-            thead.appendChild(headerRow);
-            table.appendChild(thead);
-
-            const tbody = document.createElement('tbody');
-
-            data.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                const rank = document.createElement('td');
-
-                if (index === 0) rank.textContent = '🥇 1';
-                else if (index === 1) rank.textContent = '🥈 2';
-                else if (index === 2) rank.textContent = '🥉 3';
-                else rank.textContent = String(index + 1);
-
-                tr.appendChild(rank);
-
-                const username = document.createElement('td');
-                username.textContent = item.username ?? '';
-                username.className = 'leader-handle';
-                tr.appendChild(username);
-
-                const score = document.createElement('td');
-                score.textContent = String(item.score ?? 0);
-                tr.appendChild(score);
-
-                const solved = document.createElement('td');
-                solved.textContent = String(item.solved ?? 0);
-                tr.appendChild(solved);
-
-                tbody.appendChild(tr);
-            });
-
-            table.appendChild(tbody);
-            box.replaceChildren(table);
-
-        } catch (error) {
-            box.textContent = english ? 'Could not load the leaderboard. Try clicking Refresh.' : 'Không tải được bảng xếp hạng. Hãy thử bấm Làm mới.';
-        } finally {
-            refreshButton.disabled = false;
-        }
+  function english() {
+    return !!(window.OJ_I18N && window.OJ_I18N.getLanguage() === 'en');
+  }
+  function labels() {
+    return english() ? {
+      title:'Leaderboard',
+      description:'Follow member results across the platform and in each contest.',
+      global:'Global ranking',
+      byContest:'By contest',
+      choose:'Choose a contest',
+      all:'Global leaderboard',
+      refresh:'↻ Refresh',
+      loading:'Loading leaderboard...',
+      loadingContests:'Loading contests...',
+      noContests:'No public contests available.',
+      noRows:'No leaderboard data yet.',
+      rank:'Rank',
+      username:'Username',
+      score:'Score',
+      solved:'Problems solved',
+      count:n=>n+' participants',
+      error:'Could not load leaderboard data. Please try again.',
+      contestLink:'Open contest page →'
+    } : {
+      title:'Bảng xếp hạng',
+      description:'Theo dõi thành tích của các thành viên trên toàn hệ thống và trong từng cuộc thi.',
+      global:'Toàn hệ thống',
+      byContest:'Theo cuộc thi',
+      choose:'Chọn cuộc thi',
+      all:'Xếp hạng toàn hệ thống',
+      refresh:'↻ Làm mới',
+      loading:'Đang tải bảng xếp hạng...',
+      loadingContests:'Đang tải danh sách cuộc thi...',
+      noContests:'Chưa có cuộc thi công khai.',
+      noRows:'Chưa có dữ liệu xếp hạng.',
+      rank:'Hạng',
+      username:'Tài khoản',
+      score:'Điểm',
+      solved:'Bài giải',
+      count:n=>n+' thành viên',
+      error:'Không tải được dữ liệu bảng xếp hạng. Vui lòng thử lại.',
+      contestLink:'Xem trang cuộc thi →'
+    };
+  }
+  function setMode(next) {
+    mode = next;
+    const l = labels();
+    globalTab.classList.toggle('active', mode === 'global');
+    contestTab.classList.toggle('active', mode === 'contest');
+    globalTab.setAttribute('aria-selected', String(mode === 'global'));
+    contestTab.setAttribute('aria-selected', String(mode === 'contest'));
+    picker.hidden = mode !== 'contest';
+    $('leaderTitle').textContent = l.title;
+    $('leaderDescription').textContent = l.description;
+    globalTab.textContent = l.global;
+    contestTab.textContent = l.byContest;
+    $('contestSelectLabel').textContent = l.choose;
+    refresh.textContent = l.refresh;
+    $('leaderScopeLabel').textContent = mode === 'global' ? l.all : (contestSelect.selectedOptions[0]?.textContent || l.byContest);
+    if (mode === 'global') {
+      contestPageLink.hidden = true;
+      loadGlobal();
+    } else if (contestSelect.value) {
+      updateContestLink();
+      loadContest();
+    } else {
+      loadContests();
     }
+  }
+  function showMessage(message, kind) {
+    box.className = kind || 'leader-empty';
+    box.textContent = message;
+    $('leaderCount').textContent = '—';
+  }
+  function updateContestLink() {
+    const id = Number(contestSelect.value);
+    if (!id) {
+      contestPageLink.hidden = true;
+      return;
+    }
+    contestPageLink.href = '/contests/' + id + '/leaderboard';
+    contestPageLink.textContent = labels().contestLink;
+    contestPageLink.hidden = false;
+  }
+  function renderRows(rows) {
+    const l = labels();
+    if (!Array.isArray(rows) || rows.length === 0) {
+      showMessage(l.noRows);
+      return;
+    }
+    const table = document.createElement('table');
+    table.className = 'leader-table';
+    const thead = document.createElement('thead');
+    const header = document.createElement('tr');
+    [l.rank, l.username, l.score, l.solved].forEach(name => {
+      const th = document.createElement('th');
+      th.textContent = name;
+      header.appendChild(th);
+    });
+    thead.appendChild(header);
+    table.appendChild(thead);
 
-    document.addEventListener('oj-language-changed', loadLeaderboard);
-    refreshButton.addEventListener('click', loadLeaderboard);
-    loadLeaderboard();
+    const tbody = document.createElement('tbody');
+    rows.forEach((item, index) => {
+      const tr = document.createElement('tr');
+      const rank = document.createElement('td');
+      rank.textContent = index === 0 ? '🥇 1' : index === 1 ? '🥈 2' : index === 2 ? '🥉 3' : String(index + 1);
+      tr.appendChild(rank);
+
+      const username = document.createElement('td');
+      username.textContent = item.username || '—';
+      username.className = 'leader-user';
+      tr.appendChild(username);
+
+      const score = document.createElement('td');
+      score.textContent = String(item.score ?? 0);
+      tr.appendChild(score);
+
+      const solved = document.createElement('td');
+      solved.textContent = String(item.solved ?? 0);
+      tr.appendChild(solved);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'leader-table-wrap';
+    wrap.appendChild(table);
+    box.className = '';
+    box.replaceChildren(wrap);
+    $('leaderCount').textContent = l.count(rows.length);
+  }
+  async function loadGlobal() {
+    const version = ++requestVersion;
+    const l = labels();
+    showMessage(l.loading);
+    refresh.disabled = true;
+    try {
+      const response = await fetch('/api/leaderboard', {headers:{'Accept':'application/json'}});
+      if (!response.ok) throw new Error('leaderboard');
+      const rows = await response.json();
+      if (version !== requestVersion || mode !== 'global') return;
+      renderRows(rows);
+    } catch (_) {
+      if (version === requestVersion) showMessage(l.error, 'leader-error');
+    } finally {
+      if (version === requestVersion) refresh.disabled = false;
+    }
+  }
+  async function loadContests() {
+    const version = ++requestVersion;
+    const l = labels();
+    showMessage(l.loadingContests);
+    refresh.disabled = true;
+    try {
+      const response = await fetch('/api/contests', {headers:{'Accept':'application/json'}});
+      if (!response.ok) throw new Error('contests');
+      contests = await response.json();
+      if (version !== requestVersion || mode !== 'contest') return;
+      contestSelect.replaceChildren();
+      if (!Array.isArray(contests) || contests.length === 0) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = l.noContests;
+        contestSelect.appendChild(option);
+        showMessage(l.noContests);
+        contestPageLink.hidden = true;
+        return;
+      }
+      contests.forEach(contest => {
+        const option = document.createElement('option');
+        option.value = String(contest.id);
+        option.textContent = contest.title + (contest.state === 'running' ? ' · Đang diễn ra' : contest.state === 'upcoming' ? ' · Sắp diễn ra' : ' · Đã kết thúc');
+        contestSelect.appendChild(option);
+      });
+      const preferred = contests.find(c => c.state === 'running') || contests[0];
+      contestSelect.value = String(preferred.id);
+      updateContestLink();
+      $('leaderScopeLabel').textContent = preferred.title;
+      await loadContest();
+    } catch (_) {
+      if (version === requestVersion) showMessage(l.error, 'leader-error');
+    } finally {
+      if (version === requestVersion) refresh.disabled = false;
+    }
+  }
+  async function loadContest() {
+    const id = Number(contestSelect.value);
+    if (!id) return;
+    const version = ++requestVersion;
+    const l = labels();
+    showMessage(l.loading);
+    refresh.disabled = true;
+    $('leaderScopeLabel').textContent = contestSelect.selectedOptions[0]?.textContent || l.byContest;
+    updateContestLink();
+    try {
+      const response = await fetch('/api/contests/' + id + '/leaderboard', {headers:{'Accept':'application/json'}});
+      if (!response.ok) throw new Error('contest leaderboard');
+      const rows = await response.json();
+      if (version !== requestVersion || mode !== 'contest' || Number(contestSelect.value) !== id) return;
+      renderRows(rows);
+    } catch (_) {
+      if (version === requestVersion) showMessage(l.error, 'leader-error');
+    } finally {
+      if (version === requestVersion) refresh.disabled = false;
+    }
+  }
+
+  globalTab.addEventListener('click', () => setMode('global'));
+  contestTab.addEventListener('click', () => setMode('contest'));
+  contestSelect.addEventListener('change', () => {
+    updateContestLink();
+    loadContest();
+  });
+  refresh.addEventListener('click', () => mode === 'global' ? loadGlobal() : (contestSelect.options.length ? loadContest() : loadContests()));
+  document.addEventListener('oj-language-changed', () => {
+    const selected = contestSelect.value;
+    setMode(mode);
+    if (mode === 'contest' && selected) contestSelect.value = selected;
+  });
+
+  setMode('global');
 })();
 </script>
 {% endblock %}
