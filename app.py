@@ -1862,25 +1862,30 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             return jsonify(error='Cần đăng nhập để xem tiến độ.'), 401
 
         with connect(app.config['DATABASE_PATH']) as db:
+            # Dùng điểm cao nhất của mọi lần nộp, không dùng lần nộp cuối.
+            # Nếu bài từng đạt Accepted hoặc đủ điểm tối đa thì giữ trạng thái đã làm.
             rows = db.execute(
-                '''SELECT s.contest_id, s.problem_id, s.score, s.max_score
-                   FROM submissions s
-                   JOIN (
-                       SELECT contest_id, problem_id, MAX(id) AS last_id
-                       FROM submissions
-                       WHERE user_id=? AND contest_id IS NOT NULL
-                       GROUP BY contest_id, problem_id
-                   ) latest ON latest.last_id=s.id
-                   WHERE s.user_id=? AND s.contest_id IS NOT NULL''',
-                (user['id'], user['id'])
+                '''SELECT contest_id, problem_id,
+                          MAX(score) AS best_score,
+                          MAX(max_score) AS max_score,
+                          MAX(CASE
+                              WHEN verdict='Accepted' OR
+                                   (max_score > 0 AND score >= max_score)
+                              THEN 1 ELSE 0
+                          END) AS solved
+                   FROM submissions
+                   WHERE user_id=? AND contest_id IS NOT NULL
+                   GROUP BY contest_id, problem_id''',
+                (user['id'],)
             ).fetchall()
 
         return jsonify([
             {
                 'contest_id': int(row['contest_id']),
                 'problem_id': str(row['problem_id']),
-                'best_score': float(row['score'] or 0),
-                'max_score': float(row['max_score'] or 0)
+                'best_score': float(row['best_score'] or 0),
+                'max_score': float(row['max_score'] or 0),
+                'solved': bool(row['solved'])
             }
             for row in rows
         ])
