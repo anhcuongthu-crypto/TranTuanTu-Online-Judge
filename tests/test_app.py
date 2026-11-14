@@ -585,3 +585,35 @@ def test_problem_page_no_longer_displays_external_translation_failure(tmp_path):
     app_source = client.application.view_functions['translate_problem_page'].__code__.co_consts
     assert not any('translate.googleapis.com' in str(item) for item in app_source)
     assert not any('mymemory.translated.net' in str(item) for item in app_source)
+
+
+def test_every_jinja_template_compiles(tmp_path):
+    client = setup(tmp_path)
+    template_names = sorted(client.application.jinja_env.list_templates())
+    assert template_names
+
+    for template_name in template_names:
+        client.application.jinja_env.get_template(template_name)
+
+
+def test_public_pages_and_contest_api_smoke(tmp_path):
+    client = setup(tmp_path)
+
+    for path in (
+        '/',
+        '/problems',
+        '/library',
+        '/contests',
+        '/leaderboard',
+        '/about',
+        '/contests/999999'
+    ):
+        response = client.get(path)
+        assert response.status_code == 200, (
+            f'{path} returned HTTP {response.status_code}'
+        )
+
+    contests = client.get('/api/contests')
+    assert contests.status_code == 200
+    assert contests.is_json
+    assert contests.get_json() == []
