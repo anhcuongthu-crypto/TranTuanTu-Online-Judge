@@ -100,6 +100,10 @@
                 <option value="attempted" data-i18n="problemset_attempted">Đã thử</option>
                 <option value="unsolved" data-i18n="problemset_unsolved">Chưa làm</option>
             </select>
+            <label class="problemset-saved-filter">
+                <input type="checkbox" id="filter-saved">
+                <span>★ Chỉ hiển thị bài đã lưu</span>
+            </label>
             <button type="button" class="button button-ghost" id="reset-problem-filters" data-i18n="common_clear_filters">Xóa lọc</button>
             <button type="button" class="button button-primary" id="random-problem" data-i18n="problemset_random">Bài ngẫu nhiên ↗</button>
         </div>
@@ -163,6 +167,13 @@
  .problemset-filters{grid-column:1!important;grid-row:2!important}
  .problemset-table-head{grid-row:3!important}.problemset-table-wrap{grid-row:4!important}.problemset-pagination{grid-row:5!important}
 }
+.problemset-saved-filter{display:flex;align-items:center;gap:9px;padding:8px 3px;color:#d7e8f7;font-size:12px;cursor:pointer}
+.problemset-saved-filter input{width:16px;height:16px;accent-color:#55d5ef}
+.problem-save-cell{text-align:center!important;width:62px}
+.problem-save-btn{width:34px;height:32px;border:1px solid rgba(113,195,225,.25);border-radius:8px;background:rgba(8,28,46,.75);color:#a9c4d9;font-size:21px;line-height:1;cursor:pointer;transition:background .15s,border-color .15s,transform .15s}
+.problem-save-btn:hover{border-color:#55d5ef;background:rgba(53,174,210,.13);transform:translateY(-1px)}
+.problem-save-btn.is-saved{color:#ffd166;border-color:rgba(255,209,102,.5);background:rgba(255,209,102,.1)}
+@media(max-width:560px){.problemset-saved-filter{font-size:12px}.problem-save-btn{width:30px;height:30px}}
 </style>
 
 {% endblock %}
