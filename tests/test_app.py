@@ -783,3 +783,70 @@ def test_contest_page_has_live_countdown_and_leaderboard_auto_refresh(tmp_path):
     source = section.get_data(as_text=True)
     assert 'refreshLeaderboard' in source
     assert 'setInterval(refreshLeaderboard, 15000)' in source
+
+
+
+def test_hidden_contest_apis_and_admin_apis_enforce_permissions(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'boundaryuser')
+    app = client.application
+    now = datetime.now()
+    with connect(app.config['DATABASE_PATH']) as db:
+        contest_id = db.execute(
+            '''INSERT INTO contests
+               (title, description, start_time, end_time, is_visible)
+               VALUES (?, ?, ?, ?, 0)''',
+            (
+                'Private boundary contest', '',
+                (now - timedelta(hours=1)).isoformat(timespec='seconds'),
+                (now + timedelta(hours=1)).isoformat(timespec='seconds')
+            )
+        ).lastrowid
+
+    hidden_paths = [
+        f'/api/contests/{contest_id}',
+        f'/api/contests/{contest_id}/stats',
+        f'/api/contests/{contest_id}/leaderboard',
+        f'/api/contests/{contest_id}/my-progress',
+        f'/api/contests/{contest_id}/submissions',
+        f'/library/{contest_id}/problem/PRIVATE01'
+    ]
+    for path in hidden_paths:
+        response = client.get(path)
+        assert response.status_code == 404, f'{path}: {response.status_code}'
+
+    admin_paths = [
+        ('GET', '/api/admin/users'),
+        ('GET', '/api/admin/statistics'),
+        ('GET', '/api/admin/submissions'),
+        ('GET', '/api/admin/contests'),
+        ('GET', f'/api/admin/contests/{contest_id}/full'),
+        ('GET', '/api/admin/submissions/1/source')
+    ]
+    for method, path in admin_paths:
+        response = client.open(path, method=method)
+        assert response.status_code == 403, f'{method} {path}: {response.status_code}'
+
+
+def test_submission_code_and_status_are_private_to_owner(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'submissionowner')
+    app = client.application
+    with connect(app.config['DATABASE_PATH']) as db:
+        owner = db.execute(
+            'SELECT id FROM users WHERE username=?', ('submissionowner',)
+        ).fetchone()
+        submission_id = db.execute(
+            '''INSERT INTO submissions
+               (user_id, problem_id, language_id, source_code, verdict,
+                score, max_score, details_json)
+               VALUES (?, 'X01', 54, 'int main(){return 0;}', 'Wrong Answer',
+                       0, 100, '[]')''',
+            (owner['id'],)
+        ).lastrowid
+
+    client.post('/api/logout')
+    register_and_login(client, 'submissionviewer')
+    for suffix in ('code', 'status'):
+        response = client.get(f'/api/submissions/{submission_id}/{suffix}')
+        assert response.status_code == 403
