@@ -1844,7 +1844,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             row = db.execute(
                 '''SELECT id, user_id, problem_id, language_id,
                           verdict, score, max_score, details_json,
-                          created_at, contest_id
+                          created_at, contest_id, problem_json
                    FROM submissions
                    WHERE id=?''',
                 (submission_id,)
@@ -1897,8 +1897,44 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         result['details'] = json.loads(
             result.pop('details_json') or '[]'
         )
+        problem_snapshot = result.pop('problem_json', None)
         result.pop('user_id', None)
         result['is_mine'] = is_mine
+
+        result['progress_completed'] = sum(
+            1
+            for subtask in result['details']
+            if isinstance(subtask, dict)
+            for test in (subtask.get('tests') or [])
+            if isinstance(test, dict)
+            and test.get('status') not in (
+                'In Queue', 'Processing', 'Queued', 'Starting'
+            )
+        )
+        result['progress_total'] = sum(
+            len(subtask.get('tests') or [])
+            for subtask in result['details']
+            if isinstance(subtask, dict)
+        )
+        if result['progress_total'] == 0 and problem_snapshot:
+            try:
+                snapshot = json.loads(problem_snapshot)
+                result['progress_total'] = sum(
+                    len(subtask.get('tests') or [])
+                    for subtask in snapshot.get('subtasks', [])
+                    if isinstance(subtask, dict)
+                )
+            except (TypeError, ValueError):
+                pass
+        result['progress_percent'] = (
+            round(100 * result['progress_completed'] / result['progress_total'])
+            if result['progress_total'] else 0
+        )
+        result['progress_phase'] = (
+            'queued' if result['verdict'] in ('Queued', 'Starting')
+            else 'judging' if result['verdict'] == 'Processing'
+            else 'finished'
+        )
 
         return jsonify(result)
 
