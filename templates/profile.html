@@ -16,6 +16,21 @@
 .analytics-panel{padding:14px!important}
 .profile-settings-grid .glass-card{padding:18px!important}
 
+
+.profile-achievements{margin:18px 0 22px}
+.profile-achievements h3{margin:0 0 12px;color:#465766;font-size:16px;font-weight:600}
+.achievement-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.achievement-card{display:flex;gap:12px;align-items:center;min-width:0;padding:13px;background:#fff;border:1px solid #dce0e3;border-radius:8px}
+.achievement-icon{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:10px;background:#edf3f8;font-size:21px}
+.achievement-card.locked{opacity:.62;background:#f8fafb}
+.achievement-card strong{display:block;color:#40586b;font-size:12px}
+.achievement-card p{margin:3px 0;color:#788693;font-size:11px;line-height:1.45}
+.achievement-progress{height:5px;margin-top:7px;background:#e8edf1;border-radius:8px;overflow:hidden}
+.achievement-progress i{display:block;height:100%;background:#3787bd;border-radius:8px}
+.achievement-status{font-size:10px;color:#28744b}
+@media(max-width:760px){.achievement-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.achievement-grid{grid-template-columns:1fr}}
+
 </style>
 <div class="breadcrumbs">
     <a href="/" data-i18n="nav_home">Trang chủ</a><span>/</span><span data-i18n="profile_title">Hồ sơ cá nhân</span>
@@ -39,6 +54,12 @@
         </div>
         <a class="button button-ghost" href="/submissions" data-i18n="profile_history">Lịch sử bài nộp ↗</a>
     </div>
+    <section class="profile-achievements" aria-labelledby="achievement-title">
+        <h3 id="achievement-title">Huy hiệu thành tích</h3>
+        <div class="achievement-grid" id="analytics-achievements">
+            <p class="muted">Đang tải huy hiệu...</p>
+        </div>
+    </section>
     <div class="analytics-summary">
         <div><strong id="analytics-solved">—</strong><span data-i18n="profile_solved">Bài FULL</span></div>
         <div><strong id="analytics-attempted">—</strong><span data-i18n="profile_attempted">Bài đã thử</span></div>

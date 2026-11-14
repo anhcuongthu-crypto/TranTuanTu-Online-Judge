@@ -1902,7 +1902,10 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         now = time.monotonic()
         with progress_cache_lock:
             cached = progress_cache.get(user['id'])
-            if cached and now - cached['time'] < 3:
+            if (
+                cached and now - cached['time'] < 3
+                and request.args.get('fresh') != '1'
+            ):
                 response = jsonify(cached['data'])
                 response.headers['Cache-Control'] = 'private, no-store'
                 return response
@@ -2047,6 +2050,46 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             for tag, count in sorted(solved_by_tag.items(), key=lambda item: (-item[1], item[0]))
         ][:10]
 
+        # Huy hiệu được tính trực tiếp từ dữ liệu hiện có, không cần thêm bảng
+        # hoặc thay đổi cấu trúc database.
+        solved_total = len(solved_ids)
+        submission_total = len(submission_rows)
+        solved_categories = sum(1 for count in solved_by_category.values() if count > 0)
+        achievements = [
+            {
+                'id': 'first-full', 'icon': '🎯', 'name': 'FULL đầu tiên',
+                'description': 'Hoàn thành bài tập đầu tiên.',
+                'target': 1, 'progress': min(solved_total, 1)
+            },
+            {
+                'id': 'solver-10', 'icon': '⭐', 'name': 'Thợ săn FULL',
+                'description': 'Hoàn thành 10 bài tập.',
+                'target': 10, 'progress': min(solved_total, 10)
+            },
+            {
+                'id': 'solver-25', 'icon': '🏅', 'name': 'Cao thủ thuật toán',
+                'description': 'Hoàn thành 25 bài tập.',
+                'target': 25, 'progress': min(solved_total, 25)
+            },
+            {
+                'id': 'solver-50', 'icon': '🏆', 'name': 'Chinh phục 50 bài',
+                'description': 'Hoàn thành 50 bài tập.',
+                'target': 50, 'progress': min(solved_total, 50)
+            },
+            {
+                'id': 'submit-50', 'icon': '⌨️', 'name': 'Kiên trì luyện tập',
+                'description': 'Có 50 lượt nộp bài.',
+                'target': 50, 'progress': min(submission_total, 50)
+            },
+            {
+                'id': 'multi-topic', 'icon': '🧭', 'name': 'Nhà thám hiểm',
+                'description': 'FULL bài ở ít nhất 3 chủ đề.',
+                'target': 3, 'progress': min(solved_categories, 3)
+            }
+        ]
+        for achievement in achievements:
+            achievement['unlocked'] = achievement['progress'] >= achievement['target']
+
         return jsonify(
             total_solved=len(solved_ids),
             total_attempted=len(attempted_ids),
@@ -2054,6 +2097,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             full_rate=round(100 * len(solved_ids) / len(attempted_ids), 1) if attempted_ids else 0,
             categories=category_rows,
             tags=tag_rows,
+            achievements=achievements,
             daily=[{'date': day, 'count': count} for day, count in daily.items()],
             verdicts=[{'verdict': verdict, 'count': count} for verdict, count in sorted(verdict_counts.items(), key=lambda item: -item[1])]
         )
@@ -2069,20 +2113,73 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 response.headers['Cache-Control'] = 'public, max-age=3'
                 return response
 
+        # Dùng điểm tối đa trong ngân hàng đề để phân biệt bài FULL với
+        # bài mới được một phần điểm; không cần thay đổi cấu trúc database.
+        problem_scores = {
+            str(problem.get('id')): float(problem.get('total_score') or 0)
+            for problem in problems()
+        }
+
         with connect(app.config['DATABASE_PATH']) as db:
             rows = db.execute(
-                '''SELECT u.username,
-                          COALESCE(SUM(s.best_score), 0) score,
-                          COUNT(CASE WHEN s.best_score>0 THEN 1 END) solved
+                '''SELECT u.id AS user_id, u.username,
+                          s.problem_id, s.best_score
                    FROM users u
                    LEFT JOIN solves s ON s.user_id=u.id
                    WHERE u.approved=1
-                   GROUP BY u.id
-                   ORDER BY score DESC, solved DESC, u.username
-                   LIMIT 100'''
+                   ORDER BY u.id, s.problem_id'''
             ).fetchall()
 
-        result = [dict(row) for row in rows]
+        standings = {}
+        for row in rows:
+            user_id = row['user_id']
+            item = standings.setdefault(user_id, {
+                'username': row['username'],
+                'score': 0,
+                'solved': 0,
+                'attempted': 0
+            })
+
+            if row['problem_id'] is None:
+                continue
+
+            best_score = float(row['best_score'] or 0)
+            item['score'] += best_score
+            item['attempted'] += 1
+
+            maximum = problem_scores.get(str(row['problem_id']), 0)
+            if maximum > 0 and best_score >= maximum:
+                item['solved'] += 1
+
+        result = list(standings.values())
+        result.sort(
+            key=lambda item: (
+                -item['score'],
+                -item['solved'],
+                item['username'].casefold()
+            )
+        )
+
+        result = result[:100]
+        for index, item in enumerate(result, start=1):
+            item['rank'] = index
+            if item['solved'] >= 50:
+                item['highlight'] = '🏆 Chinh phục 50+ FULL'
+            elif item['solved'] >= 25:
+                item['highlight'] = '🏅 Cao thủ 25+ FULL'
+            elif item['solved'] >= 10:
+                item['highlight'] = '⭐ Thợ săn 10+ FULL'
+            elif item['solved'] >= 1:
+                item['highlight'] = '🎯 Đã có FULL'
+            elif item['attempted'] > 0:
+                item['highlight'] = '🚀 Đang chinh phục'
+            else:
+                item['highlight'] = '🌱 Bắt đầu hành trình'
+            if float(item['score']).is_integer():
+                item['score'] = int(item['score'])
+            else:
+                item['score'] = round(item['score'], 2)
+
         with leaderboard_cache_lock:
             leaderboard_cache['time'] = time.monotonic()
             leaderboard_cache['rows'] = result

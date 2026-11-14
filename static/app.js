@@ -74,7 +74,7 @@ function formatScore(value) {
 // Tiến độ của tài khoản hiện tại trên ngân hàng bài tập.
 let mySolvedProblems = {};
 
-async function loadMyProgress() {
+async function loadMyProgress(force = false) {
     // Trang danh sách bài tập không có progress section riêng;
     // vẫn phải tải tiến độ để render trạng thái từng bài.
     const solvedEl = document.querySelector('#progress-solved');
@@ -84,7 +84,9 @@ async function loadMyProgress() {
     const caption = document.querySelector('#progress-caption');
 
     try {
-        const data = await api('/api/my-progress');
+        const data = await api(
+            force ? '/api/my-progress?fresh=1' : '/api/my-progress'
+        );
         mySolvedProblems = {};
         (data.problems || []).forEach(item => {
             mySolvedProblems[String(item.problem_id)] = item;
@@ -676,7 +678,10 @@ async function watchSubmission(submissionId, result) {
 
                 renderSubmissionResults(result);
 
-                await refresh();
+                await Promise.allSettled([
+                    refresh(),
+                    loadMyProgress(true)
+                ]);
                 return;
             }
 
@@ -782,6 +787,28 @@ async function loadMyAnalytics() {
                     <small>${escapeHtml(item.date.slice(5))}</small>
                 </div>`;
             }).join('');
+        }
+
+        const achievements = document.querySelector('#analytics-achievements');
+        if (achievements) {
+            const rows = data.achievements || [];
+            achievements.innerHTML = rows.length ? rows.map(item => {
+                const target = Math.max(1, Number(item.target) || 1);
+                const progress = Math.max(0, Math.min(target, Number(item.progress) || 0));
+                const percent = progress / target * 100;
+                return `<article class="achievement-card ${item.unlocked ? 'unlocked' : 'locked'}">
+                    <span class="achievement-icon" aria-hidden="true">${escapeHtml(item.icon || '🏅')}</span>
+                    <div>
+                        <strong>${escapeHtml(item.name || 'Huy hiệu')}</strong>
+                        <p>${escapeHtml(item.description || '')}</p>
+                        <div class="achievement-progress" role="progressbar"
+                             aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="${target}">
+                            <i style="width:${percent}%"></i>
+                        </div>
+                        <span class="achievement-status">${item.unlocked ? '✓ Đã mở khóa' : `${progress}/${target}`}</span>
+                    </div>
+                </article>`;
+            }).join('') : '<p class="muted">Chưa có huy hiệu để hiển thị.</p>';
         }
 
         const categories = document.querySelector('#analytics-categories');

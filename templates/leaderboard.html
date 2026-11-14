@@ -20,13 +20,14 @@
 .leader-card{background:#fff;border:1px solid #dce5ed;border-radius:3px;overflow:hidden}
 .leader-card-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 15px;border-bottom:1px solid #e1e8ee;color:#6d8192;font-size:12px}
 .leader-table-wrap{overflow-x:auto}
-.leader-table{width:100%;min-width:570px;border-collapse:collapse;background:#fff}
+.leader-table{width:100%;min-width:760px;border-collapse:collapse;background:#fff}
 .leader-table th{background:#344b5e;color:#fff;text-align:left;padding:10px 13px;font-size:12px;font-weight:600;white-space:nowrap}
 .leader-table td{padding:10px 13px;border-bottom:1px solid #e1e7ec;color:#40596e;font-size:13px}
 .leader-table tbody tr:hover td{background:#f5f9fc}
 .leader-table td:first-child{width:76px;color:#758796;font-weight:600}
 .leader-table td:nth-child(3),.leader-table td:nth-child(4){font-variant-numeric:tabular-nums}
 .leader-user{color:#286da8;font-weight:700}
+.leader-highlight{font-size:12px;color:#526f83;white-space:nowrap}
 .leader-empty,.leader-error{padding:32px 18px;text-align:center;color:#75899a;font-size:13px}
 .leader-refresh{border:1px solid #cbd8e3;background:#fff;color:#286da8;padding:8px 12px;border-radius:4px;cursor:pointer;font:inherit;font-size:12px}
 .leader-refresh:disabled{opacity:.55;cursor:wait}
@@ -102,7 +103,8 @@
       rank:'Rank',
       username:'Username',
       score:'Score',
-      solved:'Problems solved',
+      solved:'FULL solved',
+      highlight:'Achievement',
       count:n=>n+' participants',
       error:'Could not load leaderboard data. Please try again.',
       contestLink:'Open contest page →'
@@ -121,7 +123,8 @@
       rank:'Hạng',
       username:'Tài khoản',
       score:'Điểm',
-      solved:'Bài giải',
+      solved:'Bài FULL',
+      highlight:'Thành tích nổi bật',
       count:n=>n+' thành viên',
       error:'Không tải được dữ liệu bảng xếp hạng. Vui lòng thử lại.',
       contestLink:'Xem trang cuộc thi →'
@@ -177,7 +180,7 @@
     table.className = 'leader-table';
     const thead = document.createElement('thead');
     const header = document.createElement('tr');
-    [l.rank, l.username, l.score, l.solved].forEach(name => {
+    [l.rank, l.username, l.score, l.solved, l.highlight].forEach(name => {
       const th = document.createElement('th');
       th.textContent = name;
       header.appendChild(th);
@@ -204,6 +207,11 @@
       const solved = document.createElement('td');
       solved.textContent = String(item.solved ?? 0);
       tr.appendChild(solved);
+
+      const highlight = document.createElement('td');
+      highlight.textContent = item.highlight || '—';
+      highlight.className = 'leader-highlight';
+      tr.appendChild(highlight);
       tbody.appendChild(tr);
     });
     table.appendChild(tbody);

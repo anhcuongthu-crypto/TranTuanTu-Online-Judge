@@ -82,6 +82,45 @@ def test_submit_requires_login_and_history(tmp_path):
     assert any(row['username'] == 'tester' for row in c.get('/api/leaderboard').json)
 
 
+def test_global_leaderboard_counts_only_full_solutions_and_shows_highlights(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'partialuser')
+    register_and_login(client, 'fulluser')
+
+    app = client.application
+    with connect(app.config['DATABASE_PATH']) as db:
+        users = {
+            row['username']: row['id']
+            for row in db.execute(
+                'SELECT id, username FROM users WHERE username IN (?, ?)',
+                ('partialuser', 'fulluser')
+            ).fetchall()
+        }
+        db.execute(
+            'INSERT INTO solves (user_id, problem_id, best_score) VALUES (?, ?, ?)',
+            (users['partialuser'], 'X01', 50)
+        )
+        db.execute(
+            'INSERT INTO solves (user_id, problem_id, best_score) VALUES (?, ?, ?)',
+            (users['fulluser'], 'X01', 100)
+        )
+
+    response = client.get('/api/leaderboard')
+    assert response.status_code == 200
+    rows = {row['username']: row for row in response.json}
+
+    assert rows['fulluser']['rank'] == 1
+    assert rows['fulluser']['score'] == 100
+    assert rows['fulluser']['solved'] == 1
+    assert rows['fulluser']['highlight'] == '🎯 Đã có FULL'
+
+    assert rows['partialuser']['rank'] == 2
+    assert rows['partialuser']['score'] == 50
+    assert rows['partialuser']['solved'] == 0
+    assert rows['partialuser']['attempted'] == 1
+    assert rows['partialuser']['highlight'] == '🚀 Đang chinh phục'
+
+
 def test_admin_problem_crud_and_delete_is_protected(tmp_path):
     c = setup(tmp_path)
     p = {'id': 'X02', 'title': 'Test', 'statement': 'test', 'total_score': 100,
@@ -92,6 +131,38 @@ def test_admin_problem_crud_and_delete_is_protected(tmp_path):
     assert c.post('/api/admin/problems', json=p).status_code == 201
     assert c.put('/api/admin/problems/X02', json={**p, 'title': 'Updated'}).status_code == 200
     assert c.delete('/api/admin/problems/X02').status_code == 200
+
+def test_my_analytics_returns_progressive_achievement_badges(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'badgeuser')
+
+    response = client.get('/api/my-analytics')
+    assert response.status_code == 200
+    badges = {item['id']: item for item in response.json['achievements']}
+
+    assert badges['first-full']['unlocked'] is False
+    assert badges['first-full']['progress'] == 0
+    assert badges['solver-10']['target'] == 10
+    assert badges['multi-topic']['target'] == 3
+
+    app = client.application
+    with connect(app.config['DATABASE_PATH']) as db:
+        user = db.execute(
+            'SELECT id FROM users WHERE username=?', ('badgeuser',)
+        ).fetchone()
+        db.execute(
+            'INSERT INTO solves (user_id, problem_id, best_score) VALUES (?, ?, ?)',
+            (user['id'], 'X01', 100)
+        )
+
+    refreshed = client.get('/api/my-analytics')
+    refreshed_badges = {
+        item['id']: item for item in refreshed.json['achievements']
+    }
+    assert refreshed_badges['first-full']['unlocked'] is True
+    assert refreshed_badges['first-full']['progress'] == 1
+    assert refreshed_badges['multi-topic']['progress'] == 1
+
 
 def test_home_problemset_library_and_brand_assets_render(tmp_path):
     c = setup(tmp_path)
