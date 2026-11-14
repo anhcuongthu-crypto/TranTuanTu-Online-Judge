@@ -1048,3 +1048,58 @@ def test_submit_editor_uses_real_newlines_for_multiline_editing(tmp_path):
     assert r"before.match(/^\s*/)" in html
     assert r"selected.split('\n')" in html
     assert r"join('\n')" in html
+
+
+
+def test_submission_status_reports_live_test_progress_for_owner(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'progressowner')
+    app = client.application
+    problem_snapshot = {
+        'id': 'X01',
+        'subtasks': [{
+            'id': 'all',
+            'name': 'All tests',
+            'tests': [
+                {'input': 'hidden 1', 'output': 'hidden 1'},
+                {'input': 'hidden 2', 'output': 'hidden 2'},
+                {'input': 'hidden 3', 'output': 'hidden 3'}
+            ]
+        }]
+    }
+    partial_details = [{
+        'subtask': 'all',
+        'name': 'All tests',
+        'score': 10,
+        'max_score': 30,
+        'tests': [
+            {'test': 1, 'status': 'Accepted', 'score': 10, 'max_score': 10},
+            {'test': 2, 'status': 'Processing', 'score': 0, 'max_score': 10},
+            {'test': 3, 'status': 'Processing', 'score': 0, 'max_score': 10}
+        ]
+    }]
+    with connect(app.config['DATABASE_PATH']) as db:
+        owner = db.execute(
+            'SELECT id FROM users WHERE username=?', ('progressowner',)
+        ).fetchone()
+        submission_id = db.execute(
+            '''INSERT INTO submissions
+               (user_id, problem_id, language_id, source_code, verdict,
+                score, max_score, details_json, problem_json)
+               VALUES (?, 'X01', 54, 'int main(){}', 'Processing',
+                       10, 30, ?, ?)''',
+            (
+                owner['id'],
+                json.dumps(partial_details),
+                json.dumps(problem_snapshot)
+            )
+        ).lastrowid
+
+    response = client.get(f'/api/submissions/{submission_id}/status')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data['progress_completed'] == 1
+    assert data['progress_total'] == 3
+    assert data['progress_percent'] == 33
+    assert data['progress_phase'] == 'judging'
+    assert 'hidden 1' not in response.get_data(as_text=True)
