@@ -1179,18 +1179,61 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         return jsonify(public)
 
     # English problem statements are served from the local translation catalogue.
+    # Library problems share this page, so resolve them from their visible contest
+    # when contest_id is supplied instead of looking only in the global problem bank.
     @app.get('/api/problems/<pid>/translation')
     def translate_problem_page(pid):
-        p = next(
-            (x for x in problems() if str(x.get('id')) == str(pid)),
-            None
-        )
-        if not p:
-            return jsonify(error='Không tìm thấy bài'), 404
+        contest_id = request.args.get('contest_id', type=int)
+
+        if contest_id is not None:
+            user = current_user()
+            contest = get_contest_data(
+                contest_id,
+                allow_hidden=bool(user and user['is_admin'])
+            )
+            if not contest:
+                return jsonify(error='Không tìm thấy cuộc thi'), 404
+
+            item = next(
+                (
+                    problem for problem in contest.get('problems', [])
+                    if str(problem.get('id')) == str(pid)
+                ),
+                None
+            )
+            if not item:
+                return jsonify(error='Không tìm thấy bài trong cuộc thi'), 404
+
+            bank_item = next(
+                (problem for problem in problems()
+                 if str(problem.get('id')) == str(pid)),
+                None
+            )
+            p = dict(bank_item or {})
+            p.update(item)
+            p['id'] = str(pid)
+            p.setdefault('title', str(pid))
+            p.setdefault('statement', '')
+            p.setdefault('input_format', p.get('input_desc', ''))
+            p.setdefault('output_format', p.get('output_desc', ''))
+            p.setdefault('explanation', '')
+            p.setdefault('category', 'Contest')
+            p.setdefault('difficulty', '')
+            p.setdefault('author', '')
+            p.setdefault('created_by', 'Admin')
+        else:
+            p = next(
+                (x for x in problems() if str(x.get('id')) == str(pid)),
+                None
+            )
+            if not p:
+                return jsonify(error='Không tìm thấy bài'), 404
 
         catalogue_path = Path(app.config['PROBLEM_TRANSLATIONS_PATH'])
         try:
             catalogue = json.loads(catalogue_path.read_text(encoding='utf-8'))
+            if not isinstance(catalogue, dict):
+                raise ValueError('Translation catalogue root must be an object')
         except (OSError, ValueError, TypeError):
             app.logger.exception('Could not load the internal English translation catalogue')
             catalogue = {}
