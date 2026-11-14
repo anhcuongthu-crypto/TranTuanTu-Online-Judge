@@ -536,7 +536,8 @@ def test_mobile_navigation_toggle_is_accessible_and_keyboard_operable(tmp_path):
     assert "oj-language-changed" in script
 
 
-def test_internal_problem_translation_uses_authored_local_catalogue(tmp_path):
+def test_internal_problem_translation_uses_authored_local_catalogue(tmp_path, monkeypatch):
+    monkeypatch.setattr(app_module, 'translate_to_english', lambda value: None)
     client = setup(tmp_path)
     catalogue = tmp_path / 'problem_translations.en.json'
     catalogue.write_text(json.dumps({
@@ -565,7 +566,8 @@ def test_internal_problem_translation_uses_authored_local_catalogue(tmp_path):
     assert response.json['subtasks'][0]['name'] == 'All test cases'
 
 
-def test_internal_problem_translation_falls_back_without_external_service(tmp_path):
+def test_internal_problem_translation_falls_back_without_external_service(tmp_path, monkeypatch):
+    monkeypatch.setattr(app_module, 'translate_to_english', lambda value: None)
     client = setup(tmp_path)
     response = client.get('/api/problems/X01/translation')
     assert response.status_code == 200
@@ -1005,7 +1007,8 @@ def test_english_problem_page_never_restores_vietnamese_on_translation_failure(t
     assert 'setText("problem-title", original.title)' not in page
 
 
-def test_incomplete_translation_never_falls_back_to_vietnamese_fields(tmp_path):
+def test_incomplete_translation_never_falls_back_to_vietnamese_fields(tmp_path, monkeypatch):
+    monkeypatch.setattr(app_module, 'translate_to_english', lambda value: None)
     client = setup(tmp_path)
     catalogue = tmp_path / 'problem_translations.en.json'
     catalogue.write_text(json.dumps({
@@ -1028,3 +1031,20 @@ def test_incomplete_translation_never_falls_back_to_vietnamese_fields(tmp_path):
         'The English output description is not available yet.'
     )
     assert 'Một dòng' not in response.get_data(as_text=True)
+
+
+def test_submit_editor_uses_real_newlines_for_multiline_editing(tmp_path):
+    client = setup(tmp_path)
+    page = client.get('/problems/X01/submit')
+    assert page.status_code == 200
+    html = page.get_data(as_text=True)
+
+    # JavaScript must receive newline and whitespace escapes, not literal
+    # backslash-plus-letter sequences, for line counting and indentation.
+    assert r"value.split('\n')" in html
+    assert r"value.lastIndexOf('\n'" in html
+    assert r"value.indexOf('\n'" in html
+    assert r"setRangeText('\n'" in html
+    assert r"before.match(/^\s*/)" in html
+    assert r"selected.split('\n')" in html
+    assert r"join('\n')" in html
