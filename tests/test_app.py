@@ -70,6 +70,9 @@ def test_recently_viewed_problem_filter_and_tracking(tmp_path):
         page = detail.get_data(as_text=True)
         assert "trantu-oj:recent-problems:v1" in page
         assert "localStorage.setItem" in page
+        title_block = page.split("<title>", 1)[1].split("</title>", 1)[0]
+        assert "<script>" not in title_block
+        assert "id !== String(problemId)" in page
 
     script = client.get('/static/app.js')
     assert script.status_code == 200
