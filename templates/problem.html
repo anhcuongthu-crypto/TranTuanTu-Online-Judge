@@ -777,7 +777,7 @@
         if (!loadingPromise) {
             loadingPromise = (async function () {
                 const response = await fetch(
-                    "/api/problems/{{ problem.id|urlencode }}/translation"
+                    "/api/problems/{{ problem.id|urlencode }}/translation{% if contest_id %}?contest_id={{ contest_id }}{% endif %}"
                 );
 
                 if (!response.ok) {

@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta
 import app as app_module
 from app import create_app
 from oj.database import connect
@@ -617,3 +618,105 @@ def test_public_pages_and_contest_api_smoke(tmp_path):
     assert contests.status_code == 200
     assert contests.is_json
     assert contests.get_json() == []
+
+
+def test_library_custom_problem_translation_uses_contest_context(tmp_path):
+    client = setup(tmp_path)
+    app = client.application
+    now = datetime.now()
+    start = (now - timedelta(hours=1)).isoformat(timespec='seconds')
+    end = (now + timedelta(hours=1)).isoformat(timespec='seconds')
+
+    with connect(app.config['DATABASE_PATH']) as db:
+        contest_id = db.execute(
+            '''INSERT INTO contests
+               (title, description, start_time, end_time, is_visible)
+               VALUES (?, ?, ?, ?, 1)''',
+            ('Translation regression', '', start, end)
+        ).lastrowid
+        db.execute(
+            '''INSERT INTO contest_problems
+               (contest_id, problem_id, position, total_score)
+               VALUES (?, ?, 0, 100)''',
+            (contest_id, 'CUSTOM01')
+        )
+        db.execute(
+            '''INSERT INTO contest_custom_problems
+               (contest_id, problem_id, title, statement, input_desc,
+                output_desc, subtasks_json, total_score, sample_input,
+                sample_output)
+               VALUES (?, ?, ?, ?, ?, ?, ?, 100, ?, ?)''',
+            (
+                contest_id, 'CUSTOM01', 'Bài tự tạo', 'Cho số n.',
+                'Một số nguyên n.', 'In n.', json.dumps([{
+                    'id': 'all', 'name': 'Toàn bộ', 'score': 100,
+                    'constraints': '1 <= n <= 10'
+                }]), '5', '5'
+            )
+        )
+
+    catalogue = tmp_path / 'problem_translations.en.json'
+    catalogue.write_text(json.dumps({
+        'CUSTOM01': {
+            'title': 'Custom Problem',
+            'statement': 'Given an integer n.',
+            'input_format': 'One integer n.',
+            'output_format': 'Print n.',
+            'subtasks': [{
+                'id': 'all',
+                'name': 'All tests',
+                'constraints': '1 <= n <= 10'
+            }]
+        }
+    }), encoding='utf-8')
+    app.config['PROBLEM_TRANSLATIONS_PATH'] = str(catalogue)
+
+    response = client.get(
+        f'/api/problems/CUSTOM01/translation?contest_id={contest_id}'
+    )
+    assert response.status_code == 200
+    assert response.json['translation_available'] is True
+    assert response.json['title'] == 'Custom Problem'
+    assert response.json['statement'] == 'Given an integer n.'
+    assert response.json['subtasks'][0]['name'] == 'All tests'
+
+    page = client.get(f'/library/{contest_id}/problem/CUSTOM01')
+    assert page.status_code == 200
+    assert (
+        f'/api/problems/CUSTOM01/translation?contest_id={contest_id}'
+        in page.get_data(as_text=True)
+    )
+
+
+def test_library_translation_does_not_expose_hidden_contest(tmp_path):
+    client = setup(tmp_path)
+    app = client.application
+    now = datetime.now()
+    with connect(app.config['DATABASE_PATH']) as db:
+        contest_id = db.execute(
+            '''INSERT INTO contests
+               (title, description, start_time, end_time, is_visible)
+               VALUES (?, ?, ?, ?, 0)''',
+            (
+                'Hidden contest', '',
+                (now - timedelta(hours=1)).isoformat(timespec='seconds'),
+                (now + timedelta(hours=1)).isoformat(timespec='seconds')
+            )
+        ).lastrowid
+        db.execute(
+            '''INSERT INTO contest_problems
+               (contest_id, problem_id, position, total_score)
+               VALUES (?, ?, 0, 100)''',
+            (contest_id, 'HIDDEN01')
+        )
+        db.execute(
+            '''INSERT INTO contest_custom_problems
+               (contest_id, problem_id, title, statement)
+               VALUES (?, ?, ?, ?)''',
+            (contest_id, 'HIDDEN01', 'Hidden', 'Hidden statement')
+        )
+
+    response = client.get(
+        f'/api/problems/HIDDEN01/translation?contest_id={contest_id}'
+    )
+    assert response.status_code == 404
