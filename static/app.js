@@ -113,6 +113,14 @@ async function loadMyProgress(force = false) {
 // ==================== DANH SÁCH BÀI TẬP ====================
 
 // Danh sách bài đã lưu chỉ nằm trên trình duyệt hiện tại.
+// Bài đã xem gần đây được lưu riêng trên trình duyệt hiện tại.
+const RECENT_PROBLEMS_KEY = 'trantu-oj:recent-problems:v1';
+const recentProblemIds = new Set();
+try {
+    const recent = JSON.parse(localStorage.getItem(RECENT_PROBLEMS_KEY) || '[]');
+    if (Array.isArray(recent)) recent.slice(0, 30).forEach(id => recentProblemIds.add(String(id)));
+} catch {}
+
 const SAVED_PROBLEMS_KEY = 'trantu-oj:saved-problems:v1';
 const anonymousSavedProblemIds = new Set();
 const savedProblemIds = new Set();
@@ -250,6 +258,7 @@ function getFilteredProblems() {
     const difficulty = document.querySelector('#filter-difficulty')?.value || '';
     const status = document.querySelector('#filter-status')?.value || '';
     const savedOnly = !!document.querySelector('#filter-saved')?.checked;
+    const recentOnly = !!document.querySelector('#filter-recent')?.checked;
 
     return items.filter(p => {
         const matchesQuery = `${p.id ?? ''} ${p.title ?? ''} ${p.category ?? ''} ${p.difficulty ?? ''}`
@@ -261,7 +270,8 @@ function getFilteredProblems() {
         const actualStatus = progress?.solved ? 'solved' : progress ? 'attempted' : 'unsolved';
         const matchesStatus = !status || actualStatus === status;
         const matchesSaved = !savedOnly || savedProblemIds.has(String(p.id));
-        return matchesQuery && matchesCategory && matchesDifficulty && matchesStatus && matchesSaved;
+        const matchesRecent = !recentOnly || recentProblemIds.has(String(p.id));
+        return matchesQuery && matchesCategory && matchesDifficulty && matchesStatus && matchesSaved && matchesRecent;
     });
 }
 
@@ -1178,7 +1188,7 @@ document.addEventListener('keydown', event => {
 });
 
 // Bộ lọc kho bài tập.
-['#search', '#filter-category', '#filter-difficulty', '#filter-status', '#filter-saved'].forEach(selector => {
+['#search', '#filter-category', '#filter-difficulty', '#filter-status', '#filter-saved', '#filter-recent'].forEach(selector => {
     document.querySelector(selector)?.addEventListener(
         selector === '#search' ? 'input' : 'change',
         () => { problemPage = 1; renderProblems(getFilteredProblems()); }
@@ -1193,9 +1203,11 @@ document.querySelector('#reset-problem-filters')?.addEventListener('click', () =
     if (category) category.value = '';
     const status = document.querySelector('#filter-status');
     const saved = document.querySelector('#filter-saved');
+    const recent = document.querySelector('#filter-recent');
     if (difficulty) difficulty.value = '';
     if (status) status.value = '';
     if (saved) saved.checked = false;
+    if (recent) recent.checked = false;
     problemPage = 1;
     renderProblems(getFilteredProblems());
 });
