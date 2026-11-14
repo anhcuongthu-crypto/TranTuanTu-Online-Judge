@@ -350,6 +350,10 @@ def create_app(test_config=None):
             'PROBLEMS_PATH',
             str(Path(__file__).parent / 'data' / 'problems.json')
         ),
+        PROBLEM_TRANSLATIONS_PATH=os.getenv(
+            'PROBLEM_TRANSLATIONS_PATH',
+            str(Path(__file__).parent / 'data' / 'problem_translations.en.json')
+        ),
         JUDGE0_URL=os.getenv('JUDGE0_URL', 'https://ce.judge0.com'),
         JUDGE0_API_KEY=os.getenv('JUDGE0_API_KEY', ''),
         ADMIN_USERNAME=os.getenv('ADMIN_USERNAME', 'admin'),
@@ -1184,7 +1188,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         if not p:
             return jsonify(error='Không tìm thấy bài'), 404
 
-        catalogue_path = Path(__file__).parent / 'data' / 'problem_translations.en.json'
+        catalogue_path = Path(app.config['PROBLEM_TRANSLATIONS_PATH'])
         try:
             catalogue = json.loads(catalogue_path.read_text(encoding='utf-8'))
         except (OSError, ValueError, TypeError):
