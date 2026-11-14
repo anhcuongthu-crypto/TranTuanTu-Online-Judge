@@ -544,8 +544,10 @@
         sampleInput: "Sample Input",
         sampleOutput: "Sample Output",
         translationLoading: "Loading the English version...",
-        translationUnavailable: "An English version has not been added for this problem yet. The original Vietnamese content is shown.",
-        translationLoadFailed: "The English version could not be loaded. The original Vietnamese content is shown."
+        translationUnavailable: "An English translation is not available for every part of this problem yet. Untranslated Vietnamese text is hidden.",
+        translationLoadFailed: "The English version could not be loaded. Vietnamese content is hidden in English mode.",
+        copyLink: "↗ Copy link",
+        pointsLabel: "points"
     };
 
     const interfaceVietnamese = {
@@ -578,8 +580,8 @@
         sampleInput: "Dữ liệu vào mẫu",
         sampleOutput: "Dữ liệu ra mẫu",
         translationLoading: "Đang tải bản tiếng Anh...",
-        translationUnavailable: "Bài này chưa có bản tiếng Anh được biên soạn. Đang hiển thị nội dung tiếng Việt gốc.",
-        translationLoadFailed: "Không thể tải bản tiếng Anh. Đang hiển thị nội dung tiếng Việt gốc."
+        translationUnavailable: "Bài này chưa có bản tiếng Anh đầy đủ.",
+        translationLoadFailed: "Không thể tải bản tiếng Anh."
     };
 
     let translated = null;
@@ -645,6 +647,7 @@
 
         setText("problem-label", labels.problem);
         setText("problem-back", labels.back);
+        setText("copy-problem-link", labels.copyLink || "↗ Sao chép liên kết");
         setText("sample-input-label", labels.sampleInput);
         setText("sample-output-label", labels.sampleOutput);
         setText("problem-data-heading", labels.data);
@@ -661,7 +664,7 @@
         setText("all-submissions-text", labels.allSubmissions);
 
         setText("info-heading", labels.info);
-        setText("info-score", labels.score);
+        setText("info-score", "✔ " + labels.score + ":");
         setText("info-time", labels.time);
         setText("info-memory", labels.memory);
         setText("info-input", labels.inputInfo);
@@ -755,19 +758,33 @@
     }
 
     function showEnglishFallback(message) {
+        const unavailable = {
+            title: "English translation unavailable",
+            difficulty: "Not specified",
+            statement: "The English version of this problem could not be loaded. Vietnamese content is hidden.",
+            input_format: "The English input description is not available.",
+            output_format: "The English output description is not available.",
+            explanation: "An English explanation is not available.",
+            category: "Problem"
+        };
         for (const key in translatedIds) {
             const element = document.getElementById(translatedIds[key]);
-            if (element) element.textContent = original[key] || "";
+            if (element) element.textContent = unavailable[key] || "";
         }
-        setText("info-author-value", original.author);
-        setText("info-created-value", original.created_by);
-        setText("info-category-value", original.category);
-        setText("problem-category-badge", original.category);
-        restoreSubtasks();
+        setText("info-author-value", "Not provided");
+        setText("info-created-value", "Admin");
+        setText("info-category-value", unavailable.category);
+        setText("problem-category-badge", unavailable.category);
+        document.querySelectorAll(".subtask-row").forEach((row, index) => {
+            const name = row.querySelector(".subtask-name");
+            const constraints = row.querySelector(".subtask-constraints");
+            if (name) name.textContent = "Subtask " + (index + 1);
+            if (constraints) constraints.textContent = "";
+        });
         setInterface("en");
         document.documentElement.lang = "en";
-        document.title = original.title + " — TranTu OJ";
-        status.textContent = message || interfaceEnglish.translationUnavailable;
+        document.title = unavailable.title + " — TranTu OJ";
+        status.textContent = message || interfaceEnglish.translationLoadFailed;
         status.classList.add("show");
     }
 
