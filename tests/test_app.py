@@ -56,6 +56,38 @@ def test_problemset_has_saved_problem_filter(tmp_path):
     assert 'Chỉ hiển thị bài đã lưu'.encode('utf-8') in response.data
 
 
+def test_saved_problems_sync_with_account_and_validate_ids(tmp_path):
+    client = setup(tmp_path)
+
+    assert client.get('/api/saved-problems').status_code == 401
+    register_and_login(client)
+
+    initial = client.get('/api/saved-problems')
+    assert initial.status_code == 200
+    assert initial.json['problem_ids'] == []
+
+    saved = client.post('/api/saved-problems', json={
+        'problem_ids': ['X01', 'X01'],
+        'saved': True
+    })
+    assert saved.status_code == 200
+    assert saved.json['problem_ids'] == ['X01']
+
+    invalid = client.post('/api/saved-problems', json={
+        'problem_id': 'NOT_A_REAL_PROBLEM',
+        'saved': True
+    })
+    assert invalid.status_code == 400
+    assert client.get('/api/saved-problems').json['problem_ids'] == ['X01']
+
+    removed = client.post('/api/saved-problems', json={
+        'problem_id': 'X01',
+        'saved': False
+    })
+    assert removed.status_code == 200
+    assert removed.json['problem_ids'] == []
+
+
 def test_registration_is_immediately_approved_and_username_unique(tmp_path):
     c = setup(tmp_path)
     r = c.post('/api/register', json={'username': 'tester', 'password': '12345678'})
