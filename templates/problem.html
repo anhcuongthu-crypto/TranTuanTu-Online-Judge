@@ -539,6 +539,7 @@
         language: "Language",
         points: "points",
         notUpdated: "Not updated",
+        copyLink: "↗ Copy link",
         inputInfo: "Input",
         outputInfo: "Output",
         sampleInput: "Sample Input",
@@ -575,6 +576,7 @@
         language: "Ngôn ngữ",
         points: "điểm",
         notUpdated: "Chưa cập nhật",
+        copyLink: "↗ Sao chép link",
         inputInfo: "Input",
         outputInfo: "Output",
         sampleInput: "Dữ liệu vào mẫu",
@@ -823,8 +825,33 @@
 
         const currentRequest = ++requestVersion;
 
+        // Replace server-rendered Vietnamese text immediately while the
+        // English catalogue is loading; never flash mixed-language content.
+        for (const key in translatedIds) {
+            const element = document.getElementById(translatedIds[key]);
+            if (element) {
+                element.textContent = key === "title"
+                    ? "Loading English version..."
+                    : key === "statement"
+                        ? "Loading the English problem statement..."
+                        : "";
+            }
+        }
+        setText("problem-difficulty", "Loading...");
+        setText("problem-category-badge", "Problem");
+        setText("info-category-value", "Problem");
+        setText("info-author-value", "Not provided");
+        setText("info-created-value", "Admin");
+        document.querySelectorAll(".subtask-row").forEach((row, index) => {
+            const name = row.querySelector(".subtask-name");
+            const constraints = row.querySelector(".subtask-constraints");
+            if (name) name.textContent = "Subtask " + (index + 1);
+            if (constraints) constraints.textContent = "";
+        });
         status.textContent = interfaceEnglish.translationLoading;
         status.classList.add("show");
+        document.documentElement.lang = "en";
+        document.title = "Loading English version — TranTu OJ";
 
         try {
             const data = await fetchTranslation();
