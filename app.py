@@ -1918,7 +1918,11 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         )
         if result['progress_total'] == 0 and problem_snapshot:
             try:
-                snapshot = json.loads(problem_snapshot)
+                snapshot = (
+                    problem_snapshot
+                    if isinstance(problem_snapshot, dict)
+                    else json.loads(problem_snapshot)
+                )
                 result['progress_total'] = sum(
                     len(subtask.get('tests') or [])
                     for subtask in snapshot.get('subtasks', [])
