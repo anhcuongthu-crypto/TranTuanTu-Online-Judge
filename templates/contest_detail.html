@@ -672,6 +672,7 @@ let contestData = null;
 let problemList = [];
 let isAdmin = false;
 let submissionRefreshTimer = null;
+let contestCountdownTimer = null;
 let selectedProblemId = null;
 
 function esc(value) {
@@ -765,6 +766,36 @@ async function loadAdmin() {
     }
 }
 
+function updateContestCountdown() {
+    const target = $("contest-countdown");
+    if (!target || !contestData) return;
+    const now = Date.now();
+    const start = new Date(contestData.start_time).getTime();
+    const end = new Date(contestData.end_time).getTime();
+    if (!Number.isFinite(start) || !Number.isFinite(end)) {
+        target.textContent = 'Chưa có thời gian hợp lệ';
+        return;
+    }
+    const isUpcoming = now < start;
+    const isEnded = now >= end;
+    const remaining = Math.max(0, (isUpcoming ? start : end) - now);
+    const seconds = Math.floor(remaining / 1000);
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    const clock = [days ? days + ' ngày' : '', String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + ':' + String(secs).padStart(2, '0')].filter(Boolean).join(' ');
+    target.textContent = isEnded ? 'Cuộc thi đã kết thúc' : (isUpcoming ? 'Bắt đầu sau: ' : 'Kết thúc sau: ') + clock;
+    const nextState = isEnded ? 'ended' : isUpcoming ? 'upcoming' : 'running';
+    if (contestData.state !== nextState) {
+        contestData.state = nextState;
+        const button = $("submitButton");
+        if (button) button.disabled = nextState !== 'running';
+        const message = $("submitMessage");
+        if (message) message.textContent = nextState === 'upcoming' ? t("notStarted") : nextState === 'ended' ? t("finished") : '';
+    }
+}
+
 function renderContest() {
     if (!contestData) return;
 
@@ -785,9 +816,13 @@ function renderContest() {
         <div class="contest-state-summary">
             <div class="contest-state-title">${esc(data.state === 'ended' ? 'Kỳ thi đã kết thúc.' : data.state === 'upcoming' ? 'Kỳ thi chưa bắt đầu.' : 'Kỳ thi đang diễn ra.')}</div>
             <strong>${esc(dateText(data.start_time))}</strong>
+            <div id="contest-countdown" class="contest-countdown" role="timer" aria-live="off"></div>
             <div class="muted">${esc(data.description || t("noDescription"))}</div>
         </div>
     `;
+
+    updateContestCountdown();
+    if (!contestCountdownTimer) contestCountdownTimer = setInterval(updateContestCountdown, 1000);
 
     $("contestInfo").innerHTML = `
         <p><b>${t("start")}</b><br>${esc(dateText(data.start_time))}</p>
@@ -1423,6 +1458,9 @@ window.addEventListener('beforeunload', () => {
     if (submissionRefreshTimer) {
         clearInterval(submissionRefreshTimer);
     }
+    if (contestCountdownTimer) {
+        clearInterval(contestCountdownTimer);
+    }
 });
 
 init();
@@ -1458,6 +1496,9 @@ init();
 @media(max-width:600px){.contest-state-title{font-size:27px!important}#contestInfo{padding:0 10px 10px!important}.contest-clue-tabs a{padding:0 10px!important;font-size:13px!important}}
 </style>
 
+<style id="contest-countdown-style">
+.contest-countdown{display:inline-block;margin:8px auto 0;padding:7px 12px;border:1px solid #cbd9e5;border-radius:6px;background:#f3f8fc;color:#176b91;font:700 14px/1.4 ui-monospace,monospace}
+</style>
 <style id="contest-statistics-data-style">
 .contest-stats-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;margin:12px 0!important}
 .contest-stats-grid>div{display:flex!important;flex-direction:column!important;gap:4px!important;padding:12px 10px!important;border:1px solid #d4d9de!important;background:#fff!important}
