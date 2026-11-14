@@ -58,6 +58,19 @@ def test_problemset_has_saved_problem_filter(tmp_path):
 
 
 
+def test_problemset_can_clear_recently_viewed_history(tmp_path):
+    client = setup(tmp_path)
+    response = client.get('/problems')
+    assert response.status_code == 200
+    assert b'id="clear-recent-problems"' in response.data
+
+    script = client.get('/static/app.js')
+    assert script.status_code == 200
+    source = script.get_data(as_text=True)
+    assert "recentProblemIds.clear()" in source
+    assert "localStorage.removeItem(RECENT_PROBLEMS_KEY)" in source
+    assert "id !== String(problemId)" not in source
+
 def test_recently_viewed_problem_filter_and_tracking(tmp_path):
     client = setup(tmp_path)
     listing = client.get('/problems')
