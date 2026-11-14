@@ -27,6 +27,33 @@
 
 </section>
 
+<section class="section-block home-recent-section" id="home-recent-section" hidden>
+    <div class="home-recent-heading">
+        <div>
+            <span class="eyebrow">PICK UP WHERE YOU LEFT OFF</span>
+            <h2>Tiếp tục luyện tập</h2>
+            <p class="muted">Những bài tập bạn đã xem gần đây trên thiết bị này.</p>
+        </div>
+        <button type="button" class="button button-ghost" id="clear-home-recent">Xóa lịch sử</button>
+    </div>
+    <div class="home-recent-grid" id="home-recent-list"></div>
+</section>
+<style id="home-recent-problems-style">
+.home-recent-section[hidden]{display:none!important}
+.home-recent-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:14px}
+.home-recent-heading h2{margin:5px 0;font-size:clamp(21px,2.5vw,28px)}
+.home-recent-heading p{margin:0}
+.home-recent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.home-recent-card{display:flex;flex-direction:column;gap:8px;min-height:125px;padding:16px;border:1px solid var(--border-color,#dce3ee);border-radius:14px;background:var(--card-bg,#fff);text-decoration:none;color:inherit;transition:transform .18s ease,border-color .18s ease}
+.home-recent-card:hover{transform:translateY(-2px);border-color:#6485e8}
+.home-recent-card strong{font-size:15px}
+.home-recent-card small{color:var(--muted,#738096)}
+.home-recent-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:auto}
+.home-recent-meta span{font-size:11px;padding:4px 8px;border-radius:20px;background:var(--surface-2,#f1f4fa)}
+@media(max-width:560px){.home-recent-heading{align-items:flex-start;flex-direction:column}.home-recent-heading #clear-home-recent{align-self:flex-start}}
+@media(prefers-reduced-motion:reduce){.home-recent-card{transition:none}.home-recent-card:hover{transform:none}}
+</style>
+
 <section class="home-workflow" aria-labelledby="workflow-title">
     <div class="workflow-intro">
         <span class="eyebrow">YOUR CODING JOURNEY</span>
