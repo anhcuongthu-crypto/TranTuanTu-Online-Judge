@@ -533,3 +533,41 @@ def test_mobile_navigation_toggle_is_accessible_and_keyboard_operable(tmp_path):
     assert 'MOBILE NAVIGATION' in script
     assert "event.key === 'Escape'" in script
     assert "oj-language-changed" in script
+
+
+def test_internal_problem_translation_uses_authored_local_catalogue(tmp_path):
+    client = setup(tmp_path)
+    catalogue = tmp_path / 'problem_translations.en.json'
+    catalogue.write_text(json.dumps({
+        'X01': {
+            'title': 'Sum of Two Numbers',
+            'statement': 'Given two integers a and b. Print their sum.',
+            'input_format': 'One line contains a and b.',
+            'output_format': 'Print a + b.',
+            'category': 'Fundamentals',
+            'difficulty': 'Easy',
+            'subtasks': [{
+                'id': 'all',
+                'name': 'All test cases',
+                'constraints': '1 <= a, b <= 100'
+            }]
+        }
+    }), encoding='utf-8')
+    client.application.config['PROBLEM_TRANSLATIONS_PATH'] = str(catalogue)
+
+    response = client.get('/api/problems/X01/translation')
+    assert response.status_code == 200
+    assert response.json['translation_available'] is True
+    assert response.json['translation_source'] == 'internal'
+    assert response.json['title'] == 'Sum of Two Numbers'
+    assert response.json['statement'].startswith('Given two integers')
+    assert response.json['subtasks'][0]['name'] == 'All test cases'
+
+
+def test_internal_problem_translation_falls_back_without_external_service(tmp_path):
+    client = setup(tmp_path)
+    response = client.get('/api/problems/X01/translation')
+    assert response.status_code == 200
+    assert response.json['translation_available'] is False
+    assert response.json['translation_source'] == 'internal'
+    assert response.json['statement'] == 'Cho hai số nguyên a, b. In tổng a+b.'
