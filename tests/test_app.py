@@ -1028,3 +1028,20 @@ def test_incomplete_translation_never_falls_back_to_vietnamese_fields(tmp_path):
         'The English output description is not available yet.'
     )
     assert 'Một dòng' not in response.get_data(as_text=True)
+
+
+def test_submit_editor_uses_real_newlines_for_multiline_editing(tmp_path):
+    client = setup(tmp_path)
+    page = client.get('/problems/X01/submit')
+    assert page.status_code == 200
+    html = page.get_data(as_text=True)
+
+    # JavaScript must receive newline and whitespace escapes, not literal
+    # backslash-plus-letter sequences, for line counting and indentation.
+    assert r"value.split('\n')" in html
+    assert r"value.lastIndexOf('\n'" in html
+    assert r"value.indexOf('\n'" in html
+    assert r"setRangeText('\n'" in html
+    assert r"before.match(/^\s*/)" in html
+    assert r"selected.split('\n')" in html
+    assert r"join('\n')" in html
