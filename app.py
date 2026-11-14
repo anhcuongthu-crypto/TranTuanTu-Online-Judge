@@ -1498,6 +1498,67 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         # current_user() đã lấy đủ dữ liệu hồ sơ trong một kết nối DB.
         return jsonify(user=user)
 
+    @app.route('/api/saved-problems', methods=['GET', 'POST'])
+    def saved_problems_api():
+        with connect(app.config['DATABASE_PATH']) as db:
+            user = current_user(db=db)
+            if not user:
+                return jsonify(error='Cần đăng nhập để đồng bộ bài đã lưu.'), 401
+
+            if request.method == 'GET':
+                rows = db.execute(
+                    '''SELECT problem_id FROM saved_problems
+                       WHERE user_id=?
+                       ORDER BY created_at DESC, problem_id''',
+                    (user['id'],)
+                ).fetchall()
+                return jsonify(problem_ids=[row['problem_id'] for row in rows])
+
+            data = request.get_json(silent=True) or {}
+            raw_ids = data.get('problem_ids')
+            if raw_ids is None and data.get('problem_id') is not None:
+                raw_ids = [data.get('problem_id')]
+            if not isinstance(raw_ids, list) or len(raw_ids) > 1000:
+                return jsonify(error='Danh sách bài đã lưu không hợp lệ.'), 400
+
+            problem_ids = list(dict.fromkeys(
+                str(value).strip() for value in raw_ids
+                if isinstance(value, (str, int)) and str(value).strip()
+            ))
+            known_ids = {str(problem.get('id')) for problem in problems()}
+            invalid_ids = [pid for pid in problem_ids if pid not in known_ids]
+            if invalid_ids:
+                return jsonify(error='Có mã bài không tồn tại.'), 400
+
+            saved = data.get('saved', True)
+            if not isinstance(saved, bool):
+                return jsonify(error='Trạng thái lưu không hợp lệ.'), 400
+
+            if saved:
+                db.executemany(
+                    '''INSERT INTO saved_problems (user_id, problem_id)
+                       VALUES (?, ?)
+                       ON CONFLICT(user_id, problem_id) DO NOTHING''',
+                    [(user['id'], pid) for pid in problem_ids]
+                )
+            elif problem_ids:
+                db.executemany(
+                    'DELETE FROM saved_problems WHERE user_id=? AND problem_id=?',
+                    [(user['id'], pid) for pid in problem_ids]
+                )
+
+            rows = db.execute(
+                '''SELECT problem_id FROM saved_problems
+                   WHERE user_id=?
+                   ORDER BY created_at DESC, problem_id''',
+                (user['id'],)
+            ).fetchall()
+            return jsonify(
+                ok=True,
+                problem_ids=[row['problem_id'] for row in rows]
+            )
+
+
     @app.route('/profile', methods=['GET'])
     def profile_page():
         if not current_user():
