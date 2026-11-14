@@ -54,6 +54,23 @@ int main() {
     return 0;
 }</textarea>
 
+    <section class="run-panel" style="margin-top:22px;padding:16px;border:1px solid #d4d9de;background:#fff;">
+        <h2 data-i18n="run_title" style="margin:0 0 12px;">Chạy thử mã nguồn</h2>
+        <label for="run-input" data-i18n="run_input">Dữ liệu đầu vào (stdin)</label>
+        <textarea id="run-input" rows="6" data-i18n-placeholder="run_input_placeholder"
+            placeholder="Nhập dữ liệu đầu vào tại đây..."
+            style="display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:10px;font:13px/1.5 monospace;color:#34495e;background:#fff;border:1px solid #cbd3d9;border-radius:3px;">{{ problem.sample_input|default('', true) }}</textarea>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;">
+            <button type="button" id="run-code" class="button button-ghost" data-i18n="run_button">▶ Chạy thử</button>
+            <span id="run-meta" class="muted" role="status" aria-live="polite"></span>
+        </div>
+        <div style="margin-top:14px;">
+            <strong data-i18n="run_output">Kết quả chạy thử</strong>
+            <pre id="run-output" aria-live="polite" data-i18n="run_ready"
+                style="white-space:pre-wrap;overflow-wrap:anywhere;min-height:64px;margin-top:8px;padding:12px;background:#f5f8fa;color:#34495e;border:1px solid #dce4ea;">Nhập dữ liệu đầu vào rồi nhấn Chạy thử.</pre>
+        </div>
+    </section>
+
     <div class="editor-toolbar" role="group" aria-label="Công cụ soạn mã">
         <button type="button" id="copy-source" class="button button-ghost">Sao chép mã</button>
         <button type="button" id="restore-starter" class="button button-ghost">Khôi phục mẫu</button>
@@ -85,6 +102,11 @@ int main() {
 (() => {
  const button=document.getElementById('submit'), source=document.getElementById('source');
  const language=document.getElementById('language'), result=document.getElementById('result');
+ const runButton=document.getElementById('run-code');
+ const runInput=document.getElementById('run-input');
+ const runOutput=document.getElementById('run-output');
+ const runMeta=document.getElementById('run-meta');
+ const translate=(key,fallback)=>window.OJ_I18N?.t(key,fallback)||fallback;
  const draftStatus=document.getElementById('draft-status');
  const problemId=button.dataset.problem||'unknown', contestId=button.dataset.contest||'practice';
  const draftKey=lang=>`trantuoj:draft:${contestId}:${problemId}:${lang}`;
@@ -178,6 +200,42 @@ if __name__ == "__main__":
   }
  });
  window.addEventListener('beforeunload',()=>{clearTimeout(saveTimer);try{localStorage.setItem(draftKey(activeLanguage),source.value);}catch(error){}});
+
+ runButton?.addEventListener('click',async()=>{
+  const code=source.value;
+  if(!code.trim()){runOutput.textContent=translate('run_no_code','Bạn chưa nhập mã nguồn.');source.focus();return;}
+  runButton.disabled=true;
+  runOutput.textContent=translate('run_running','Đang biên dịch và chạy...');
+  runMeta.textContent='';
+  try{
+   const response=await fetch('/api/run',{
+    method:'POST',
+    credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+     problem_id:problemId,
+     contest_id:contestId==='practice'?'':contestId,
+     source_code:code,
+     language_id:Number(language.value),
+     stdin:runInput?.value||''
+    })
+   });
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok)throw new Error(data.error||translate('run_error','Không thể chạy thử.'));
+   const status=String(data.status||'Unknown');
+   const details=[data.compile_output,data.stderr,data.message].filter(Boolean).join('\n').trim();
+   const output=String(data.stdout||'');
+   runOutput.textContent=(output||translate('run_empty_output','(Chương trình không in ra dữ liệu.)'))+(details?'\n\n'+details:'');
+   const metrics=[];
+   if(data.time!==null&&data.time!==undefined)metrics.push(data.time+' s');
+   if(data.memory!==null&&data.memory!==undefined)metrics.push(data.memory+' KB');
+   runMeta.textContent=status+(metrics.length?' · '+metrics.join(' · '):'');
+  }catch(error){
+   runOutput.textContent=error.message||translate('run_error','Không thể chạy thử.');
+  }finally{
+   runButton.disabled=false;
+  }
+ });
 
  button.addEventListener('click',async()=>{
   const code=source.value;
