@@ -850,3 +850,18 @@ def test_submission_code_and_status_are_private_to_owner(tmp_path):
     for suffix in ('code', 'status'):
         response = client.get(f'/api/submissions/{submission_id}/{suffix}')
         assert response.status_code == 403
+
+
+
+def test_submit_editor_has_safe_drafts_and_productivity_shortcuts(tmp_path):
+    client = setup(tmp_path)
+    response = client.get('/problems/X01/submit')
+    assert response.status_code == 200
+    page = response.get_data(as_text=True)
+    assert 'id="copy-source"' in page
+    assert 'id="restore-starter"' in page
+    assert 'id="editor-stats"' in page
+    assert "beforeunload" in page
+    assert "event.key==='Enter'" in page
+    assert "event.shiftKey" in page
+    assert "event.key==='/'" in page
