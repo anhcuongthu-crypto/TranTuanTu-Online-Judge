@@ -30,7 +30,8 @@ from oj.database import (
     DB_INTEGRITY_ERRORS, DB_POOL_TIMEOUT_ERRORS,
     DB_UNAVAILABLE_ERRORS
 )
-from oj.job_queue import enqueue, QueueFullError, recover_pending
+from oj.job_queue import enqueue, QueueFullError, recover_pending, _prepare_freopen_source
+from oj.judge import Judge0, JudgeError
 from oj.admin import register_admin_routes
 from oj.history import (
     initialize_history,
