@@ -350,6 +350,10 @@ def create_app(test_config=None):
             'PROBLEMS_PATH',
             str(Path(__file__).parent / 'data' / 'problems.json')
         ),
+        PROBLEM_TRANSLATIONS_PATH=os.getenv(
+            'PROBLEM_TRANSLATIONS_PATH',
+            str(Path(__file__).parent / 'data' / 'problem_translations.en.json')
+        ),
         JUDGE0_URL=os.getenv('JUDGE0_URL', 'https://ce.judge0.com'),
         JUDGE0_API_KEY=os.getenv('JUDGE0_API_KEY', ''),
         ADMIN_USERNAME=os.getenv('ADMIN_USERNAME', 'admin'),
@@ -537,202 +541,9 @@ def create_app(test_config=None):
         nonlocal problems_cache
         with problems_cache_lock:
             problems_cache = data
-        # ==================== AUTO TRANSLATE PROBLEM ====================
-
-    # Bounded LRU-like caches: avoid retaining every unique statement forever.
-    problem_translation_cache = {}
-    problem_translation_failures = {}
-    translation_cache_lock = threading.Lock()
-    _TRANSLATION_CACHE_LIMIT = 500
-
-    def get_translation_cache(key):
-        with translation_cache_lock:
-            value = problem_translation_cache.get(key)
-            if value is not None:
-                problem_translation_cache.pop(key, None)
-                problem_translation_cache[key] = value
-            return value
-
-    def set_translation_cache(key, value):
-        with translation_cache_lock:
-            problem_translation_cache.pop(key, None)
-            problem_translation_cache[key] = value
-            while len(problem_translation_cache) > _TRANSLATION_CACHE_LIMIT:
-                problem_translation_cache.pop(next(iter(problem_translation_cache)))
-
-    def get_translation_failure(key):
-        now = time.monotonic()
-        with translation_cache_lock:
-            failed_at = problem_translation_failures.get(key)
-            if failed_at is not None and now - failed_at >= 300:
-                problem_translation_failures.pop(key, None)
-                return None
-            return failed_at
-
-    def set_translation_failure(key):
-        now = time.monotonic()
-        with translation_cache_lock:
-            expired = [
-                key for key, stamp in problem_translation_failures.items()
-                if now - stamp >= 300
-            ]
-            for old_key in expired:
-                problem_translation_failures.pop(old_key, None)
-            problem_translation_failures.pop(key, None)
-            problem_translation_failures[key] = now
-            while len(problem_translation_failures) > _TRANSLATION_CACHE_LIMIT:
-                problem_translation_failures.pop(next(iter(problem_translation_failures)))
-
-    translation_provider_cooldown = {
-        'google': 0.0,
-        'mymemory': 0.0
-    }
-    translation_provider_lock = threading.Lock()
-
-    def translation_provider_available(name):
-        with translation_provider_lock:
-            return time.monotonic() >= translation_provider_cooldown[name]
-
-    def cool_down_translation_provider(name, seconds=300):
-        with translation_provider_lock:
-            translation_provider_cooldown[name] = max(
-                translation_provider_cooldown[name],
-                time.monotonic() + seconds
-            )
-
-    def translate_problem_text(text):
-        text = str(text or "")
-        if not text.strip():
-            return ""
-
-        cached_translation = get_translation_cache(text)
-        if cached_translation is not None:
-            return cached_translation
-
-        failed_at = get_translation_failure(text)
-        if failed_at is not None:
-            return text
-
-        normalized_text = re.sub(r"\s+", " ", text).strip()
-        known_translations = {
-            "Cho bốn số nguyên dương a, b, c, d. Biết rằng a, b là độ dài hai cạnh của hình chữ nhật thứ nhất; c, d là độ dài hai cạnh của hình chữ nhật thứ hai. Yêu cầu: Hãy tìm diện tích của hai hình chữ nhật và đưa ra diện tích lớn nhất.": (
-                "Given four positive integers a, b, c, and d. "
-                "The numbers a and b represent the lengths of the two "
-                "sides of the first rectangle, while c and d represent "
-                "the lengths of the two sides of the second rectangle. "
-                "Your task is to calculate the areas of both rectangles "
-                "and output the maximum area."
-            )
-        }
-        if normalized_text in known_translations:
-            translated = known_translations[normalized_text]
-            set_translation_cache(text, translated)
-            return translated
-
-        # Protect code, inline code, and HTML tags from machine translation.
-        protected_parts = []
-
-        def protect(match):
-            protected_parts.append(match.group(0))
-            return f" OJKEEP{len(protected_parts) - 1}TOKEN "
-
-        protected = re.sub(
-            r"\x60{3}[\s\S]*?\x60{3}|\x60[^\x60\n]*\x60|</?[A-Za-z][^>]*>",
-            protect,
-            text
-        )
-
-        words = re.findall(r"\S+\s*", protected)
-        chunks = []
-        current = ""
-        for word in words:
-            if current and len((current + word).encode("utf-8")) > 350:
-                chunks.append(current)
-                current = ""
-            current += word
-        if current:
-            chunks.append(current)
-
-        translated_chunks = []
-        for chunk in chunks:
-            translated_chunk = chunk
-
-            # Google Translate first, MyMemory as fallback. A 429 response
-            # opens a short circuit breaker so every page request does not
-            # repeatedly hit a provider that is already rate-limiting us.
-            if translation_provider_available('google'):
-                try:
-                    google_url = "https://translate.googleapis.com/translate_a/single?" + urlencode({
-                        "client": "gtx",
-                        "sl": "vi",
-                        "tl": "en",
-                        "dt": "t",
-                        "q": chunk
-                    })
-                    google_req = urllib.request.Request(
-                        google_url,
-                        headers={"User-Agent": "Mozilla/5.0 TranTu-OJ-Studio/1.2"}
-                    )
-                    with urllib.request.urlopen(google_req, timeout=2.5) as response:
-                        google_payload = json.loads(response.read().decode("utf-8"))
-
-                    segments = google_payload[0] if google_payload else []
-                    google_candidate = "".join(
-                        str(segment[0])
-                        for segment in segments
-                        if segment and segment[0]
-                    )
-                    if google_candidate.strip() and google_candidate.strip() != chunk.strip():
-                        translated_chunk = google_candidate
-                except urllib.error.HTTPError as exc:
-                    cool_down_translation_provider('google', 300 if exc.code == 429 else 60)
-                    app.logger.warning("Google translation HTTP error: %s", exc.code)
-                except Exception:
-                    cool_down_translation_provider('google', 60)
-                    app.logger.warning("Google translation failed; trying MyMemory")
-
-            if translated_chunk == chunk and translation_provider_available('mymemory'):
-                try:
-                    memory_url = "https://api.mymemory.translated.net/get?" + urlencode({
-                        "q": chunk,
-                        "langpair": "vi|en"
-                    })
-                    memory_req = urllib.request.Request(
-                        memory_url,
-                        headers={"User-Agent": "TranTu-OJ-Studio/1.2"}
-                    )
-                    with urllib.request.urlopen(memory_req, timeout=2.5) as response:
-                        memory_payload = json.loads(response.read().decode("utf-8"))
-
-                    memory_candidate = (
-                        (memory_payload.get("responseData") or {}).get("translatedText")
-                    )
-                    if (
-                        str(memory_payload.get("responseStatus")) == "200"
-                        and memory_candidate
-                        and memory_candidate.strip() != chunk.strip()
-                    ):
-                        translated_chunk = memory_candidate
-                    elif str(memory_payload.get("responseStatus")) == "429":
-                        cool_down_translation_provider('mymemory')
-                except urllib.error.HTTPError as exc:
-                    cool_down_translation_provider('mymemory', 300 if exc.code == 429 else 60)
-                    app.logger.warning("MyMemory translation HTTP error: %s", exc.code)
-                except Exception:
-                    cool_down_translation_provider('mymemory', 60)
-                    app.logger.warning("MyMemory translation failed for a problem chunk")
-
-            translated_chunks.append(translated_chunk)
-
-        translated = "".join(translated_chunks)
-        for i, part in enumerate(protected_parts):
-            translated = translated.replace(f"OJKEEP{i}TOKEN", part)
-
-        if translated != text:
-            set_translation_cache(text, translated)
-        else:
-            set_translation_failure(text)
-        return translated
+        # ==================== INTERNAL PROBLEM TRANSLATIONS ====================
+    # Translations are authored and version-controlled with the problem bank.
+    # No third-party translation service or outbound HTTP request is used.
 
     admin2_username = os.getenv('ADMIN2_USERNAME', '').strip()
     admin2_password = os.getenv('ADMIN2_PASSWORD', '')
@@ -1367,54 +1178,58 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         ]
         return jsonify(public)
 
-    # API tự động dịch đề sang tiếng Anh
+    # English problem statements are served from the local translation catalogue.
     @app.get('/api/problems/<pid>/translation')
     def translate_problem_page(pid):
         p = next(
             (x for x in problems() if str(x.get('id')) == str(pid)),
             None
         )
-
         if not p:
             return jsonify(error='Không tìm thấy bài'), 404
 
-        # Dịch toàn bộ nội dung văn bản của đề; giữ nguyên dữ liệu mẫu,
-        # mã bài, điểm số và thông tin định danh.
-        fields = [
-            'title',
-            'statement',
-            'input_format',
-            'output_format',
-            'input_desc',
-            'output_desc',
-            'explanation',
-            'note',
-            'notes',
-            'constraints',
-            'category',
-            'difficulty',
-            'author',
-            'created_by'
-        ]
+        catalogue_path = Path(app.config['PROBLEM_TRANSLATIONS_PATH'])
+        try:
+            catalogue = json.loads(catalogue_path.read_text(encoding='utf-8'))
+        except (OSError, ValueError, TypeError):
+            app.logger.exception('Could not load the internal English translation catalogue')
+            catalogue = {}
 
-        result = {}
+        authored = catalogue.get(str(pid), {})
+        if not isinstance(authored, dict):
+            authored = {}
 
-        for field in fields:
-            result[field] = translate_problem_text(p.get(field, ''))
+        fields = (
+            'title', 'statement', 'input_format', 'output_format',
+            'input_desc', 'output_desc', 'explanation', 'note', 'notes',
+            'constraints', 'category', 'difficulty', 'author', 'created_by'
+        )
+        result = {
+            field: authored.get(field) or p.get(field, '')
+            for field in fields
+        }
 
-        # Dịch cả tên và mô tả từng subtask để phần thang điểm không
-        # còn sót tiếng Việt khi người dùng chuyển sang English.
+        translated_subtasks = authored.get('subtasks', [])
+        translated_by_id = {
+            str(item.get('id')): item
+            for item in translated_subtasks
+            if isinstance(item, dict) and item.get('id') is not None
+        } if isinstance(translated_subtasks, list) else {}
+
         result['subtasks'] = []
         for subtask in p.get('subtasks', []):
+            translated = translated_by_id.get(str(subtask.get('id')), {})
             result['subtasks'].append({
                 'id': subtask.get('id', ''),
-                'name': translate_problem_text(subtask.get('name', '')),
-                'constraints': translate_problem_text(
-                    subtask.get('constraints', '')
-                ),
+                'name': translated.get('name') or subtask.get('name', ''),
+                'constraints': translated.get('constraints') or subtask.get('constraints', ''),
                 'score': subtask.get('score', 0)
             })
 
+        result['translation_available'] = bool(
+            authored.get('title') and authored.get('statement')
+        )
+        result['translation_source'] = 'internal'
         return jsonify(result)
 
     @app.post('/api/register')
