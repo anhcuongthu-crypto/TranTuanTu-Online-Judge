@@ -969,6 +969,15 @@ def test_contest_submission_enforces_membership_and_time_boundaries(tmp_path):
     assert after_end.status_code == 403
     assert 'đã kết thúc' in after_end.json['error'].lower()
 
+    with connect(app.config['DATABASE_PATH']) as db:
+        db.execute(
+            'UPDATE contests SET start_time=?, end_time=? WHERE id=?',
+            (
+                (now - timedelta(hours=1)).isoformat(timespec='seconds'),
+                (now + timedelta(hours=1)).isoformat(timespec='seconds'),
+                contest_id
+            )
+        )
     not_member = client.post(
         endpoint, json={**payload, 'problem_id': 'NOT_IN_CONTEST'}
     )
