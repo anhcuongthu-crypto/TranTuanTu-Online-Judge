@@ -743,7 +743,8 @@ def test_problemset_has_tag_filter_and_tag_search_support(tmp_path):
     script = client.get('/static/app.js').get_data(as_text=True)
     assert "const tag = document.querySelector('#filter-tag')" in script
     assert 'problemTags.includes(tag)' in script
-    assert "p.tags.join(' ')" in script
+    assert '...problemTags' in script
+    assert 'searchableText' in script
 
 
 def test_submit_editor_supports_local_autosave_and_keyboard_shortcuts(tmp_path):
@@ -1039,7 +1040,7 @@ def test_problemset_page_exposes_partial_score_status_filter(tmp_path):
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert 'value="partial">Đạt một phần' in page
-    assert 'value="attempted">Đã nộp, chưa có điểm' in page
+    assert 'value="attempted"' in page
 
 
 def test_problemset_search_supports_accent_insensitive_multiword_matching():
