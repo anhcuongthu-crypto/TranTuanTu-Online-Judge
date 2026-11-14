@@ -2050,6 +2050,46 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             for tag, count in sorted(solved_by_tag.items(), key=lambda item: (-item[1], item[0]))
         ][:10]
 
+        # Huy hiệu được tính trực tiếp từ dữ liệu hiện có, không cần thêm bảng
+        # hoặc thay đổi cấu trúc database.
+        solved_total = len(solved_ids)
+        submission_total = len(submission_rows)
+        solved_categories = sum(1 for count in solved_by_category.values() if count > 0)
+        achievements = [
+            {
+                'id': 'first-full', 'icon': '🎯', 'name': 'FULL đầu tiên',
+                'description': 'Hoàn thành bài tập đầu tiên.',
+                'target': 1, 'progress': min(solved_total, 1)
+            },
+            {
+                'id': 'solver-10', 'icon': '⭐', 'name': 'Thợ săn FULL',
+                'description': 'Hoàn thành 10 bài tập.',
+                'target': 10, 'progress': min(solved_total, 10)
+            },
+            {
+                'id': 'solver-25', 'icon': '🏅', 'name': 'Cao thủ thuật toán',
+                'description': 'Hoàn thành 25 bài tập.',
+                'target': 25, 'progress': min(solved_total, 25)
+            },
+            {
+                'id': 'solver-50', 'icon': '🏆', 'name': 'Chinh phục 50 bài',
+                'description': 'Hoàn thành 50 bài tập.',
+                'target': 50, 'progress': min(solved_total, 50)
+            },
+            {
+                'id': 'submit-50', 'icon': '⌨️', 'name': 'Kiên trì luyện tập',
+                'description': 'Có 50 lượt nộp bài.',
+                'target': 50, 'progress': min(submission_total, 50)
+            },
+            {
+                'id': 'multi-topic', 'icon': '🧭', 'name': 'Nhà thám hiểm',
+                'description': 'FULL bài ở ít nhất 3 chủ đề.',
+                'target': 3, 'progress': min(solved_categories, 3)
+            }
+        ]
+        for achievement in achievements:
+            achievement['unlocked'] = achievement['progress'] >= achievement['target']
+
         return jsonify(
             total_solved=len(solved_ids),
             total_attempted=len(attempted_ids),
@@ -2057,6 +2097,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             full_rate=round(100 * len(solved_ids) / len(attempted_ids), 1) if attempted_ids else 0,
             categories=category_rows,
             tags=tag_rows,
+            achievements=achievements,
             daily=[{'date': day, 'count': count} for day, count in daily.items()],
             verdicts=[{'verdict': verdict, 'count': count} for verdict, count in sorted(verdict_counts.items(), key=lambda item: -item[1])]
         )
