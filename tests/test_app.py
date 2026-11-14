@@ -1,3 +1,4 @@
+import pytest
 import json
 from datetime import datetime, timedelta
 import app as app_module
@@ -1028,3 +1029,30 @@ def test_incomplete_translation_never_falls_back_to_vietnamese_fields(tmp_path):
         'The English output description is not available yet.'
     )
     assert 'Một dòng' not in response.get_data(as_text=True)
+
+
+def test_production_refuses_predictable_secret_key(tmp_path, monkeypatch):
+    monkeypatch.setenv('RENDER', 'true')
+    monkeypatch.delenv('SECRET_KEY', raising=False)
+    with pytest.raises(RuntimeError, match='SECRET_KEY'):
+        create_app({
+            'TESTING': False,
+            'DATABASE_PATH': str(tmp_path / 'should-not-be-created.sqlite3')
+        })
+
+
+def test_mutating_api_rejects_cross_origin_requests(tmp_path):
+    client = setup(tmp_path)
+    rejected = client.post(
+        '/api/register',
+        json={'username': 'attacker', 'password': '12345678'},
+        headers={'Origin': 'https://evil.example'}
+    )
+    assert rejected.status_code == 403
+
+    accepted = client.post(
+        '/api/register',
+        json={'username': 'sameorigin', 'password': '12345678'},
+        headers={'Origin': 'http://localhost'}
+    )
+    assert accepted.status_code == 201
