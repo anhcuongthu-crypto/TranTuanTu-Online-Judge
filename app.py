@@ -1902,7 +1902,10 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         now = time.monotonic()
         with progress_cache_lock:
             cached = progress_cache.get(user['id'])
-            if cached and now - cached['time'] < 3:
+            if (
+                cached and now - cached['time'] < 3
+                and request.args.get('fresh') != '1'
+            ):
                 response = jsonify(cached['data'])
                 response.headers['Cache-Control'] = 'private, no-store'
                 return response
