@@ -584,7 +584,7 @@ def _init_postgres(path):
             language_id INTEGER NOT NULL,
             source_code TEXT NOT NULL,
             verdict TEXT NOT NULL,
-            score DOUBLE NOT NULL DEFAULT 0,
+            score DOUBLE PRECISION NOT NULL DEFAULT 0,
             max_score DOUBLE NOT NULL DEFAULT 100,
             details_json TEXT NOT NULL DEFAULT '[]',
             contest_id BIGINT REFERENCES contests(id) ON DELETE SET NULL,
@@ -596,9 +596,15 @@ def _init_postgres(path):
         CREATE TABLE IF NOT EXISTS solves (
             user_id BIGINT NOT NULL REFERENCES users(id),
             problem_id TEXT NOT NULL,
-            best_score INTEGER NOT NULL DEFAULT 0,
+            best_score DOUBLE PRECISION NOT NULL DEFAULT 0,
             PRIMARY KEY(user_id, problem_id)
         )
+        """,
+
+        """
+        ALTER TABLE solves
+        ALTER COLUMN best_score TYPE DOUBLE PRECISION
+        USING best_score::DOUBLE PRECISION
         """,
 
         """
