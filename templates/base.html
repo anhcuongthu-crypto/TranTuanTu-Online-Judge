@@ -322,6 +322,8 @@
                 nav_about: "Giới thiệu",
                 nav_profile: "Hồ sơ",
                 nav_admin: "Quản trị",
+                nav_open: "Mở menu điều hướng",
+                nav_close: "Đóng menu điều hướng",
 
                 hello: "Xin chào",
                 not_logged_in: "Chưa đăng nhập",
@@ -533,6 +535,8 @@
                 nav_about: "About",
                 nav_profile: "Profile",
                 nav_admin: "Admin",
+                nav_open: "Open navigation menu",
+                nav_close: "Close navigation menu",
 
                 hello: "Hello",
                 not_logged_in: "Not logged in",
@@ -711,7 +715,19 @@
                 </span>
             </a>
 
-            <nav aria-label="Điều hướng chính" data-i18n-aria-label="main_nav_aria" class="clue-nav">
+            <button
+                type="button"
+                id="mobile-nav-toggle"
+                class="mobile-nav-toggle"
+                aria-controls="main-navigation"
+                aria-expanded="false"
+                aria-label="Mở menu điều hướng"
+            >
+                <span class="mobile-nav-toggle-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span class="mobile-nav-label" data-i18n="nav_open">Mở menu</span>
+            </button>
+
+            <nav id="main-navigation" aria-label="Điều hướng chính" data-i18n-aria-label="main_nav_aria" class="clue-nav">
                 <a href="/problems" data-i18n="nav_problems" {% if request.path == '/problems' or request.path.startswith('/problems/') %}aria-current="page"{% endif %}>Danh sách bài</a>
                 <a href="/submissions" data-i18n="nav_submissions" {% if request.path.startswith('/submissions') %}aria-current="page"{% endif %}>Các bài nộp</a>
                 <a href="/contests" data-i18n="nav_contests" {% if request.path.startswith('/contests') %}aria-current="page"{% endif %}>Các kỳ thi</a>
@@ -956,7 +972,7 @@
       });
     })();
     </script>
-    <script src="{{ url_for('static', filename='app.js', v='20261114.10') }}" defer></script>
+    <script src="{{ url_for('static', filename='app.js', v='20261115.1') }}" defer></script>
 
 <style id="trantu-uniform-theme-surfaces">
 /* Uniform theme: no alternating pale panels or mixed surface colors. */
@@ -1118,6 +1134,34 @@ input,button,select,textarea,
 .ace_editor,.ace_editor * {
   font-family:"Times New Roman",Times,serif!important;
 }
+</style>
+
+
+<style id="trantu-mobile-nav-v1">
+.mobile-nav-toggle{display:none!important;align-items:center!important;justify-content:center!important;gap:8px!important;min-width:42px!important;min-height:40px!important;padding:8px 10px!important;border:1px solid #c9dce9!important;border-radius:10px!important;background:#f3f8fc!important;color:#245b7e!important;cursor:pointer!important}
+.mobile-nav-toggle-bars{display:flex;flex-direction:column;gap:4px;width:18px}
+.mobile-nav-toggle-bars i{display:block;width:18px;height:2px;border-radius:2px;background:currentColor}
+.mobile-nav-label{font-size:12px;font-weight:600}
+@media(max-width:900px){
+  body .topbar{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:8px 10px!important}
+  body .topbar .mobile-nav-toggle{display:inline-flex!important;order:2!important;margin-left:auto!important}
+  body .topbar .language-switch{order:3!important;margin-left:0!important}
+  body .topbar .theme-switch{order:4!important}
+  body .topbar .top-user{order:5!important;margin-left:0!important}
+  body .topbar nav.clue-nav{order:6!important;display:none!important;flex:0 0 100%!important;width:100%!important;max-width:100%!important;overflow:visible!important;flex-wrap:wrap!important;gap:6px!important;padding:8px!important;border:1px solid #dce8f2!important;border-radius:12px!important;background:#f3f8fc!important}
+  body .topbar nav.clue-nav[data-mobile-open="true"]{display:flex!important}
+  body .topbar nav.clue-nav>a,body .topbar nav.clue-nav .nav-dropdown>summary{flex:1 1 100%!important;justify-content:flex-start!important;min-height:42px!important;padding:10px 12px!important;border-radius:8px!important;white-space:normal!important}
+}
+@media(max-width:560px){
+  .mobile-nav-label{font-size:11px}
+  body .topbar .brand{max-width:calc(100% - 56px)}
+}
+html.theme-dark .mobile-nav-toggle{background:#050505!important;color:#67dfff!important;border-color:#30343a!important}
+html.theme-dark body .topbar nav.clue-nav{background:#050505!important;border-color:#30343a!important}
+html.theme-dark body .topbar nav.clue-nav>a,html.theme-dark body .topbar nav.clue-nav .nav-dropdown>summary{color:#67dfff!important}
+html.theme-dark body .topbar nav.clue-nav>a:hover,html.theme-dark body .topbar nav.clue-nav>a[aria-current="page"]{background:#102a40!important;color:#fff!important}
+html.theme-light .mobile-nav-toggle{background:#f3f8fc!important;color:#245b7e!important;border-color:#c9dce9!important}
+@media(prefers-reduced-motion:reduce){.mobile-nav-toggle,.mobile-nav-toggle *{transition:none!important}}
 </style>
 
 </body>
