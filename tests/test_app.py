@@ -1001,7 +1001,7 @@ def test_english_problem_page_never_restores_vietnamese_on_translation_failure(t
     page = client.get('/problems/X01').get_data(as_text=True)
 
     assert 'Vietnamese content is hidden in English mode.' in page
-    assert 'The English version could not be loaded. Vietnamese content is hidden.' in page
+    assert 'The English version could not be loaded. Vietnamese content is hidden in English mode.' in page
     assert 'original.title' not in page
 
 
