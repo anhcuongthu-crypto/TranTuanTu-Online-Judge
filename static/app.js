@@ -289,9 +289,15 @@ function getFilteredProblems() {
         return [];
     }
 
-    const query = (
+    const normalizeSearch = value => String(value ?? '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .toLocaleLowerCase('vi');
+    const queryTokens = normalizeSearch(
         document.querySelector('#search')?.value || ''
-    ).trim().toLocaleLowerCase('vi');
+    ).trim().split(/\s+/).filter(Boolean);
     const category = document.querySelector('#filter-category')?.value || '';
     const difficulty = document.querySelector('#filter-difficulty')?.value || '';
     const tag = document.querySelector('#filter-tag')?.value || '';
@@ -300,19 +306,29 @@ function getFilteredProblems() {
     const recentOnly = !!document.querySelector('#filter-recent')?.checked;
 
     return items.filter(p => {
-        const matchesQuery = `${p.id ?? ''} ${p.title ?? ''} ${p.category ?? ''} ${p.difficulty ?? ''} ${Array.isArray(p.tags) ? p.tags.join(' ') : ''}`
-            .toLocaleLowerCase('vi')
-            .includes(query);
+        const problemTags = Array.isArray(p.tags) ? p.tags.map(String) : [];
+        const searchableText = normalizeSearch([
+            p.id, p.title, p.category, p.difficulty, p.exam_set,
+            p.short_description, p.author, ...problemTags
+        ].filter(Boolean).join(' '));
+        // Mọi từ khóa phải xuất hiện, không bắt buộc đứng cạnh nhau.
+        const matchesQuery = queryTokens.every(token => searchableText.includes(token));
         const matchesCategory = !category || String(p.category ?? '') === category;
         const matchesDifficulty = !difficulty || String(p.difficulty ?? '') === difficulty;
-        const problemTags = Array.isArray(p.tags) ? p.tags.map(String) : [];
         const matchesTag = !tag || problemTags.includes(tag);
         const progress = mySolvedProblems[String(p.id)];
-        const actualStatus = progress?.solved ? 'solved' : progress ? 'attempted' : 'unsolved';
+        const bestScore = Number(progress?.best_score || 0);
+        const maxScore = Number(progress?.max_score || 0);
+        const actualStatus = progress?.solved
+            ? 'solved'
+            : bestScore > 0 && maxScore > bestScore
+                ? 'partial'
+                : progress ? 'attempted' : 'unsolved';
         const matchesStatus = !status || actualStatus === status;
         const matchesSaved = !savedOnly || savedProblemIds.has(String(p.id));
         const matchesRecent = !recentOnly || recentProblemIds.has(String(p.id));
-        return matchesQuery && matchesCategory && matchesDifficulty && matchesTag && matchesStatus && matchesSaved && matchesRecent;
+        return matchesQuery && matchesCategory && matchesDifficulty &&
+            matchesTag && matchesStatus && matchesSaved && matchesRecent;
     });
 }
 
@@ -328,6 +344,7 @@ function renderProblems(items) {
         ['title', 'Bài tập'],
         ['category', 'Chủ đề'],
         ['difficulty', 'Độ khó'],
+        ['tags', 'Kỹ thuật'],
         ['total_score', 'Điểm'],
         ['status', 'Trạng thái']
     ];
@@ -335,13 +352,24 @@ function renderProblems(items) {
     const sorted = [...items].sort((a, b) => {
         let x = a[sortColumn] ?? '';
         let y = b[sortColumn] ?? '';
+        if (sortColumn === 'tags') {
+            x = Array.isArray(a.tags) ? a.tags.join(' ') : '';
+            y = Array.isArray(b.tags) ? b.tags.join(' ') : '';
+        }
         if (sortColumn === 'total_score') {
             x = Number(x) || 0; y = Number(y) || 0;
             return sortAscending ? x - y : y - x;
         }
         if (sortColumn === 'status') {
-            x = mySolvedProblems[String(a.id)]?.solved ? 2 : mySolvedProblems[String(a.id)] ? 1 : 0;
-            y = mySolvedProblems[String(b.id)]?.solved ? 2 : mySolvedProblems[String(b.id)] ? 1 : 0;
+            const rank = progress => {
+                if (!progress) return 0;
+                if (progress.solved) return 3;
+                const score = Number(progress.best_score || 0);
+                const max = Number(progress.max_score || 0);
+                return score > 0 && max > score ? 2 : 1;
+            };
+            x = rank(mySolvedProblems[String(a.id)]);
+            y = rank(mySolvedProblems[String(b.id)]);
             return sortAscending ? x - y : y - x;
         }
         const result = String(x).localeCompare(String(y), 'vi', {numeric:true, sensitivity:'base'});
@@ -370,16 +398,25 @@ function renderProblems(items) {
                         ${visible.map(p => {
                             const progress = mySolvedProblems[String(p.id)];
                             const solved = !!progress?.solved;
-                            const attempted = !!progress && !solved;
+                            const bestScore = Number(progress?.best_score || 0);
+                            const maxScore = Number(progress?.max_score || 0);
+                            const partial = !solved && bestScore > 0 && maxScore > bestScore;
+                            const attempted = !!progress && !solved && !partial;
                             const status = solved
                                 ? '<span class="problem-pill is-solved">✓ Đã FULL</span>'
-                                : attempted ? '<span class="problem-pill is-attempted">Đã thử</span>'
-                                : '<span class="problem-pill is-unsolved">Chưa làm</span>';
+                                : partial
+                                    ? '<span class="problem-pill is-partial">Đạt một phần</span>'
+                                    : attempted ? '<span class="problem-pill is-attempted">Đã thử</span>'
+                                    : '<span class="problem-pill is-unsolved">Chưa làm</span>';
+                            const tags = (Array.isArray(p.tags) ? p.tags : []).slice(0, 3)
+                                .map(tag => '<span class="problem-tag-chip">' + escapeHtml(tag) + '</span>')
+                                .join('');
                             return `<tr>
                                 <td><a class="problem-id-link" href="/problems/${encodeURIComponent(p.id ?? '')}">${escapeHtml(p.id || '—')}</a></td>
                                 <td><a class="problem-title-link" href="/problems/${encodeURIComponent(p.id ?? '')}">${escapeHtml(p.title || 'Chưa có tiêu đề')}</a><small>${escapeHtml(p.short_description || '')}</small></td>
                                 <td><span class="problem-category-tag">${escapeHtml(p.category || 'Khác')}</span></td>
                                 <td>${escapeHtml(p.difficulty || '—')}</td>
+                                <td class="problem-tags-cell">${tags || '<span class="muted">—</span>'}</td>
                                 <td class="problem-points">${formatScore(p.total_score)}</td>
                                 <td>${status}</td>
                                 <td class="problem-save-cell"><button type="button" class="problem-save-btn ${savedProblemIds.has(String(p.id)) ? 'is-saved' : ''}" data-save-problem="${escapeHtml(p.id)}" aria-label="${savedProblemIds.has(String(p.id)) ? 'Bỏ lưu' : 'Lưu'} bài ${escapeHtml(p.id)}" aria-pressed="${savedProblemIds.has(String(p.id))}" title="${savedProblemIds.has(String(p.id)) ? 'Bỏ khỏi bài đã lưu' : 'Lưu để luyện lại'}">${savedProblemIds.has(String(p.id)) ? '★' : '☆'}</button></td>

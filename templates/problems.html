@@ -100,8 +100,9 @@
             <select id="filter-status" aria-label="Lọc theo trạng thái">
                 <option value="" data-i18n="problemset_all_statuses">Mọi trạng thái</option>
                 <option value="solved" data-i18n="problemset_solved">Đã FULL</option>
-                <option value="attempted" data-i18n="problemset_attempted">Đã thử</option>
-                <option value="unsolved" data-i18n="problemset_unsolved">Chưa làm</option>
+                <option value="partial">Đạt một phần</option>
+                <option value="attempted" data-i18n="problemset_attempted">Đã nộp, chưa có điểm</option>
+                <option value="unsolved" data-i18n="problemset_unsolved">Chưa nộp</option>
             </select>
             <label class="problemset-saved-filter">
                 <input type="checkbox" id="filter-saved">
@@ -245,6 +246,10 @@
 .problemset-table-wrap tbody tr:hover td{background:#15334c!important}
 .problemset-table-wrap a{color:#71dcf3!important;font-weight:600!important}
 .problemset-table-wrap a:hover{color:#b0f1ff!important}
+.problemset-tag-chip{display:inline-flex;align-items:center;margin:2px 3px 2px 0;padding:3px 7px;border:1px solid rgba(65,180,220,.25);border-radius:999px;background:rgba(48,153,190,.1);color:#8fe5f4;font-size:10px;white-space:nowrap}
+.problemset-tags-cell{max-width:190px;line-height:1.7}
+.problem-pill.is-partial{color:#8b6500;background:#fff0c2;border:1px solid #f4d77d}
+.problemset-table-wrap table{min-width:790px!important}
 .problemset-pagination button,.problemset-pagination a{
  color:#c5d9ea!important;background:#0e2338!important;
  border:1px solid rgba(101,187,222,.2)!important;border-radius:9px!important;
