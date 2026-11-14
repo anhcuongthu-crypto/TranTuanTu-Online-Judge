@@ -865,3 +865,112 @@ def test_submit_editor_has_safe_drafts_and_productivity_shortcuts(tmp_path):
     assert "event.key==='Enter'" in page
     assert "event.shiftKey" in page
     assert "event.key==='/'" in page
+
+
+
+def test_private_api_requires_authentication_and_submit_rejects_bad_payloads(tmp_path):
+    client = setup(tmp_path)
+
+    private_gets = [
+        '/api/saved-problems',
+        '/api/my-progress',
+        '/api/my-analytics',
+        '/api/my-library-progress',
+        '/api/submissions/1/code',
+        '/api/submissions/1/status',
+        '/api/contests/1/my-progress',
+        '/api/contests/1/submissions',
+    ]
+    for path in private_gets:
+        response = client.get(path)
+        assert response.status_code == 401, f'{path}: {response.status_code}'
+
+    for path in (
+        '/api/admin/users',
+        '/api/admin/statistics',
+        '/api/admin/submissions',
+        '/api/admin/contests',
+        '/api/admin/problems',
+    ):
+        response = client.get(path)
+        assert response.status_code == 403, f'{path}: {response.status_code}'
+
+    assert client.post('/api/submit', json={
+        'problem_id': 'X01', 'source_code': 'int main(){}'
+    }).status_code == 401
+    assert client.post('/api/contests/1/submit', json={
+        'problem_id': 'X01', 'source_code': 'int main(){}'
+    }).status_code == 401
+
+    register_and_login(client, 'payloadboundary')
+    malformed = client.post(
+        '/api/submit', data='{not-json', content_type='application/json'
+    )
+    assert malformed.status_code == 404
+
+    empty = client.post('/api/submit', json={
+        'problem_id': 'X01', 'source_code': '   '
+    })
+    assert empty.status_code == 400
+
+    oversized = client.post('/api/submit', json={
+        'problem_id': 'X01', 'source_code': 'x' * 100001
+    })
+    assert oversized.status_code == 400
+
+    invalid_language = client.post('/api/submit', json={
+        'problem_id': 'X01', 'source_code': 'int main(){}',
+        'language_id': 'not-a-number'
+    })
+    assert invalid_language.status_code == 400
+
+
+def test_contest_submission_enforces_membership_and_time_boundaries(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'contestboundary')
+    app = client.application
+    now = datetime.now()
+    future_start = (now + timedelta(hours=1)).isoformat(timespec='seconds')
+    future_end = (now + timedelta(hours=2)).isoformat(timespec='seconds')
+    with connect(app.config['DATABASE_PATH']) as db:
+        contest_id = db.execute(
+            '''INSERT INTO contests
+               (title, description, start_time, end_time, is_visible)
+               VALUES (?, ?, ?, ?, 1)''',
+            ('Boundary contest', '', future_start, future_end)
+        ).lastrowid
+        db.execute(
+            '''INSERT INTO contest_problems
+               (contest_id, problem_id, position, total_score)
+               VALUES (?, 'X01', 0, 100)''',
+            (contest_id,)
+        )
+
+    payload = {
+        'problem_id': 'X01',
+        'source_code': 'int main(){return 0;}',
+        'language_id': 54
+    }
+    endpoint = f'/api/contests/{contest_id}/submit'
+    before_start = client.post(endpoint, json=payload)
+    assert before_start.status_code == 403
+    assert 'chưa bắt đầu' in before_start.json['error'].lower()
+
+    with connect(app.config['DATABASE_PATH']) as db:
+        db.execute(
+            'UPDATE contests SET start_time=?, end_time=? WHERE id=?',
+            (
+                (now - timedelta(hours=2)).isoformat(timespec='seconds'),
+                (now - timedelta(hours=1)).isoformat(timespec='seconds'),
+                contest_id
+            )
+        )
+    after_end = client.post(endpoint, json=payload)
+    assert after_end.status_code == 403
+    assert 'đã kết thúc' in after_end.json['error'].lower()
+
+    not_member = client.post(
+        endpoint, json={**payload, 'problem_id': 'NOT_IN_CONTEST'}
+    )
+    assert not_member.status_code == 403
+    assert 'không thuộc cuộc thi' in not_member.json['error'].lower()
