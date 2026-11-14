@@ -1204,3 +1204,20 @@ def test_run_code_uses_judge0_without_creating_submission(tmp_path, monkeypatch)
     with connect(client.application.config['DATABASE_PATH']) as db:
         count = db.execute('SELECT COUNT(*) AS total FROM submissions').fetchone()['total']
     assert count == 0
+
+
+def test_problemset_table_keeps_columns_on_one_line_and_scrolls_horizontally(tmp_path):
+    client = setup(tmp_path)
+    response = client.get('/problems')
+    assert response.status_code == 200
+    assert b'trantu-problem-table-no-wrap' in response.data
+    assert b'white-space:nowrap' in response.data
+    assert b'overflow-x:auto' in response.data
+
+
+def test_contest_list_includes_live_countdown_labels(tmp_path):
+    client = setup(tmp_path)
+    response = client.get('/contests')
+    assert response.status_code == 200
+    assert b'ct_starts_in' in response.data
+    assert b'data-contest-countdown' in response.data

@@ -731,7 +731,10 @@ const contestTranslations = {
     ct_creating: "Đang tạo cuộc thi...",
     ct_create_failed: "Tạo cuộc thi thất bại.",
     ct_created: "Đã tạo cuộc thi",
-    ct_id: "ID"
+    ct_id: "ID",
+    ct_starts_in: "Bắt đầu sau",
+    ct_ends_in: "Kết thúc sau",
+    ct_finished: "Đã kết thúc"
   },
 
   en: {
@@ -772,7 +775,10 @@ const contestTranslations = {
     ct_creating: "Creating contest...",
     ct_create_failed: "Failed to create contest.",
     ct_created: "Contest created",
-    ct_id: "ID"
+    ct_id: "ID",
+    ct_starts_in: "Starts in",
+    ct_ends_in: "Ends in",
+    ct_finished: "Ended"
   }
 };
 
@@ -811,6 +817,8 @@ function formatDate(value) {
   return d.toLocaleString(locale);
 }
 
+let contestCountdownTimer = null;
+
 function getStateName(state) {
   const names = {
     running: "ct_running_state",
@@ -819,6 +827,36 @@ function getStateName(state) {
   };
 
   return names[state] ? t(names[state]) : escapeHTML(state);
+}
+
+function countdownText(milliseconds) {
+  const seconds = Math.max(0, Math.floor(milliseconds / 1000));
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  const clock = [hours, minutes, secs].map(v => String(v).padStart(2, '0')).join(':');
+  return days ? days + 'd ' + clock : clock;
+}
+
+function updateContestCountdowns() {
+  const now = Date.now();
+  document.querySelectorAll('[data-contest-countdown]').forEach(node => {
+    const start = new Date(node.dataset.start).getTime();
+    const end = new Date(node.dataset.end).getTime();
+    if (!Number.isFinite(start) || !Number.isFinite(end)) return;
+    const badge = node.closest('.contest-card')?.querySelector('.contest-badge');
+    if (now < start) {
+      node.textContent = t('ct_starts_in') + ': ' + countdownText(start - now);
+      if (badge) { badge.className = 'contest-badge upcoming'; badge.textContent = getStateName('upcoming'); }
+    } else if (now < end) {
+      node.textContent = t('ct_ends_in') + ': ' + countdownText(end - now);
+      if (badge) { badge.className = 'contest-badge running'; badge.textContent = getStateName('running'); }
+    } else {
+      node.textContent = t('ct_finished');
+      if (badge) { badge.className = 'contest-badge ended'; badge.textContent = getStateName('ended'); }
+    }
+  });
 }
 
 async function loadContests() {
@@ -872,6 +910,8 @@ async function loadContests() {
           ${escapeHTML(formatDate(c.end_time))}
         </p>
 
+        <p class="contest-countdown" data-contest-countdown data-start="${escapeHTML(c.start_time)}" data-end="${escapeHTML(c.end_time)}" aria-live="off"></p>
+
         <div class="contest-card-foot">
           <span class="contest-muted">
             ${t("ct_id")} #${Number(c.id)}
@@ -886,6 +926,8 @@ async function loadContests() {
         </div>
       </article>
     `).join('');
+    updateContestCountdowns();
+    if (!contestCountdownTimer) contestCountdownTimer = setInterval(updateContestCountdowns, 1000);
 
   } catch (e) {
     list.innerHTML = `
