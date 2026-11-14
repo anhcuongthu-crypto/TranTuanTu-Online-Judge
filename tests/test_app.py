@@ -516,3 +516,19 @@ def test_submission_history_skips_user_join_but_all_scope_stays_global(tmp_path)
     }
     assert all(row['is_mine'] == (row['username'] == 'historyowner')
                for row in all_rows.json)
+
+
+def test_mobile_navigation_toggle_is_accessible_and_keyboard_operable(tmp_path):
+    client = setup(tmp_path)
+    page = client.get('/').get_data(as_text=True)
+
+    assert 'id="mobile-nav-toggle"' in page
+    assert 'aria-controls="main-navigation"' in page
+    assert 'aria-expanded="false"' in page
+    assert 'id="main-navigation"' in page
+    assert 'trantu-mobile-nav-v1' in page
+
+    script = client.get('/static/app.js').get_data(as_text=True)
+    assert 'MOBILE NAVIGATION' in script
+    assert "event.key === 'Escape'" in script
+    assert "oj-language-changed" in script
