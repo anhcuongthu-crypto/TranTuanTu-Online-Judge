@@ -48,6 +48,14 @@ def test_health_and_problem_details(tmp_path):
     assert detail['subtasks'][0]['score'] == 100
 
 
+def test_problemset_has_saved_problem_filter(tmp_path):
+    client = setup(tmp_path)
+    response = client.get('/problems')
+    assert response.status_code == 200
+    assert b'id="filter-saved"' in response.data
+    assert b'Chỉ hiển thị bài đã lưu' in response.data
+
+
 def test_registration_is_immediately_approved_and_username_unique(tmp_path):
     c = setup(tmp_path)
     r = c.post('/api/register', json={'username': 'tester', 'password': '12345678'})
