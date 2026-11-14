@@ -720,3 +720,133 @@ def test_library_translation_does_not_expose_hidden_contest(tmp_path):
         f'/api/problems/HIDDEN01/translation?contest_id={contest_id}'
     )
     assert response.status_code == 404
+
+
+
+def test_problemset_has_tag_filter_and_tag_search_support(tmp_path):
+    client = setup(tmp_path)
+    page = client.get('/problems')
+    assert page.status_code == 200
+    assert 'id="filter-tag"' in page.get_data(as_text=True)
+    script = client.get('/static/app.js').get_data(as_text=True)
+    assert "const tag = document.querySelector('#filter-tag')" in script
+    assert 'problemTags.includes(tag)' in script
+    assert "p.tags.join(' ')" in script
+
+
+def test_submit_editor_supports_local_autosave_and_keyboard_shortcuts(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'editoruser')
+    page = client.get('/problems/X01/submit')
+    assert page.status_code == 200
+    html = page.get_data(as_text=True)
+    assert 'id="draft-status"' in html
+    assert 'trantuoj:draft:' in html
+    assert "event.key==='Tab'" in html
+    assert "event.key.toLowerCase()==='s'" in html
+    assert "event.key==='Enter'" in html
+
+
+def test_my_analytics_reports_current_and_longest_activity_streak(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'streakuser')
+    app = client.application
+    today = datetime.now().date()
+    active = [today - timedelta(days=offset) for offset in (0, 1, 2, 4, 5)]
+    with connect(app.config['DATABASE_PATH']) as db:
+        user = db.execute('SELECT id FROM users WHERE username=?', ('streakuser',)).fetchone()
+        for day in active:
+            db.execute(
+                '''INSERT INTO submissions
+                   (user_id, problem_id, language_id, source_code, verdict,
+                    score, max_score, created_at)
+                   VALUES (?, 'X01', 54, 'int main(){}', 'Wrong Answer', 0, 100, ?)''',
+                (user['id'], day.isoformat() + 'T12:00:00')
+            )
+    response = client.get('/api/my-analytics')
+    assert response.status_code == 200
+    assert response.json['current_streak'] == 3
+    assert response.json['longest_streak'] == 3
+    assert response.json['active_days'] == 5
+
+
+
+def test_contest_page_has_live_countdown_and_leaderboard_auto_refresh(tmp_path):
+    client = setup(tmp_path)
+    contest_page = client.get('/contests/1')
+    assert contest_page.status_code == 200
+    html = contest_page.get_data(as_text=True)
+    assert 'id="contest-countdown"' in html
+    assert 'updateContestCountdown' in html
+    section = client.get('/contests/1/leaderboard')
+    assert section.status_code == 200
+    source = section.get_data(as_text=True)
+    assert 'refreshLeaderboard' in source
+    assert 'setInterval(refreshLeaderboard, 15000)' in source
+
+
+
+def test_hidden_contest_apis_and_admin_apis_enforce_permissions(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'boundaryuser')
+    app = client.application
+    now = datetime.now()
+    with connect(app.config['DATABASE_PATH']) as db:
+        contest_id = db.execute(
+            '''INSERT INTO contests
+               (title, description, start_time, end_time, is_visible)
+               VALUES (?, ?, ?, ?, 0)''',
+            (
+                'Private boundary contest', '',
+                (now - timedelta(hours=1)).isoformat(timespec='seconds'),
+                (now + timedelta(hours=1)).isoformat(timespec='seconds')
+            )
+        ).lastrowid
+
+    hidden_paths = [
+        f'/api/contests/{contest_id}',
+        f'/api/contests/{contest_id}/stats',
+        f'/api/contests/{contest_id}/leaderboard',
+        f'/api/contests/{contest_id}/my-progress',
+        f'/api/contests/{contest_id}/submissions',
+        f'/library/{contest_id}/problem/PRIVATE01'
+    ]
+    for path in hidden_paths:
+        response = client.get(path)
+        assert response.status_code == 404, f'{path}: {response.status_code}'
+
+    admin_paths = [
+        ('GET', '/api/admin/users'),
+        ('GET', '/api/admin/statistics'),
+        ('GET', '/api/admin/submissions'),
+        ('GET', '/api/admin/contests'),
+        ('GET', f'/api/admin/contests/{contest_id}/full'),
+        ('GET', '/api/admin/submissions/1/source')
+    ]
+    for method, path in admin_paths:
+        response = client.open(path, method=method)
+        assert response.status_code == 403, f'{method} {path}: {response.status_code}'
+
+
+def test_submission_code_and_status_are_private_to_owner(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'submissionowner')
+    app = client.application
+    with connect(app.config['DATABASE_PATH']) as db:
+        owner = db.execute(
+            'SELECT id FROM users WHERE username=?', ('submissionowner',)
+        ).fetchone()
+        submission_id = db.execute(
+            '''INSERT INTO submissions
+               (user_id, problem_id, language_id, source_code, verdict,
+                score, max_score, details_json)
+               VALUES (?, 'X01', 54, 'int main(){return 0;}', 'Wrong Answer',
+                       0, 100, '[]')''',
+            (owner['id'],)
+        ).lastrowid
+
+    client.post('/api/logout')
+    register_and_login(client, 'submissionviewer')
+    for suffix in ('code', 'status'):
+        response = client.get(f'/api/submissions/{submission_id}/{suffix}')
+        assert response.status_code == 403

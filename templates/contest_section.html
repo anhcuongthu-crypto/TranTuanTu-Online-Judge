@@ -71,6 +71,27 @@ async function init(){
  }catch(e){$('content').innerHTML='<div class="error">'+esc(e.message)+'</div>'}
 }
 init();
+
+let leaderboardRefreshTimer = null;
+async function refreshLeaderboard() {
+ if (section !== 'leaderboard' || document.hidden) return;
+ try {
+  const data = await get('/api/contests/' + contestId + '/leaderboard');
+  const rows = Array.isArray(data) ? data : [];
+  $('content').innerHTML = rows.length
+   ? '<div class="table-wrap"><table><thead><tr><th style="width:75px">Hạng</th><th>Thành viên</th><th>Điểm</th><th>Số bài giải</th></tr></thead><tbody>' +
+     rows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(r.username||r.name||r.user||'Ẩn danh')+'</td><td>'+esc(r.score??0)+'</td><td>'+esc(r.solved??0)+'</td></tr>').join('') +
+     '</tbody></table></div>'
+   : '<div class="empty">Chưa có dữ liệu xếp hạng.</div>';
+ } catch (error) {
+  // Keep the last successful leaderboard visible during transient failures.
+ }
+}
+if (section === 'leaderboard') {
+ leaderboardRefreshTimer = setInterval(refreshLeaderboard, 15000);
+ document.addEventListener('visibilitychange', refreshLeaderboard);
+}
+window.addEventListener('beforeunload',()=>{if(leaderboardRefreshTimer)clearInterval(leaderboardRefreshTimer);});
 </script>
 
 <style id="trantu-contest-section-led-final">

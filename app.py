@@ -1914,6 +1914,14 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                    LIMIT 500''',
                 (user['id'],)
             ).fetchall()
+            activity_days = db.execute(
+                '''SELECT DISTINCT SUBSTR(CAST(created_at AS TEXT), 1, 10) AS activity_day
+                   FROM submissions
+                   WHERE user_id=? AND created_at IS NOT NULL
+                   ORDER BY activity_day DESC
+                   LIMIT 3660''',
+                (user['id'],)
+            ).fetchall()
 
         solved_by_category = {}
         attempted_by_category = {}
@@ -1942,6 +1950,31 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                     solved_by_tag[tag] = solved_by_tag.get(tag, 0) + 1
 
         today = datetime.now().date()
+        active_dates = set()
+        for row in activity_days:
+            raw_day = str(row['activity_day'] or '')
+            try:
+                active_dates.add(datetime.strptime(raw_day[:10], '%Y-%m-%d').date())
+            except ValueError:
+                continue
+
+        current_streak = 0
+        streak_day = today if today in active_dates else today - timedelta(days=1)
+        while streak_day in active_dates:
+            current_streak += 1
+            streak_day -= timedelta(days=1)
+
+        longest_streak = 0
+        running_streak = 0
+        previous_day = None
+        for activity_day in sorted(active_dates):
+            if previous_day is not None and activity_day == previous_day + timedelta(days=1):
+                running_streak += 1
+            else:
+                running_streak = 1
+            longest_streak = max(longest_streak, running_streak)
+            previous_day = activity_day
+
         daily = {}
         for offset in range(13, -1, -1):
             day = (today - timedelta(days=offset)).isoformat()
@@ -2013,6 +2046,9 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             total_solved=len(solved_ids),
             total_attempted=len(attempted_ids),
             total_submissions=len(submission_rows),
+            current_streak=current_streak,
+            longest_streak=longest_streak,
+            active_days=len(active_dates),
             full_rate=round(100 * len(solved_ids) / len(attempted_ids), 1) if attempted_ids else 0,
             categories=category_rows,
             tags=tag_rows,

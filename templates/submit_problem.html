@@ -50,6 +50,8 @@ int main() {
     return 0;
 }</textarea>
 
+    <p id="draft-status" class="muted" role="status" aria-live="polite">Bản nháp được lưu riêng trên thiết bị này.</p>
+    <p class="muted" style="font-size:12px;">Phím tắt: Tab thụt lề · Ctrl+S lưu · Ctrl+Enter nộp bài.</p>
     <div style="display:flex;justify-content:flex-end;margin-top:16px;">
         <button
             id="submit"
@@ -72,13 +74,14 @@ int main() {
 
 <script>
 (() => {
-    const button = document.getElementById('submit');
-    const source = document.getElementById('source');
-    const language = document.getElementById('language');
-    const result = document.getElementById('result');
-
-    const starterCode = {
-        "54": `#include <bits/stdc++.h>
+ const button=document.getElementById('submit'), source=document.getElementById('source');
+ const language=document.getElementById('language'), result=document.getElementById('result');
+ const draftStatus=document.getElementById('draft-status');
+ const problemId=button.dataset.problem||'unknown', contestId=button.dataset.contest||'practice';
+ const draftKey=lang=>`trantuoj:draft:${contestId}:${problemId}:${lang}`;
+ let activeLanguage=language.value;
+ const starterCode={
+ "54":`#include <bits/stdc++.h>
 using namespace std;
 
 int main() {
@@ -87,7 +90,7 @@ int main() {
 
     return 0;
 }`,
-        "71": `# Đọc dữ liệu đầu vào
+ "71":`# Đọc dữ liệu đầu vào
 # Viết lời giải của bạn tại đây
 
 def main():
@@ -95,69 +98,33 @@ def main():
 
 if __name__ == "__main__":
     main()
-`
-    };
-
-    let userHasEditedCode = false;
-    source.addEventListener('input', () => {
-        userHasEditedCode = true;
-    });
-
-    language.addEventListener('change', () => {
-        if (!userHasEditedCode || !source.value.trim()) {
-            source.value = starterCode[language.value] || '';
-            userHasEditedCode = false;
-        }
-    });
-
-    button.addEventListener('click', async () => {
-        const code = source.value;
-
-        if (!code.trim()) {
-            result.textContent = 'M chưa nhập mã nguồn!';
-            source.focus();
-            return;
-        }
-
-        button.disabled = true;
-        button.textContent = 'Đang gửi bài...';
-        result.textContent = 'Đang gửi mã nguồn lên hệ thống...';
-
-        try {
-            const endpoint = button.dataset.contest ? '/api/contests/' + encodeURIComponent(button.dataset.contest) + '/submit' : '/api/submit';
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    problem_id: button.dataset.problem,
-                    source_code: code,
-                    language_id: Number(language.value)
-                })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Không thể nộp bài.');
-            }
-
-            if (!data.submission_id) {
-                throw new Error('Hệ thống chưa trả về mã bài nộp.');
-            }
-
-            result.textContent = 'Nộp bài thành công! Đang chuyển đến trang kết quả...';
-
-            window.location.href =
-                '/submission/' + encodeURIComponent(data.submission_id);
-
-        } catch (error) {
-            result.textContent = 'Lỗi: ' + error.message;
-            button.disabled = false;
-            button.innerHTML = 'Nộp bài <span>↗</span>';
-        }
-    });
+`};
+ const status=message=>{if(draftStatus)draftStatus.textContent=message;};
+ const saveDraft=(lang=activeLanguage)=>{try{localStorage.setItem(draftKey(lang),source.value);status('Đã tự lưu bản nháp trên thiết bị này.');return true;}catch(error){status('Không thể tự lưu. Hãy sao chép mã nguồn để dự phòng.');return false;}};
+ const restoreDraft=()=>{try{const saved=localStorage.getItem(draftKey(language.value));if(saved!==null){source.value=saved;status('Đã khôi phục bản nháp gần nhất.');return;}}catch(error){status('Trình duyệt không cho phép lưu bản nháp.');}source.value=starterCode[language.value]||'';};
+ restoreDraft();
+ let saveTimer=null;
+ source.addEventListener('input',()=>{status('Đang có thay đổi chưa lưu…');clearTimeout(saveTimer);saveTimer=setTimeout(saveDraft,350);});
+ language.addEventListener('change',()=>{clearTimeout(saveTimer);saveDraft(activeLanguage);activeLanguage=language.value;restoreDraft();});
+ source.addEventListener('keydown',event=>{
+  if(event.key==='Tab'){event.preventDefault();source.setRangeText('    ',source.selectionStart,source.selectionEnd,'end');source.dispatchEvent(new Event('input',{bubbles:true}));}
+  if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();button.click();}
+  if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='s'){event.preventDefault();clearTimeout(saveTimer);saveDraft();}
+ });
+ button.addEventListener('click',async()=>{
+  const code=source.value;
+  if(!code.trim()){result.textContent='Bạn chưa nhập mã nguồn.';source.focus();return;}
+  clearTimeout(saveTimer);saveDraft();button.disabled=true;button.textContent='Đang gửi bài...';result.textContent='Đang gửi mã nguồn lên hệ thống...';
+  try{
+   const endpoint=button.dataset.contest?'/api/contests/'+encodeURIComponent(button.dataset.contest)+'/submit':'/api/submit';
+   const response=await fetch(endpoint,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({problem_id:problemId,source_code:code,language_id:Number(language.value)})});
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok)throw new Error(data.error||`Không thể nộp bài (HTTP ${response.status}).`);
+   if(!data.submission_id)throw new Error('Hệ thống chưa trả về mã bài nộp.');
+   result.textContent='Nộp bài thành công! Đang chuyển đến trang kết quả...';
+   window.location.href='/submission/'+encodeURIComponent(data.submission_id);
+  }catch(error){result.textContent='Lỗi: '+(error.message||'Không thể kết nối máy chủ.');button.disabled=false;button.innerHTML='Nộp bài <span>↗</span>';}
+ });
 })();
 </script>
 {% endblock %}
