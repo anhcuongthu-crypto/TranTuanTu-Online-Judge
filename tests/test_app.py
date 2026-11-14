@@ -82,6 +82,45 @@ def test_submit_requires_login_and_history(tmp_path):
     assert any(row['username'] == 'tester' for row in c.get('/api/leaderboard').json)
 
 
+def test_global_leaderboard_counts_only_full_solutions_and_shows_highlights(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'partialuser')
+    register_and_login(client, 'fulluser')
+
+    app = client.application
+    with connect(app.config['DATABASE_PATH']) as db:
+        users = {
+            row['username']: row['id']
+            for row in db.execute(
+                'SELECT id, username FROM users WHERE username IN (?, ?)',
+                ('partialuser', 'fulluser')
+            ).fetchall()
+        }
+        db.execute(
+            'INSERT INTO solves (user_id, problem_id, best_score) VALUES (?, ?, ?)',
+            (users['partialuser'], 'X01', 50)
+        )
+        db.execute(
+            'INSERT INTO solves (user_id, problem_id, best_score) VALUES (?, ?, ?)',
+            (users['fulluser'], 'X01', 100)
+        )
+
+    response = client.get('/api/leaderboard')
+    assert response.status_code == 200
+    rows = {row['username']: row for row in response.json}
+
+    assert rows['fulluser']['rank'] == 1
+    assert rows['fulluser']['score'] == 100
+    assert rows['fulluser']['solved'] == 1
+    assert rows['fulluser']['highlight'] == '🎯 Đã có FULL'
+
+    assert rows['partialuser']['rank'] == 2
+    assert rows['partialuser']['score'] == 50
+    assert rows['partialuser']['solved'] == 0
+    assert rows['partialuser']['attempted'] == 1
+    assert rows['partialuser']['highlight'] == '🚀 Đang chinh phục'
+
+
 def test_admin_problem_crud_and_delete_is_protected(tmp_path):
     c = setup(tmp_path)
     p = {'id': 'X02', 'title': 'Test', 'statement': 'test', 'total_score': 100,
