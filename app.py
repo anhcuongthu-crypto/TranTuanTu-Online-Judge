@@ -2113,20 +2113,72 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 response.headers['Cache-Control'] = 'public, max-age=3'
                 return response
 
+        # Dùng điểm tối đa trong ngân hàng đề để phân biệt bài FULL với
+        # bài mới được một phần điểm; không cần thay đổi cấu trúc database.
+        problem_scores = {
+            str(problem.get('id')): float(problem.get('total_score') or 0)
+            for problem in problems()
+        }
+
         with connect(app.config['DATABASE_PATH']) as db:
             rows = db.execute(
-                '''SELECT u.username,
-                          COALESCE(SUM(s.best_score), 0) score,
-                          COUNT(CASE WHEN s.best_score>0 THEN 1 END) solved
+                '''SELECT u.id AS user_id, u.username,
+                          s.problem_id, s.best_score
                    FROM users u
                    LEFT JOIN solves s ON s.user_id=u.id
                    WHERE u.approved=1
-                   GROUP BY u.id
-                   ORDER BY score DESC, solved DESC, u.username
-                   LIMIT 100'''
+                   ORDER BY u.id, s.problem_id'''
             ).fetchall()
 
-        result = [dict(row) for row in rows]
+        standings = {}
+        for row in rows:
+            user_id = row['user_id']
+            item = standings.setdefault(user_id, {
+                'username': row['username'],
+                'score': 0,
+                'solved': 0,
+                'attempted': 0
+            })
+
+            if row['problem_id'] is None:
+                continue
+
+            best_score = float(row['best_score'] or 0)
+            item['score'] += best_score
+            item['attempted'] += 1
+
+            maximum = problem_scores.get(str(row['problem_id']), 0)
+            if maximum > 0 and best_score >= maximum:
+                item['solved'] += 1
+
+        result = list(standings.values())
+        result.sort(
+            key=lambda item: (
+                -item['score'],
+                -item['solved'],
+                item['username'].casefold()
+            )
+        )
+
+        for index, item in enumerate(result[:100], start=1):
+            item['rank'] = index
+            if item['solved'] >= 50:
+                item['highlight'] = '🏆 Chinh phục 50+ FULL'
+            elif item['solved'] >= 25:
+                item['highlight'] = '🏅 Cao thủ 25+ FULL'
+            elif item['solved'] >= 10:
+                item['highlight'] = '⭐ Thợ săn 10+ FULL'
+            elif item['solved'] >= 1:
+                item['highlight'] = '🎯 Đã có FULL'
+            elif item['attempted'] > 0:
+                item['highlight'] = '🚀 Đang chinh phục'
+            else:
+                item['highlight'] = '🌱 Bắt đầu hành trình'
+            if float(item['score']).is_integer():
+                item['score'] = int(item['score'])
+            else:
+                item['score'] = round(item['score'], 2)
+
         with leaderboard_cache_lock:
             leaderboard_cache['time'] = time.monotonic()
             leaderboard_cache['rows'] = result
