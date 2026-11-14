@@ -1,7 +1,7 @@
 import base64
 import urllib.request
 import urllib.error
-from urllib.parse import quote, urlencode
+from urllib.parse import quote, urlencode, urlsplit
 import json
 import math
 import xml.etree.ElementTree as ET
@@ -387,6 +387,15 @@ def set_freopen_settings(p, old=None):
 
 
 def create_app(test_config=None):
+    secret_key = os.getenv('SECRET_KEY', '').strip()
+    is_render = os.getenv('RENDER', '').lower() == 'true'
+    is_test_app = bool(test_config and test_config.get('TESTING'))
+    if is_render and not secret_key and not is_test_app:
+        raise RuntimeError(
+            'SECRET_KEY must be configured on the production service; '
+            'refusing to start with the predictable development key.'
+        )
+
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY=os.getenv('SECRET_KEY', 'dev-change-me'),
@@ -438,6 +447,30 @@ def create_app(test_config=None):
     @app.before_request
     def _trantu_start_request_timer():
         g._trantu_request_started = time.perf_counter()
+
+    @app.before_request
+    def _trantu_check_mutation_origin():
+        # SameSite cookies are a useful baseline, but unsafe requests also
+        # need an Origin/Fetch-Metadata check to reduce CSRF exposure.
+        if request.method not in {'POST', 'PUT', 'PATCH', 'DELETE'}:
+            return None
+
+        origin = request.headers.get('Origin')
+        if origin:
+            try:
+                parsed_origin = urlsplit(origin)
+                if (
+                    parsed_origin.scheme not in {'http', 'https'}
+                    or not parsed_origin.netloc
+                    or parsed_origin.netloc.lower() != request.host.lower()
+                ):
+                    return jsonify(error='Cross-origin request rejected.'), 403
+            except ValueError:
+                return jsonify(error='Invalid request origin.'), 403
+        elif request.headers.get('Sec-Fetch-Site', '').lower() == 'cross-site':
+            return jsonify(error='Cross-origin request rejected.'), 403
+
+        return None
 
     @app.after_request
     def _trantu_log_slow_request(response):
