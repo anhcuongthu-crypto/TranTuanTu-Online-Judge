@@ -571,7 +571,17 @@ def test_internal_problem_translation_falls_back_without_external_service(tmp_pa
     assert response.status_code == 200
     assert response.json['translation_available'] is False
     assert response.json['translation_source'] == 'internal'
-    assert response.json['statement'] == 'Cho hai số nguyên a, b. In tổng a+b.'
+    assert response.json['title'] == 'English translation unavailable'
+    assert response.json['statement'] == (
+        'The English statement for this problem has not been added yet.'
+    )
+    assert response.json['input_format'] == (
+        'The English input description is not available yet.'
+    )
+    assert response.json['output_format'] == (
+        'The English output description is not available yet.'
+    )
+    assert 'Cho hai số nguyên' not in response.get_data(as_text=True)
 
 
 def test_problem_page_no_longer_displays_external_translation_failure(tmp_path):
@@ -983,3 +993,38 @@ def test_contest_submission_enforces_membership_and_time_boundaries(tmp_path):
     )
     assert not_member.status_code == 403
     assert 'không thuộc cuộc thi' in not_member.json['error'].lower()
+
+
+
+def test_english_problem_page_never_restores_vietnamese_on_translation_failure(tmp_path):
+    client = setup(tmp_path)
+    page = client.get('/problems/X01').get_data(as_text=True)
+
+    assert 'Vietnamese content is hidden in English mode.' in page
+    assert 'The English version could not be loaded. Vietnamese content is hidden in English mode.' in page
+    assert 'setText("problem-title", original.title)' not in page
+
+
+def test_incomplete_translation_never_falls_back_to_vietnamese_fields(tmp_path):
+    client = setup(tmp_path)
+    catalogue = tmp_path / 'problem_translations.en.json'
+    catalogue.write_text(json.dumps({
+        'X01': {
+            'title': 'English title',
+            'statement': 'English statement only'
+        }
+    }), encoding='utf-8')
+    client.application.config['PROBLEM_TRANSLATIONS_PATH'] = str(catalogue)
+
+    response = client.get('/api/problems/X01/translation')
+    assert response.status_code == 200
+    assert response.json['translation_available'] is False
+    assert response.json['title'] == 'English title'
+    assert response.json['statement'] == 'English statement only'
+    assert response.json['input_format'] == (
+        'The English input description is not available yet.'
+    )
+    assert response.json['output_format'] == (
+        'The English output description is not available yet.'
+    )
+    assert 'Một dòng' not in response.get_data(as_text=True)
