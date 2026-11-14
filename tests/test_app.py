@@ -768,3 +768,18 @@ def test_my_analytics_reports_current_and_longest_activity_streak(tmp_path):
     assert response.json['current_streak'] == 3
     assert response.json['longest_streak'] == 3
     assert response.json['active_days'] == 5
+
+
+
+def test_contest_page_has_live_countdown_and_leaderboard_auto_refresh(tmp_path):
+    client = setup(tmp_path)
+    contest_page = client.get('/contests/1')
+    assert contest_page.status_code == 200
+    html = contest_page.get_data(as_text=True)
+    assert 'id="contest-countdown"' in html
+    assert 'updateContestCountdown' in html
+    section = client.get('/contests/1/leaderboard')
+    assert section.status_code == 200
+    source = section.get_data(as_text=True)
+    assert 'refreshLeaderboard' in source
+    assert 'setInterval(refreshLeaderboard, 15000)' in source
