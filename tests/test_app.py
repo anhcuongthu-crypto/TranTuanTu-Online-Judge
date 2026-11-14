@@ -56,6 +56,18 @@ def test_problemset_has_saved_problem_filter(tmp_path):
     assert 'Chỉ hiển thị bài đã lưu'.encode('utf-8') in response.data
 
 
+
+def test_problem_search_keyboard_shortcuts_are_available(tmp_path):
+    client = setup(tmp_path)
+    page = client.get('/problems')
+    assert page.status_code == 200
+    assert b'aria-keyshortcuts="/ Escape"' in page.data
+    script = client.get('/static/app.js')
+    assert script.status_code == 200
+    source = script.get_data(as_text=True)
+    assert "event.key === '/'" in source
+    assert "event.key === 'Escape'" in source
+
 def test_saved_problems_sync_with_account_and_validate_ids(tmp_path):
     client = setup(tmp_path)
 
@@ -209,7 +221,9 @@ def test_home_problemset_library_and_brand_assets_render(tmp_path):
 
     home = c.get('/')
     assert home.status_code == 200
-    assert b'hero-art' in home.data
+    assert b'class="hero"' in home.data
+    assert b'class="hero-copy"' in home.data
+    assert b'home-workflow' in home.data
     assert b'og-cover.svg' in home.data
     assert b'favicon.svg' in home.data
 
@@ -384,19 +398,17 @@ def test_public_contests_cache_hit_skips_database_connection(tmp_path, monkeypat
     assert second.status_code == 200
     assert second.json == first.json
 
-def test_home_rubik_animation_is_deferred_and_paused_offscreen(tmp_path):
+def test_homepage_current_hero_and_workflow_sections_render(tmp_path):
     client = setup(tmp_path)
     response = client.get('/')
     assert response.status_code == 200
 
     page = response.get_data(as_text=True)
-    assert 'requestIdleCallback' in page
-    assert 'IntersectionObserver' in page
-    assert 'document.hidden' in page
-    assert "prefers-reduced-motion: reduce" in page
-    assert 'animation.pause()' in page
-    assert 'animation.play()' in page
-    assert 'z<3' in page and 'y<3' in page and 'x<3' in page
+    assert 'class="hero"' in page
+    assert 'class="hero-copy"' in page
+    assert 'home-workflow' in page
+    assert 'home-shortcut-grid' in page
+    assert 'home_hero_title' in page
 
 def test_submission_history_skips_user_join_but_all_scope_stays_global(tmp_path):
     client = setup(tmp_path)
