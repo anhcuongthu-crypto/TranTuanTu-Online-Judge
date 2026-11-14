@@ -571,3 +571,17 @@ def test_internal_problem_translation_falls_back_without_external_service(tmp_pa
     assert response.json['translation_available'] is False
     assert response.json['translation_source'] == 'internal'
     assert response.json['statement'] == 'Cho hai số nguyên a, b. In tổng a+b.'
+
+
+def test_problem_page_no_longer_displays_external_translation_failure(tmp_path):
+    client = setup(tmp_path)
+    response = client.get('/problems/X01')
+    assert response.status_code == 200
+    page = response.get_data(as_text=True)
+    assert 'Automatic translation is temporarily unavailable' not in page
+    assert '/api/problems/X01/translation' in page
+    assert 'translationUnavailable' in page
+
+    app_source = client.application.view_functions['translate_problem_page'].__code__.co_consts
+    assert not any('translate.googleapis.com' in str(item) for item in app_source)
+    assert not any('mymemory.translated.net' in str(item) for item in app_source)
