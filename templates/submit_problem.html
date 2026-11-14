@@ -116,7 +116,7 @@ if __name__ == "__main__":
  source.addEventListener('input',()=>{status('Đang có thay đổi chưa lưu…');clearTimeout(saveTimer);saveTimer=setTimeout(saveDraft,350);});
  language.addEventListener('change',()=>{clearTimeout(saveTimer);saveDraft(activeLanguage);activeLanguage=language.value;restoreDraft();});
  const stats=document.getElementById('editor-stats');
- const updateStats=()=>{if(stats){const value=source.value;stats.textContent=value.split('\\n').length+' dòng · '+value.length+' ký tự';}};
+ const updateStats=()=>{if(stats){const value=source.value;stats.textContent=value.split('\n').length+' dòng · '+value.length+' ký tự';}};
  const copyButton=document.getElementById('copy-source');
  const restoreButton=document.getElementById('restore-starter');
  const notifyInput=()=>{source.dispatchEvent(new Event('input',{bubbles:true}));updateStats();};
@@ -138,8 +138,8 @@ if __name__ == "__main__":
  });
  const lineBounds=()=>{
   const value=source.value,start=source.selectionStart,end=source.selectionEnd;
-  const lineStart=value.lastIndexOf('\\n',Math.max(0,start-1))+1;
-  const nextBreak=value.indexOf('\\n',end);
+  const lineStart=value.lastIndexOf('\n',Math.max(0,start-1))+1;
+  const nextBreak=value.indexOf('\n',end);
   const lineEnd=nextBreak<0?value.length:nextBreak;
   return {value,start,end,lineStart,lineEnd};
  };
@@ -151,9 +151,9 @@ if __name__ == "__main__":
    event.preventDefault();
    const b=lineBounds(), selected=b.value.slice(b.lineStart,b.lineEnd);
    const prefix=activeLanguage==='71'?'# ':'// ';
-   const lines=selected.split('\\n');
+   const lines=selected.split('\n');
    const uncomment=lines.every(line=>line.trimStart().startsWith(prefix.trim()));
-   const changed=lines.map(line=>uncomment?line.replace(new RegExp('^(\\\\s*)'+(activeLanguage==='71'?'# ':'// ')), '$1'):line.replace(/^(\\s*)/,'$1'+prefix)).join('\\n');
+   const changed=lines.map(line=>uncomment?line.replace(new RegExp('^(\\s*)'+(activeLanguage==='71'?'# ':'// ')), '$1'):line.replace(/^(\s*)/,'$1'+prefix)).join('\n');
    source.setRangeText(changed,b.lineStart,b.lineEnd,'select');notifyInput();return;
   }
   if(event.key==='Tab'){
@@ -162,18 +162,18 @@ if __name__ == "__main__":
    if(b.start===b.end&&!event.shiftKey){source.setRangeText('    ',b.start,b.end,'end');}
    else{
     const selected=b.value.slice(b.lineStart,b.lineEnd);
-    const changed=selected.split('\\n').map(line=>event.shiftKey?line.replace(/^ {1,4}/,''):('    '+line)).join('\\n');
+    const changed=selected.split('\n').map(line=>event.shiftKey?line.replace(/^ {1,4}/,''):('    '+line)).join('\n');
     source.setRangeText(changed,b.lineStart,b.lineEnd,'select');
    }
    notifyInput();return;
   }
   if(event.key==='Enter'&&!event.shiftKey){
    const b=lineBounds(), before=b.value.slice(b.lineStart,b.start);
-   const indent=(before.match(/^\\s*/)||[''])[0];
+   const indent=(before.match(/^\s*/)||[''])[0];
    const trimmed=before.trimEnd();
    const extra=(trimmed.endsWith('{')||(activeLanguage==='71'&&trimmed.endsWith(':')))?'    ':'';
    event.preventDefault();
-   source.setRangeText('\\n'+indent+extra,b.start,b.end,'end');
+   source.setRangeText('\n'+indent+extra,b.start,b.end,'end');
    notifyInput();return;
   }
  });
