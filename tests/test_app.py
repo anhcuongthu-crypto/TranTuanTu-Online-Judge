@@ -71,6 +71,16 @@ def test_problemset_can_clear_recently_viewed_history(tmp_path):
     assert "localStorage.removeItem(RECENT_PROBLEMS_KEY)" in source
     assert "id !== String(problemId)" not in source
 
+def test_problem_page_copy_link_control_is_available(tmp_path):
+    client = setup(tmp_path)
+    response = client.get('/problems/X01')
+    assert response.status_code == 200
+    page = response.get_data(as_text=True)
+    assert 'id="copy-problem-link"' in page
+    assert 'Sao chép link' in page
+    assert 'navigator.clipboard' in page
+    assert 'window.location.href' in page
+
 def test_recently_viewed_problem_filter_and_tracking(tmp_path):
     client = setup(tmp_path)
     listing = client.get('/problems')
