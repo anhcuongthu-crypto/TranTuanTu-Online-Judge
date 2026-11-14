@@ -31,6 +31,7 @@ from oj.database import (
     DB_UNAVAILABLE_ERRORS
 )
 from oj.job_queue import enqueue, QueueFullError, recover_pending, _prepare_freopen_source
+from oj.judge import Judge0, JudgeError, _prepare_freopen_source
 from oj.judge import Judge0, JudgeError
 from oj.admin import register_admin_routes
 from oj.history import (
@@ -422,6 +423,9 @@ def create_app(test_config=None):
 
     if test_config:
         app.config.update(test_config)
+
+    sample_run_lock = threading.Lock()
+    sample_run_usage = {}
 
     @app.route('/googleb41680ca79493ff6.html', methods=['GET'])
     def google_site_verification():
@@ -2312,6 +2316,115 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         response = jsonify(result)
         response.headers['Cache-Control'] = 'public, max-age=3'
         return response
+
+    @app.post('/api/run')
+    def run_code():
+        user = current_user()
+        if not user:
+            return jsonify(error='Đăng nhập để chạy thử mã nguồn.'), 401
+
+        data = request.get_json(silent=True) or {}
+        problem_id = str(data.get('problem_id', '')).strip()
+        source_code = data.get('source_code')
+        stdin = data.get('stdin', '')
+        raw_language = data.get('language_id', 54)
+        raw_contest_id = data.get('contest_id')
+
+        if not problem_id:
+            return jsonify(error='Thiếu mã bài tập.'), 400
+        if not isinstance(source_code, str) or not source_code.strip() or len(source_code) > 100000:
+            return jsonify(error='Mã nguồn trống hoặc vượt 100 KB.'), 400
+        if not isinstance(stdin, str) or len(stdin) > 50000:
+            return jsonify(error='Dữ liệu đầu vào vượt quá 50 KB hoặc không hợp lệ.'), 400
+        try:
+            language = int(raw_language)
+        except (TypeError, ValueError):
+            return jsonify(error='Ngôn ngữ lập trình không hợp lệ.'), 400
+        if language not in (54, 71):
+            return jsonify(error='Chỉ hỗ trợ C++ và Python 3.'), 400
+
+        if raw_contest_id not in (None, ''):
+            try:
+                contest_id = int(raw_contest_id)
+            except (TypeError, ValueError):
+                return jsonify(error='Mã cuộc thi không hợp lệ.'), 400
+            contest = get_contest_data(
+                contest_id,
+                allow_hidden=bool(user.get('is_admin'))
+            )
+            if not contest:
+                return jsonify(error='Không tìm thấy cuộc thi.'), 404
+            item = next(
+                (item for item in contest.get('problems', [])
+                 if str(item.get('id')) == problem_id),
+                None
+            )
+            if not item:
+                return jsonify(error='Bài này không thuộc cuộc thi.'), 403
+            bank_item = next(
+                (item for item in problems() if str(item.get('id')) == problem_id),
+                None
+            )
+            problem = dict(bank_item or {})
+            problem.update(item)
+        else:
+            problem = next(
+                (item for item in problems() if str(item.get('id')) == problem_id),
+                None
+            )
+
+        if not problem:
+            return jsonify(error='Không tìm thấy bài tập.'), 404
+
+        now = time.monotonic()
+        with sample_run_lock:
+            recent = [
+                stamp for stamp in sample_run_usage.get(user['id'], [])
+                if now - stamp < 60
+            ]
+            if len(recent) >= 5:
+                return jsonify(
+                    error='Bạn đã chạy thử 5 lần trong 1 phút. Vui lòng chờ một chút.'
+                ), 429
+            recent.append(now)
+            sample_run_usage[user['id']] = recent
+
+        code_to_run, freopen_error = _prepare_freopen_source(
+            problem, source_code, language
+        )
+        if freopen_error:
+            return jsonify(error=freopen_error), 400
+
+        try:
+            judge = Judge0(
+                app.config['JUDGE0_URL'],
+                app.config.get('JUDGE0_API_KEY', '')
+            )
+            result = judge.run(
+                code_to_run,
+                language,
+                stdin,
+                None,
+                time_limit=2.0,
+                memory_limit=128000,
+                max_wait_seconds=20
+            )
+        except JudgeError as exc:
+            app.logger.warning('Sample run Judge0 error: %s', exc)
+            return jsonify(error='Không thể kết nối hệ thống chạy thử. Vui lòng thử lại.'), 502
+        except Exception:
+            app.logger.exception('Unexpected sample run error')
+            return jsonify(error='Đã xảy ra lỗi khi chạy thử mã nguồn.'), 502
+
+        return jsonify(
+            status=result.get('status', 'Unknown'),
+            stdout=result.get('stdout') or '',
+            stderr=result.get('stderr') or '',
+            compile_output=result.get('compile_output') or '',
+            message=result.get('message') or '',
+            time=result.get('time'),
+            memory=result.get('memory')
+        )
 
     @app.post('/api/submit')
     def submit():
