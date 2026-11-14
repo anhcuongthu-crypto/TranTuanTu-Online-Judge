@@ -36,3 +36,21 @@ def test_postgres_schema_preserves_fractional_scores(monkeypatch):
         "ALTER TABLE solves ALTER COLUMN best_score TYPE DOUBLE PRECISION "
         "USING best_score::DOUBLE PRECISION"
     ) in normalized
+
+
+def test_postgres_pools_close_before_interpreter_shutdown(monkeypatch):
+    closed = []
+
+    class FakePool:
+        def close(self, timeout=None):
+            closed.append(timeout)
+
+    monkeypatch.setattr(
+        database,
+        "_POSTGRES_POOLS",
+        {"postgresql://example.invalid/test": FakePool()}
+    )
+    database._close_postgres_pools()
+
+    assert closed == [5.0]
+    assert database._POSTGRES_POOLS == {}
