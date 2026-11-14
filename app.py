@@ -1242,15 +1242,63 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         if not isinstance(authored, dict):
             authored = {}
 
-        fields = (
-            'title', 'statement', 'input_format', 'output_format',
-            'input_desc', 'output_desc', 'explanation', 'note', 'notes',
-            'constraints', 'category', 'difficulty', 'author', 'created_by'
-        )
-        result = {
-            field: authored.get(field) or p.get(field, '')
-            for field in fields
+        # English mode must never fall back to Vietnamese source text.
+        # Keep only authored English fields; use explicit English placeholders
+        # for missing content so the page cannot silently mix languages.
+        field_aliases = {
+            'title': ('title',),
+            'statement': ('statement',),
+            'input_format': ('input_format', 'input_desc'),
+            'output_format': ('output_format', 'output_desc'),
+            'input_desc': ('input_desc', 'input_format'),
+            'output_desc': ('output_desc', 'output_format'),
+            'explanation': ('explanation',),
+            'note': ('note',),
+            'notes': ('notes',),
+            'constraints': ('constraints',),
+            'category': ('category',),
+            'difficulty': ('difficulty',),
+            'author': ('author',),
+            'created_by': ('created_by',)
         }
+        result = {}
+        for field, aliases in field_aliases.items():
+            value = next(
+                (
+                    authored.get(alias)
+                    for alias in aliases
+                    if isinstance(authored.get(alias), str)
+                    and authored.get(alias).strip()
+                ),
+                ''
+            )
+            result[field] = value
+
+        result['title'] = result['title'] or 'English translation unavailable'
+        result['statement'] = (
+            result['statement']
+            or 'The English statement for this problem has not been added yet.'
+        )
+        result['input_format'] = (
+            result['input_format']
+            or 'The English input description is not available yet.'
+        )
+        result['output_format'] = (
+            result['output_format']
+            or 'The English output description is not available yet.'
+        )
+        result['input_desc'] = result['input_desc'] or result['input_format']
+        result['output_desc'] = result['output_desc'] or result['output_format']
+        result['explanation'] = result['explanation'] or (
+            'An English explanation is not available yet.'
+        )
+        result['category'] = result['category'] or 'Problem'
+        result['difficulty'] = result['difficulty'] or 'Not specified'
+        result['author'] = result['author'] or 'Not provided'
+        result['created_by'] = result['created_by'] or 'Admin'
+        result['note'] = result['note'] or ''
+        result['notes'] = result['notes'] or ''
+        result['constraints'] = result['constraints'] or ''
 
         translated_subtasks = authored.get('subtasks', [])
         translated_by_id = {
@@ -1260,18 +1308,31 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         } if isinstance(translated_subtasks, list) else {}
 
         result['subtasks'] = []
-        for subtask in p.get('subtasks', []):
+        for index, subtask in enumerate(p.get('subtasks', []), start=1):
             translated = translated_by_id.get(str(subtask.get('id')), {})
+            translated_name = translated.get('name')
+            translated_constraints = translated.get('constraints')
             result['subtasks'].append({
                 'id': subtask.get('id', ''),
-                'name': translated.get('name') or subtask.get('name', ''),
-                'constraints': translated.get('constraints') or subtask.get('constraints', ''),
+                'name': (
+                    translated_name.strip()
+                    if isinstance(translated_name, str) and translated_name.strip()
+                    else f'Subtask {index}'
+                ),
+                'constraints': (
+                    translated_constraints.strip()
+                    if isinstance(translated_constraints, str)
+                    else ''
+                ),
                 'score': subtask.get('score', 0)
             })
 
-        result['translation_available'] = bool(
-            authored.get('title') and authored.get('statement')
+        required_fields = ('title', 'statement', 'input_format', 'output_format')
+        complete_core = all(
+            isinstance(authored.get(field), str) and authored[field].strip()
+            for field in required_fields
         )
+        result['translation_available'] = bool(complete_core)
         result['translation_source'] = 'internal'
         return jsonify(result)
 
