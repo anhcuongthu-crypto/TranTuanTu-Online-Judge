@@ -294,22 +294,25 @@ function getFilteredProblems() {
     ).trim().toLocaleLowerCase('vi');
     const category = document.querySelector('#filter-category')?.value || '';
     const difficulty = document.querySelector('#filter-difficulty')?.value || '';
+    const tag = document.querySelector('#filter-tag')?.value || '';
     const status = document.querySelector('#filter-status')?.value || '';
     const savedOnly = !!document.querySelector('#filter-saved')?.checked;
     const recentOnly = !!document.querySelector('#filter-recent')?.checked;
 
     return items.filter(p => {
-        const matchesQuery = `${p.id ?? ''} ${p.title ?? ''} ${p.category ?? ''} ${p.difficulty ?? ''}`
+        const matchesQuery = `${p.id ?? ''} ${p.title ?? ''} ${p.category ?? ''} ${p.difficulty ?? ''} ${Array.isArray(p.tags) ? p.tags.join(' ') : ''}`
             .toLocaleLowerCase('vi')
             .includes(query);
         const matchesCategory = !category || String(p.category ?? '') === category;
         const matchesDifficulty = !difficulty || String(p.difficulty ?? '') === difficulty;
+        const problemTags = Array.isArray(p.tags) ? p.tags.map(String) : [];
+        const matchesTag = !tag || problemTags.includes(tag);
         const progress = mySolvedProblems[String(p.id)];
         const actualStatus = progress?.solved ? 'solved' : progress ? 'attempted' : 'unsolved';
         const matchesStatus = !status || actualStatus === status;
         const matchesSaved = !savedOnly || savedProblemIds.has(String(p.id));
         const matchesRecent = !recentOnly || recentProblemIds.has(String(p.id));
-        return matchesQuery && matchesCategory && matchesDifficulty && matchesStatus && matchesSaved && matchesRecent;
+        return matchesQuery && matchesCategory && matchesDifficulty && matchesTag && matchesStatus && matchesSaved && matchesRecent;
     });
 }
 
@@ -608,6 +611,14 @@ async function refresh() {
                     const difficulties = [...new Set(items.map(p => String(p.difficulty ?? '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi', { numeric: true }));
                     const categorySelect = document.querySelector('#filter-category');
                     const difficultySelect = document.querySelector('#filter-difficulty');
+                    const tagSelect = document.querySelector('#filter-tag');
+                    const allTags = [...new Set(items.flatMap(p => Array.isArray(p.tags) ? p.tags : []).map(tag => String(tag).trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi'));
+                    if (tagSelect) {
+                        const selected = tagSelect.value;
+                        tagSelect.innerHTML = '<option value="">Tất cả tag</option>' +
+                            allTags.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('');
+                        tagSelect.value = selected;
+                    }
                     if (categorySelect) {
                         const selected = categorySelect.value;
                         categorySelect.innerHTML = '<option value="">Tất cả chủ đề</option>' +
@@ -945,6 +956,8 @@ async function loadMyAnalytics() {
         setText('analytics-attempted', data.total_attempted ?? 0);
         setText('analytics-submissions', data.total_submissions ?? 0);
         setText('analytics-rate', (data.full_rate ?? 0) + '%');
+        setText('analytics-current-streak', data.current_streak ?? 0);
+        setText('analytics-longest-streak', data.longest_streak ?? 0);
 
         const daily = document.querySelector('#analytics-daily');
         if (daily) {
@@ -1226,7 +1239,7 @@ document.addEventListener('keydown', event => {
 });
 
 // Bộ lọc kho bài tập.
-['#search', '#filter-category', '#filter-difficulty', '#filter-status', '#filter-saved', '#filter-recent'].forEach(selector => {
+['#search', '#filter-category', '#filter-difficulty', '#filter-tag', '#filter-status', '#filter-saved', '#filter-recent'].forEach(selector => {
     document.querySelector(selector)?.addEventListener(
         selector === '#search' ? 'input' : 'change',
         () => { problemPage = 1; renderProblems(getFilteredProblems()); }
@@ -1251,12 +1264,14 @@ document.querySelector('#reset-problem-filters')?.addEventListener('click', () =
     const search = document.querySelector('#search');
     const category = document.querySelector('#filter-category');
     const difficulty = document.querySelector('#filter-difficulty');
+    const tag = document.querySelector('#filter-tag');
     if (search) search.value = '';
     if (category) category.value = '';
     const status = document.querySelector('#filter-status');
     const saved = document.querySelector('#filter-saved');
     const recent = document.querySelector('#filter-recent');
     if (difficulty) difficulty.value = '';
+    if (tag) tag.value = '';
     if (status) status.value = '';
     if (saved) saved.checked = false;
     if (recent) recent.checked = false;
