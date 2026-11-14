@@ -31,7 +31,6 @@ from oj.database import (
     DB_UNAVAILABLE_ERRORS
 )
 from oj.job_queue import enqueue, QueueFullError, recover_pending, _prepare_freopen_source
-from oj.judge import Judge0, JudgeError, _prepare_freopen_source
 from oj.judge import Judge0, JudgeError
 from oj.admin import register_admin_routes
 from oj.history import (
