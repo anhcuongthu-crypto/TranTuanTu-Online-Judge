@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import atexit
 import os
 import re
 import sqlite3
@@ -49,7 +50,28 @@ DB_UNAVAILABLE_ERRORS = DB_POOL_TIMEOUT_ERRORS + (
 # Reuse PostgreSQL connections instead of opening a new TCP/TLS connection
 # for every API request. The pool is process-local and bounded.
 _POSTGRES_POOLS = {}
+
 _POSTGRES_POOLS_LOCK = threading.Lock()
+
+
+def _close_postgres_pools():
+    """Close pooled PostgreSQL connections before interpreter shutdown."""
+    with _POSTGRES_POOLS_LOCK:
+        pools = list(_POSTGRES_POOLS.values())
+        _POSTGRES_POOLS.clear()
+
+    for pool in pools:
+        try:
+            pool.close(timeout=5.0)
+        except Exception as exc:
+            # Shutdown must continue even if a pool is already unavailable.
+            print(
+                f"[DATABASE] Could not close PostgreSQL pool cleanly: {exc}",
+                flush=True
+            )
+
+
+atexit.register(_close_postgres_pools)
 
 # Khi pool đầy, cho phép tối đa một request dùng kết nối dự phòng ngắn hạn.
 # Giới hạn này tránh tạo thêm hàng loạt kết nối ngoài pool.
@@ -584,8 +606,8 @@ def _init_postgres(path):
             language_id INTEGER NOT NULL,
             source_code TEXT NOT NULL,
             verdict TEXT NOT NULL,
-            score DOUBLE NOT NULL DEFAULT 0,
-            max_score DOUBLE NOT NULL DEFAULT 100,
+            score DOUBLE PRECISION NOT NULL DEFAULT 0,
+            max_score DOUBLE PRECISION NOT NULL DEFAULT 100,
             details_json TEXT NOT NULL DEFAULT '[]',
             contest_id BIGINT REFERENCES contests(id) ON DELETE SET NULL,
             created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::text)
@@ -596,9 +618,15 @@ def _init_postgres(path):
         CREATE TABLE IF NOT EXISTS solves (
             user_id BIGINT NOT NULL REFERENCES users(id),
             problem_id TEXT NOT NULL,
-            best_score INTEGER NOT NULL DEFAULT 0,
+            best_score DOUBLE PRECISION NOT NULL DEFAULT 0,
             PRIMARY KEY(user_id, problem_id)
         )
+        """,
+
+        """
+        ALTER TABLE solves
+        ALTER COLUMN best_score TYPE DOUBLE PRECISION
+        USING best_score::DOUBLE PRECISION
         """,
 
         """
