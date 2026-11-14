@@ -115,6 +115,7 @@ async function loadMyProgress(force = false) {
 // Danh sách bài đã lưu chỉ nằm trên trình duyệt hiện tại.
 const SAVED_PROBLEMS_KEY = 'trantu-oj:saved-problems:v1';
 const savedProblemIds = new Set();
+let savedProblemsUserId = null;
 try {
     const stored = JSON.parse(localStorage.getItem(SAVED_PROBLEMS_KEY) || '[]');
     if (Array.isArray(stored)) stored.forEach(id => savedProblemIds.add(String(id)));
@@ -128,14 +129,65 @@ function persistSavedProblems() {
     }
 }
 
+function renderSavedProblemChanges() {
+    const problemEl = document.querySelector('#problems');
+    if (problemEl?.dataset.items) {
+        problemPage = 1;
+        renderProblems(getFilteredProblems());
+    }
+}
+
+async function syncSavedProblemsWithAccount(user) {
+    if (!user?.id) {
+        savedProblemsUserId = null;
+        return;
+    }
+
+    savedProblemsUserId = String(user.id);
+    try {
+        const remote = await api('/api/saved-problems');
+        const remoteIds = Array.isArray(remote.problem_ids)
+            ? remote.problem_ids.map(String)
+            : [];
+
+        // Chuyển các dấu sao đã lưu trước đây trên thiết bị lên tài khoản.
+        const localIds = [...savedProblemIds];
+        if (localIds.length) {
+            await api('/api/saved-problems', {
+                method: 'POST',
+                body: JSON.stringify({ problem_ids: localIds, saved: true })
+            });
+        }
+
+        const merged = new Set([...remoteIds, ...localIds]);
+        savedProblemIds.clear();
+        merged.forEach(id => savedProblemIds.add(id));
+        persistSavedProblems();
+        renderSavedProblemChanges();
+    } catch (error) {
+        // Vẫn giữ danh sách trên thiết bị nếu tài khoản tạm thời ngoại tuyến.
+        console.warn('Chưa thể đồng bộ bài đã lưu:', error);
+    }
+}
+
 function toggleSavedProblem(problemId) {
     const id = String(problemId ?? '');
     if (!id) return;
-    if (savedProblemIds.has(id)) savedProblemIds.delete(id);
-    else savedProblemIds.add(id);
+    const saved = !savedProblemIds.has(id);
+    if (saved) savedProblemIds.add(id);
+    else savedProblemIds.delete(id);
+
     persistSavedProblems();
-    problemPage = 1;
-    renderProblems(getFilteredProblems());
+    renderSavedProblemChanges();
+
+    if (savedProblemsUserId) {
+        api('/api/saved-problems', {
+            method: 'POST',
+            body: JSON.stringify({ problem_id: id, saved })
+        }).catch(error => {
+            console.warn('Chưa thể đồng bộ thay đổi bài đã lưu:', error);
+        });
+    }
 }
 
 // Cột mặc định: mã bài, tăng dần.
@@ -366,6 +418,8 @@ async function refresh() {
             try {
                 const me = await api('/api/me');
                 const user = me.user;
+                savedProblemsUserId = user?.id ? String(user.id) : null;
+                if (user) syncSavedProblemsWithAccount(user);
 
                 if (authSection) {
                     authSection.style.display = user ? 'none' : 'grid';
