@@ -17,6 +17,36 @@
     } catch (error) {
         console.warn('Không thể lưu lịch sử bài vừa xem:', error);
     }
+
+    const copyButton = document.querySelector('#copy-problem-link');
+    copyButton?.addEventListener('click', async () => {
+        const originalLabel = '↗ Sao chép link';
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(window.location.href);
+            } else {
+                const field = document.createElement('textarea');
+                field.value = window.location.href;
+                field.setAttribute('readonly', '');
+                field.style.position = 'fixed';
+                field.style.opacity = '0';
+                document.body.appendChild(field);
+                field.select();
+                const copied = document.execCommand('copy');
+                field.remove();
+                if (!copied) throw new Error('Clipboard unavailable');
+            }
+            copyButton.textContent = '✓ Đã sao chép';
+            copyButton.setAttribute('aria-label', 'Đã sao chép liên kết bài tập');
+        } catch (error) {
+            copyButton.textContent = 'Không sao chép được';
+            console.warn('Không thể sao chép liên kết bài tập:', error);
+        }
+        window.setTimeout(() => {
+            copyButton.textContent = originalLabel;
+            copyButton.setAttribute('aria-label', 'Sao chép liên kết bài tập');
+        }, 2200);
+    });
 })();
 </script>
 
@@ -288,7 +318,18 @@
 
             <span class="eyebrow"><span id="problem-label">PROBLEM</span> {{ problem.id }}</span>
 
-            <h1 id="problem-title">{{ problem.title }}</h1>
+            <div class="problem-title-row">
+                <h1 id="problem-title">{{ problem.title }}</h1>
+                <button type="button" class="copy-problem-link" id="copy-problem-link" aria-label="Sao chép liên kết bài tập">↗ Sao chép link</button>
+            </div>
+            <style id="copy-problem-link-style">
+                .problem-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+                .problem-title-row h1{margin:0;min-width:0;overflow-wrap:anywhere}
+                .copy-problem-link{flex:none;padding:8px 12px;border:1px solid var(--border-color,#d8deea);border-radius:9px;background:var(--card-bg,#fff);color:inherit;font:inherit;font-size:12px;cursor:pointer}
+                .copy-problem-link:hover{border-color:#6485e8;background:var(--surface-2,#f3f6fc)}
+                .copy-problem-link:focus-visible{outline:2px solid #6485e8;outline-offset:3px}
+                @media(max-width:560px){.problem-title-row{align-items:flex-start}.copy-problem-link{margin-top:4px}}
+            </style>
 
             <div class="statement" id="problem-statement">
                 {{ problem.statement }}
