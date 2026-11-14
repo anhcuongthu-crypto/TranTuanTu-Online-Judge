@@ -114,19 +114,35 @@ async function loadMyProgress(force = false) {
 
 // Danh sách bài đã lưu chỉ nằm trên trình duyệt hiện tại.
 const SAVED_PROBLEMS_KEY = 'trantu-oj:saved-problems:v1';
+const anonymousSavedProblemIds = new Set();
 const savedProblemIds = new Set();
 let savedProblemsUserId = null;
+
 try {
     const stored = JSON.parse(localStorage.getItem(SAVED_PROBLEMS_KEY) || '[]');
-    if (Array.isArray(stored)) stored.forEach(id => savedProblemIds.add(String(id)));
+    if (Array.isArray(stored)) {
+        stored.forEach(id => {
+            anonymousSavedProblemIds.add(String(id));
+            savedProblemIds.add(String(id));
+        });
+    }
 } catch {}
 
-function persistSavedProblems() {
+function persistAnonymousSavedProblems() {
     try {
-        localStorage.setItem(SAVED_PROBLEMS_KEY, JSON.stringify([...savedProblemIds]));
+        localStorage.setItem(
+            SAVED_PROBLEMS_KEY,
+            JSON.stringify([...anonymousSavedProblemIds])
+        );
     } catch (error) {
         console.warn('Không thể lưu danh sách bài yêu thích trên trình duyệt:', error);
     }
+}
+
+function showAnonymousSavedProblems() {
+    savedProblemIds.clear();
+    anonymousSavedProblemIds.forEach(id => savedProblemIds.add(id));
+    renderSavedProblemChanges();
 }
 
 function renderSavedProblemChanges() {
@@ -139,33 +155,49 @@ function renderSavedProblemChanges() {
 
 async function syncSavedProblemsWithAccount(user) {
     if (!user?.id) {
-        savedProblemsUserId = null;
+        if (savedProblemsUserId !== null) {
+            savedProblemsUserId = null;
+            showAnonymousSavedProblems();
+        }
         return;
     }
 
-    savedProblemsUserId = String(user.id);
+    const targetUserId = String(user.id);
+    if (savedProblemsUserId === targetUserId) return;
+
+    // Không để dấu sao của tài khoản trước xuất hiện trong tài khoản mới.
+    savedProblemsUserId = targetUserId;
+    showAnonymousSavedProblems();
+
     try {
+        // Chỉ chuyển danh sách ẩn danh lên tài khoản; không lấy dữ liệu
+        // của tài khoản trước từ Set đang hiển thị.
+        const anonymousIds = [...anonymousSavedProblemIds];
+        if (anonymousIds.length) {
+            await api('/api/saved-problems', {
+                method: 'POST',
+                body: JSON.stringify({
+                    problem_ids: anonymousIds,
+                    saved: true
+                })
+            });
+        }
+
         const remote = await api('/api/saved-problems');
+        if (savedProblemsUserId !== targetUserId) return;
+
         const remoteIds = Array.isArray(remote.problem_ids)
             ? remote.problem_ids.map(String)
             : [];
 
-        // Chuyển các dấu sao đã lưu trước đây trên thiết bị lên tài khoản.
-        const localIds = [...savedProblemIds];
-        if (localIds.length) {
-            await api('/api/saved-problems', {
-                method: 'POST',
-                body: JSON.stringify({ problem_ids: localIds, saved: true })
-            });
-        }
+        anonymousSavedProblemIds.clear();
+        persistAnonymousSavedProblems();
 
-        const merged = new Set([...remoteIds, ...localIds]);
         savedProblemIds.clear();
-        merged.forEach(id => savedProblemIds.add(id));
-        persistSavedProblems();
+        remoteIds.forEach(id => savedProblemIds.add(id));
         renderSavedProblemChanges();
     } catch (error) {
-        // Vẫn giữ danh sách trên thiết bị nếu tài khoản tạm thời ngoại tuyến.
+        // Giữ lại mục ẩn danh nếu mạng lỗi; không ghi đè dữ liệu tài khoản.
         console.warn('Chưa thể đồng bộ bài đã lưu:', error);
     }
 }
@@ -174,11 +206,9 @@ function toggleSavedProblem(problemId) {
     const id = String(problemId ?? '');
     if (!id) return;
     const saved = !savedProblemIds.has(id);
+
     if (saved) savedProblemIds.add(id);
     else savedProblemIds.delete(id);
-
-    persistSavedProblems();
-    renderSavedProblemChanges();
 
     if (savedProblemsUserId) {
         api('/api/saved-problems', {
@@ -187,7 +217,13 @@ function toggleSavedProblem(problemId) {
         }).catch(error => {
             console.warn('Chưa thể đồng bộ thay đổi bài đã lưu:', error);
         });
+    } else {
+        if (saved) anonymousSavedProblemIds.add(id);
+        else anonymousSavedProblemIds.delete(id);
+        persistAnonymousSavedProblems();
     }
+
+    renderSavedProblemChanges();
 }
 
 // Cột mặc định: mã bài, tăng dần.
