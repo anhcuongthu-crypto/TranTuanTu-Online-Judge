@@ -681,6 +681,11 @@ def _init_postgres(path):
         """,
 
         """
+        CREATE INDEX IF NOT EXISTS idx_submissions_user_created_at
+        ON submissions(user_id, created_at DESC)
+        """,
+
+        """
         CREATE INDEX IF NOT EXISTS idx_submissions_problem
         ON submissions(problem_id)
         """,
