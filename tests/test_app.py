@@ -53,7 +53,7 @@ def test_problemset_has_saved_problem_filter(tmp_path):
     response = client.get('/problems')
     assert response.status_code == 200
     assert b'id="filter-saved"' in response.data
-    assert b'Chỉ hiển thị bài đã lưu' in response.data
+    assert 'Chỉ hiển thị bài đã lưu'.encode('utf-8') in response.data
 
 
 def test_registration_is_immediately_approved_and_username_unique(tmp_path):
