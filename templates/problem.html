@@ -1,7 +1,22 @@
 
 {% extends 'base.html' %}
 
-{% block title %}{{ problem.id }} · {{ problem.title }} — TranTu OJ{% endblock %}
+{% block title %}{{ problem.id }} · {{ problem.title }} — TranTu OJ<script>
+(() => {
+    const key = 'trantu-oj:recent-problems:v1';
+    const problemId = {{ problem.id|string|tojson }};
+    try {
+        const previous = JSON.parse(localStorage.getItem(key) || '[]');
+        const ids = Array.isArray(previous) ? previous.map(String) : [];
+        const next = [String(problemId), ...ids.filter(id => id !== String(problemId))].slice(0, 30);
+        localStorage.setItem(key, JSON.stringify(next));
+    } catch (error) {
+        console.warn('Không thể lưu lịch sử bài vừa xem:', error);
+    }
+})();
+</script>
+
+{% endblock %}
 {% block meta_description %}{{ problem.title }} — bài tập {{ problem.category }} trên TranTu OJ. Đọc đề, xem dữ liệu vào ra, ví dụ và luyện giải bằng C++ trực tuyến.{% endblock %}
 
 {% block content %}
