@@ -1443,6 +1443,12 @@ async function init() {
         openProblemFromUrl();
 
         loadContestStats();
+        loadLeaderboard();
+        if (!window.contestLeaderboardRefreshTimer) {
+            window.contestLeaderboardRefreshTimer = setInterval(() => {
+                if (document.visibilityState === "visible") loadLeaderboard();
+            }, 15000);
+        }
 
     } catch (error) {
         $("contestHeader").innerHTML = `
