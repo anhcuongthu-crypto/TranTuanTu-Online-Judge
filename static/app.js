@@ -1149,6 +1149,34 @@ document.querySelector('#refresh-submissions')
         }
     });
 
+// Phím tắt trên trang danh sách: / để tìm, Esc để xóa nhanh.
+document.addEventListener('keydown', event => {
+    if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
+
+    const search = document.querySelector('#search');
+    if (!search) return;
+
+    const target = event.target;
+    const isTyping = target instanceof HTMLElement && (
+        target.isContentEditable ||
+        ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
+    );
+
+    if (event.key === '/' && !isTyping) {
+        event.preventDefault();
+        search.focus();
+        search.select();
+        return;
+    }
+
+    if (event.key === 'Escape' && document.activeElement === search && search.value) {
+        event.preventDefault();
+        search.value = '';
+        problemPage = 1;
+        renderProblems(getFilteredProblems());
+    }
+});
+
 // Bộ lọc kho bài tập.
 ['#search', '#filter-category', '#filter-difficulty', '#filter-status', '#filter-saved'].forEach(selector => {
     document.querySelector(selector)?.addEventListener(
