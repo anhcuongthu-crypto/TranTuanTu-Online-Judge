@@ -1233,6 +1233,20 @@ document.addEventListener('keydown', event => {
     );
 });
 
+document.querySelector('#clear-recent-problems')?.addEventListener('click', () => {
+    recentProblemIds.clear();
+    try {
+        localStorage.removeItem(RECENT_PROBLEMS_KEY);
+    } catch (error) {
+        console.warn('Không thể xóa lịch sử bài đã xem:', error);
+    }
+    const recent = document.querySelector('#filter-recent');
+    if (recent) recent.checked = false;
+    problemPage = 1;
+    renderProblems(getFilteredProblems());
+    note('Đã xóa lịch sử bài vừa xem trên thiết bị này.');
+});
+
 document.querySelector('#reset-problem-filters')?.addEventListener('click', () => {
     const search = document.querySelector('#search');
     const category = document.querySelector('#filter-category');
