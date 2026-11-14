@@ -1915,7 +1915,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 (user['id'],)
             ).fetchall()
             activity_days = db.execute(
-                '''SELECT DISTINCT SUBSTR(created_at, 1, 10) AS activity_day
+                '''SELECT DISTINCT SUBSTR(CAST(created_at AS TEXT), 1, 10) AS activity_day
                    FROM submissions
                    WHERE user_id=? AND created_at IS NOT NULL
                    ORDER BY activity_day DESC
