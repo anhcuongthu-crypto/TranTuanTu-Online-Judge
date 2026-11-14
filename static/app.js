@@ -110,6 +110,44 @@ async function loadMyProgress(force = false) {
     }
 }
 
+async function loadHomeRecentProblems() {
+    const section = document.querySelector('#home-recent-section');
+    const list = document.querySelector('#home-recent-list');
+    if (!section || !list || recentProblemIds.size === 0) return;
+
+    try {
+        const allProblems = await api('/api/problems');
+        const byId = new Map((Array.isArray(allProblems) ? allProblems : [])
+            .map(problem => [String(problem.id), problem]));
+        const recent = [...recentProblemIds]
+            .map(id => byId.get(id))
+            .filter(Boolean)
+            .slice(0, 6);
+
+        if (!recent.length) return;
+
+        list.innerHTML = recent.map(problem => `
+            <a class="home-recent-card" href="/problems/${encodeURIComponent(problem.id)}">
+                <small>${escapeHtml(problem.id)} · ${escapeHtml(problem.category || 'Khác')}</small>
+                <strong>${escapeHtml(problem.title || 'Bài tập chưa có tiêu đề')}</strong>
+                <span class="home-recent-meta">
+                    <span>${escapeHtml(problem.difficulty || 'Chưa phân loại')}</span>
+                    <span>${formatScore(problem.total_score)} điểm</span>
+                </span>
+            </a>
+        `).join('');
+        section.hidden = false;
+
+        document.querySelector('#clear-home-recent')?.addEventListener('click', () => {
+            recentProblemIds.clear();
+            try { localStorage.removeItem(RECENT_PROBLEMS_KEY); } catch {}
+            section.hidden = true;
+            list.replaceChildren();
+        }, { once: true });
+    } catch (error) {
+        console.warn('Không thể tải lịch sử bài vừa xem:', error);
+    }
+}
 // ==================== DANH SÁCH BÀI TẬP ====================
 
 // Danh sách bài đã lưu chỉ nằm trên trình duyệt hiện tại.
@@ -1232,6 +1270,7 @@ document.querySelector('#random-problem')?.addEventListener('click', () => {
 
 Promise.allSettled([
     refresh(),
+    loadHomeRecentProblems(),
     loadProfile(),
     loadAdmin(),
     loadMyProgress()
