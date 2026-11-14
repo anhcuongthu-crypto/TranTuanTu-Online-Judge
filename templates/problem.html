@@ -542,7 +542,10 @@
         inputInfo: "Input",
         outputInfo: "Output",
         sampleInput: "Sample Input",
-        sampleOutput: "Sample Output"
+        sampleOutput: "Sample Output",
+        translationLoading: "Loading the English version...",
+        translationUnavailable: "An English version has not been added for this problem yet. The original Vietnamese content is shown.",
+        translationLoadFailed: "The English version could not be loaded. The original Vietnamese content is shown."
     };
 
     const interfaceVietnamese = {
@@ -573,7 +576,10 @@
         inputInfo: "Input",
         outputInfo: "Output",
         sampleInput: "Dữ liệu vào mẫu",
-        sampleOutput: "Dữ liệu ra mẫu"
+        sampleOutput: "Dữ liệu ra mẫu",
+        translationLoading: "Đang tải bản tiếng Anh...",
+        translationUnavailable: "Bài này chưa có bản tiếng Anh được biên soạn. Đang hiển thị nội dung tiếng Việt gốc.",
+        translationLoadFailed: "Không thể tải bản tiếng Anh. Đang hiển thị nội dung tiếng Việt gốc."
     };
 
     let translated = null;
@@ -740,7 +746,29 @@
         setInterface("en");
         document.documentElement.lang = "en";
 
-        status.classList.remove("show");
+        if (data.translation_available === false) {
+            status.textContent = interfaceEnglish.translationUnavailable;
+            status.classList.add("show");
+        } else {
+            status.classList.remove("show");
+        }
+    }
+
+    function showEnglishFallback(message) {
+        for (const key in translatedIds) {
+            const element = document.getElementById(translatedIds[key]);
+            if (element) element.textContent = original[key] || "";
+        }
+        setText("info-author-value", original.author);
+        setText("info-created-value", original.created_by);
+        setText("info-category-value", original.category);
+        setText("problem-category-badge", original.category);
+        restoreSubtasks();
+        setInterface("en");
+        document.documentElement.lang = "en";
+        document.title = original.title + " — TranTu OJ";
+        status.textContent = message || interfaceEnglish.translationUnavailable;
+        status.classList.add("show");
     }
 
     async function fetchTranslation() {
@@ -778,7 +806,7 @@
 
         const currentRequest = ++requestVersion;
 
-        status.textContent = "Translating the complete problem statement...";
+        status.textContent = interfaceEnglish.translationLoading;
         status.classList.add("show");
 
         try {
@@ -794,9 +822,7 @@
 
             if (currentRequest !== requestVersion) return;
 
-            status.textContent =
-                "Automatic translation is temporarily unavailable. Please try again later.";
-            status.classList.add("show");
+            showEnglishFallback(interfaceEnglish.translationLoadFailed);
         }
     }
 
