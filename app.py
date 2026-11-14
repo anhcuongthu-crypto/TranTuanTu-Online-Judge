@@ -42,7 +42,64 @@ from oj.history import (
 )
 
 
-def load_problems(path):
+
+
+_TRANSLATION_CACHE = {}
+_TRANSLATION_CACHE_LOCK = threading.Lock()
+_TRANSLATION_CACHE_LIMIT = 5000
+
+
+def translate_to_english(value):
+    """Translate source text to English; return None when the provider is unavailable."""
+    source = str(value or '').strip()
+    if not source:
+        return ''
+    with _TRANSLATION_CACHE_LOCK:
+        cached = _TRANSLATION_CACHE.get(source)
+        if cached:
+            return cached
+
+    chunks = []
+    remaining = source
+    while len(remaining) > 3500:
+        split_at = remaining.rfind('\\n', 0, 3500)
+        if split_at < 1000:
+            split_at = 3500
+        chunks.append(remaining[:split_at])
+        remaining = remaining[split_at:]
+    if remaining:
+        chunks.append(remaining)
+
+    translated_chunks = []
+    endpoint = os.getenv('OJ_TRANSLATION_ENDPOINT',
+                         'https://translate.googleapis.com/translate_a/single')
+    try:
+        for chunk in chunks:
+            query = urlencode({
+                'client': 'gtx', 'sl': 'auto', 'tl': 'en', 'dt': 't', 'q': chunk
+            })
+            url = endpoint + ('&' if '?' in endpoint else '?') + query
+            req = urllib.request.Request(
+                url, headers={'User-Agent': 'TranTu-Online-Judge/1.0'}
+            )
+            with urllib.request.urlopen(req, timeout=12) as response:
+                payload = json.loads(response.read().decode('utf-8'))
+            translated_chunks.append(''.join(
+                part[0] for part in payload[0]
+                if isinstance(part, list) and part and isinstance(part[0], str)
+            ))
+        translated = ''.join(translated_chunks).strip()
+        if not translated:
+            return None
+    except Exception:
+        return None
+
+    with _TRANSLATION_CACHE_LOCK:
+        if len(_TRANSLATION_CACHE) >= _TRANSLATION_CACHE_LIMIT:
+            _TRANSLATION_CACHE.clear()
+        _TRANSLATION_CACHE[source] = translated
+    return translated
+\ndef load_problems(path):
     data = json.loads(Path(path).read_text(encoding='utf-8'))
 
     if not isinstance(data, list):
@@ -1242,36 +1299,39 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         if not isinstance(authored, dict):
             authored = {}
 
-        # English mode must never fall back to Vietnamese source text.
-        # Keep only authored English fields; use explicit English placeholders
-        # for missing content so the page cannot silently mix languages.
+        # Prefer reviewed translations, then translate missing fields from source data.
         field_aliases = {
-            'title': ('title',),
-            'statement': ('statement',),
+            'title': ('title',), 'statement': ('statement',),
             'input_format': ('input_format', 'input_desc'),
             'output_format': ('output_format', 'output_desc'),
             'input_desc': ('input_desc', 'input_format'),
             'output_desc': ('output_desc', 'output_format'),
-            'explanation': ('explanation',),
-            'note': ('note',),
-            'notes': ('notes',),
-            'constraints': ('constraints',),
-            'category': ('category',),
-            'difficulty': ('difficulty',),
-            'author': ('author',),
+            'explanation': ('explanation',), 'note': ('note',), 'notes': ('notes',),
+            'constraints': ('constraints',), 'category': ('category',),
+            'difficulty': ('difficulty',), 'author': ('author',),
             'created_by': ('created_by',)
         }
+        source_aliases = {
+            'input_format': ('input_format', 'input_desc'),
+            'output_format': ('output_format', 'output_desc'),
+            'input_desc': ('input_desc', 'input_format'),
+            'output_desc': ('output_desc', 'output_format')
+        }
         result = {}
+        machine_fields = set()
         for field, aliases in field_aliases.items():
-            value = next(
-                (
-                    authored.get(alias)
-                    for alias in aliases
-                    if isinstance(authored.get(alias), str)
-                    and authored.get(alias).strip()
-                ),
-                ''
-            )
+            value = next((
+                authored.get(alias) for alias in aliases
+                if isinstance(authored.get(alias), str) and authored.get(alias).strip()
+            ), '')
+            if not value:
+                source_value = next((
+                    p.get(alias) for alias in source_aliases.get(field, (field,))
+                    if isinstance(p.get(alias), str) and p.get(alias).strip()
+                ), '')
+                value = translate_to_english(source_value) if source_value else ''
+                if value:
+                    machine_fields.add(field)
             result[field] = value
 
         result['title'] = result['title'] or 'English translation unavailable'
@@ -1307,33 +1367,40 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             if isinstance(item, dict) and item.get('id') is not None
         } if isinstance(translated_subtasks, list) else {}
 
+        subtasks_complete = True
         result['subtasks'] = []
         for index, subtask in enumerate(p.get('subtasks', []), start=1):
             translated = translated_by_id.get(str(subtask.get('id')), {})
-            translated_name = translated.get('name')
-            translated_constraints = translated.get('constraints')
+            name = translated.get('name')
+            constraints = translated.get('constraints')
+            if not isinstance(name, str) or not name.strip():
+                name = translate_to_english(subtask.get('name', ''))
+            if not isinstance(constraints, str) or not constraints.strip():
+                constraints = translate_to_english(
+                    subtask.get('constraints', subtask.get('condition', ''))
+                )
+            if not name:
+                name = f'Subtask {index}'
+                subtasks_complete = False
+            if constraints is None:
+                constraints = ''
+                subtasks_complete = False
             result['subtasks'].append({
-                'id': subtask.get('id', ''),
-                'name': (
-                    translated_name.strip()
-                    if isinstance(translated_name, str) and translated_name.strip()
-                    else f'Subtask {index}'
-                ),
-                'constraints': (
-                    translated_constraints.strip()
-                    if isinstance(translated_constraints, str)
-                    else ''
-                ),
-                'score': subtask.get('score', 0)
+                'id': subtask.get('id', ''), 'name': name,
+                'constraints': constraints, 'score': subtask.get('score', 0)
             })
 
         required_fields = ('title', 'statement', 'input_format', 'output_format')
         complete_core = all(
-            isinstance(authored.get(field), str) and authored[field].strip()
+            isinstance(result.get(field), str) and result[field].strip()
+            and 'not available' not in result[field].lower()
+            and 'unavailable' not in result[field].lower()
             for field in required_fields
-        )
+        ) and subtasks_complete
         result['translation_available'] = bool(complete_core)
-        result['translation_source'] = 'internal'
+        result['translation_source'] = (
+            'internal+machine' if machine_fields else 'internal'
+        )
         return jsonify(result)
 
     @app.post('/api/register')
