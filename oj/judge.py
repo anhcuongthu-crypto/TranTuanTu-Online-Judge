@@ -317,7 +317,7 @@ class Judge0:
 
     def run_batch(self, source, language_id, tests,
                   time_limit=1.0, memory_limit=256000,
-                  max_wait_seconds=90):
+                  max_wait_seconds=90, progress_callback=None):
         if not tests:
             return []
 
@@ -487,6 +487,12 @@ class Judge0:
                                 }
                                 pending.discard(i)
 
+            if progress_callback:
+                try:
+                    progress_callback(list(results))
+                except Exception as exc:
+                    print('Judge progress callback error:', str(exc), flush=True)
+
             if pending:
                 remaining = deadline - time.monotonic()
                 if remaining > 0:
@@ -499,5 +505,11 @@ class Judge0:
                 'status': 'Judge Timeout',
                 'message': 'Judge0 không trả kết quả trong thời gian chờ cho phép.'
             }
+
+        if progress_callback:
+            try:
+                progress_callback(list(results))
+            except Exception as exc:
+                print('Judge progress callback error:', str(exc), flush=True)
 
         return results
