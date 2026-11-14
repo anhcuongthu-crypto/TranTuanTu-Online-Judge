@@ -99,7 +99,8 @@ def translate_to_english(value):
             _TRANSLATION_CACHE.clear()
         _TRANSLATION_CACHE[source] = translated
     return translated
-\ndef load_problems(path):
+
+def load_problems(path):
     data = json.loads(Path(path).read_text(encoding='utf-8'))
 
     if not isinstance(data, list):
