@@ -74,7 +74,7 @@ function formatScore(value) {
 // Tiến độ của tài khoản hiện tại trên ngân hàng bài tập.
 let mySolvedProblems = {};
 
-async function loadMyProgress() {
+async function loadMyProgress(force = false) {
     // Trang danh sách bài tập không có progress section riêng;
     // vẫn phải tải tiến độ để render trạng thái từng bài.
     const solvedEl = document.querySelector('#progress-solved');
@@ -84,7 +84,9 @@ async function loadMyProgress() {
     const caption = document.querySelector('#progress-caption');
 
     try {
-        const data = await api('/api/my-progress');
+        const data = await api(
+            force ? '/api/my-progress?fresh=1' : '/api/my-progress'
+        );
         mySolvedProblems = {};
         (data.problems || []).forEach(item => {
             mySolvedProblems[String(item.problem_id)] = item;
@@ -676,7 +678,10 @@ async function watchSubmission(submissionId, result) {
 
                 renderSubmissionResults(result);
 
-                await refresh();
+                await Promise.allSettled([
+                    refresh(),
+                    loadMyProgress(true)
+                ]);
                 return;
             }
 
