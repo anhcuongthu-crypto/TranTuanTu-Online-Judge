@@ -739,13 +739,11 @@
         }
 
         // Explicitly update the visible problem title as well as the browser tab.
-        if (typeof data.title === "string" && data.title.trim()) {
-            setText("problem-title", data.title);
-            document.title = data.title + " — TranTu OJ";
-        } else {
-            setText("problem-title", original.title);
-            document.title = original.title + " — TranTu OJ";
-        }
+        const englishTitle = (
+            typeof data.title === "string" && data.title.trim()
+        ) ? data.title : "English translation unavailable";
+        setText("problem-title", englishTitle);
+        document.title = englishTitle + " — TranTu OJ";
 
         translateSubtasks(data);
         setInterface("en");
