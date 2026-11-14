@@ -112,6 +112,32 @@ async function loadMyProgress(force = false) {
 
 // ==================== DANH SÁCH BÀI TẬP ====================
 
+// Danh sách bài đã lưu chỉ nằm trên trình duyệt hiện tại.
+const SAVED_PROBLEMS_KEY = 'trantu-oj:saved-problems:v1';
+const savedProblemIds = new Set();
+try {
+    const stored = JSON.parse(localStorage.getItem(SAVED_PROBLEMS_KEY) || '[]');
+    if (Array.isArray(stored)) stored.forEach(id => savedProblemIds.add(String(id)));
+} catch {}
+
+function persistSavedProblems() {
+    try {
+        localStorage.setItem(SAVED_PROBLEMS_KEY, JSON.stringify([...savedProblemIds]));
+    } catch (error) {
+        console.warn('Không thể lưu danh sách bài yêu thích trên trình duyệt:', error);
+    }
+}
+
+function toggleSavedProblem(problemId) {
+    const id = String(problemId ?? '');
+    if (!id) return;
+    if (savedProblemIds.has(id)) savedProblemIds.delete(id);
+    else savedProblemIds.add(id);
+    persistSavedProblems();
+    problemPage = 1;
+    renderProblems(getFilteredProblems());
+}
+
 // Cột mặc định: mã bài, tăng dần.
 let sortColumn = 'id';
 let sortAscending = true;
@@ -135,6 +161,7 @@ function getFilteredProblems() {
     const category = document.querySelector('#filter-category')?.value || '';
     const difficulty = document.querySelector('#filter-difficulty')?.value || '';
     const status = document.querySelector('#filter-status')?.value || '';
+    const savedOnly = !!document.querySelector('#filter-saved')?.checked;
 
     return items.filter(p => {
         const matchesQuery = `${p.id ?? ''} ${p.title ?? ''} ${p.category ?? ''} ${p.difficulty ?? ''}`
@@ -145,7 +172,8 @@ function getFilteredProblems() {
         const progress = mySolvedProblems[String(p.id)];
         const actualStatus = progress?.solved ? 'solved' : progress ? 'attempted' : 'unsolved';
         const matchesStatus = !status || actualStatus === status;
-        return matchesQuery && matchesCategory && matchesDifficulty && matchesStatus;
+        const matchesSaved = !savedOnly || savedProblemIds.has(String(p.id));
+        return matchesQuery && matchesCategory && matchesDifficulty && matchesStatus && matchesSaved;
     });
 }
 
@@ -197,7 +225,7 @@ function renderProblems(items) {
             <div class="problemset-scroll">
                 <table class="problemset-table">
                     <thead><tr>
-                        ${columns.map(([key,label]) => `<th><button type="button" class="problem-sort sort-problems" data-column="${key}">${label}<span>${sortColumn===key?(sortAscending?'↑':'↓'):'↕'}</span></button></th>`).join('')}
+                        ${columns.map(([key,label]) => `<th><button type="button" class="problem-sort sort-problems" data-column="${key}">${label}<span>${sortColumn===key?(sortAscending?'↑':'↓'):'↕'}</span></button></th>`).join('')}<th scope="col">Đánh dấu</th>
                     </tr></thead>
                     <tbody>
                         ${visible.map(p => {
@@ -215,6 +243,7 @@ function renderProblems(items) {
                                 <td>${escapeHtml(p.difficulty || '—')}</td>
                                 <td class="problem-points">${formatScore(p.total_score)}</td>
                                 <td>${status}</td>
+                                <td class="problem-save-cell"><button type="button" class="problem-save-btn ${savedProblemIds.has(String(p.id)) ? 'is-saved' : ''}" data-save-problem="${escapeHtml(p.id)}" aria-label="${savedProblemIds.has(String(p.id)) ? 'Bỏ lưu' : 'Lưu'} bài ${escapeHtml(p.id)}" aria-pressed="${savedProblemIds.has(String(p.id))}" title="${savedProblemIds.has(String(p.id)) ? 'Bỏ khỏi bài đã lưu' : 'Lưu để luyện lại'}">${savedProblemIds.has(String(p.id)) ? '★' : '☆'}</button></td>
                             </tr>`;
                         }).join('')}
                     </tbody>
@@ -249,9 +278,14 @@ function renderProblems(items) {
         problemPage = 1;
         renderProblems(getFilteredProblems());
     }));
+    el.querySelectorAll('[data-save-problem]').forEach(button => button.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleSavedProblem(button.dataset.saveProblem);
+    }));
 }
 
-// ==================== BẢNG BÀI NỘP ====================
+// ==================== BẢNG BÀI NỘP ===================
 
 function renderSubmissionTable(items) {
     const el = document.querySelector('#submission-table');
@@ -1026,7 +1060,7 @@ document.querySelector('#refresh-submissions')
     });
 
 // Bộ lọc kho bài tập.
-['#search', '#filter-category', '#filter-difficulty', '#filter-status'].forEach(selector => {
+['#search', '#filter-category', '#filter-difficulty', '#filter-status', '#filter-saved'].forEach(selector => {
     document.querySelector(selector)?.addEventListener(
         selector === '#search' ? 'input' : 'change',
         () => { problemPage = 1; renderProblems(getFilteredProblems()); }
@@ -1040,8 +1074,10 @@ document.querySelector('#reset-problem-filters')?.addEventListener('click', () =
     if (search) search.value = '';
     if (category) category.value = '';
     const status = document.querySelector('#filter-status');
+    const saved = document.querySelector('#filter-saved');
     if (difficulty) difficulty.value = '';
     if (status) status.value = '';
+    if (saved) saved.checked = false;
     problemPage = 1;
     renderProblems(getFilteredProblems());
 });
