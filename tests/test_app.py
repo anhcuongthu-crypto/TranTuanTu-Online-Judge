@@ -1103,3 +1103,83 @@ def test_submission_status_reports_live_test_progress_for_owner(tmp_path):
     assert data['progress_percent'] == 33
     assert data['progress_phase'] == 'judging'
     assert 'hidden 1' not in response.get_data(as_text=True)
+
+
+def test_submit_page_has_run_code_workspace(tmp_path):
+    client = setup(tmp_path)
+    response = client.get('/problems/X01/submit')
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert 'id="run-code"' in html
+    assert 'id="run-input"' in html
+    assert 'id="run-output"' in html
+    assert '1 2' in html
+
+
+def test_run_code_requires_login_and_validates_payload(tmp_path):
+    client = setup(tmp_path)
+    assert client.post('/api/run', json={}).status_code == 401
+
+    register_and_login(client, 'samplerunner')
+    response = client.post('/api/run', json={
+        'problem_id': 'X01',
+        'source_code': 'int main() {}',
+        'language_id': 999,
+        'stdin': ''
+    })
+    assert response.status_code == 400
+    assert 'C++ và Python 3' in response.json['error']
+
+    response = client.post('/api/run', json={
+        'problem_id': 'X01',
+        'source_code': 'int main() {}',
+        'language_id': 54,
+        'stdin': 'x' * 50001
+    })
+    assert response.status_code == 400
+
+
+def test_run_code_uses_judge0_without_creating_submission(tmp_path, monkeypatch):
+    client = setup(tmp_path)
+    register_and_login(client, 'samplerunner2')
+    captured = {}
+
+    class FakeJudge0:
+        def __init__(self, base_url, api_key):
+            captured['base_url'] = base_url
+
+        def run(self, source, language_id, stdin, expected, **kwargs):
+            captured.update({
+                'source': source,
+                'language_id': language_id,
+                'stdin': stdin,
+                'expected': expected,
+                'kwargs': kwargs
+            })
+            return {
+                'status': 'Accepted',
+                'stdout': '3\\n',
+                'stderr': '',
+                'compile_output': '',
+                'message': '',
+                'time': 0.01,
+                'memory': 1024
+            }
+
+    monkeypatch.setattr(app_module, 'Judge0', FakeJudge0)
+    response = client.post('/api/run', json={
+        'problem_id': 'X01',
+        'source_code': 'int main(){return 0;}',
+        'language_id': 54,
+        'stdin': '1 2\\n'
+    })
+
+    assert response.status_code == 200
+    assert response.json['stdout'] == '3\\n'
+    assert captured['expected'] is None
+    assert captured['stdin'] == '1 2\\n'
+    assert captured['kwargs']['max_wait_seconds'] == 20
+
+    with connect(client.application.config['DATABASE_PATH']) as db:
+        count = db.execute('SELECT COUNT(*) AS total FROM submissions').fetchone()['total']
+    assert count == 0
