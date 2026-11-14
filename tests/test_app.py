@@ -93,6 +93,38 @@ def test_admin_problem_crud_and_delete_is_protected(tmp_path):
     assert c.put('/api/admin/problems/X02', json={**p, 'title': 'Updated'}).status_code == 200
     assert c.delete('/api/admin/problems/X02').status_code == 200
 
+def test_my_analytics_returns_progressive_achievement_badges(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'badgeuser')
+
+    response = client.get('/api/my-analytics')
+    assert response.status_code == 200
+    badges = {item['id']: item for item in response.json['achievements']}
+
+    assert badges['first-full']['unlocked'] is False
+    assert badges['first-full']['progress'] == 0
+    assert badges['solver-10']['target'] == 10
+    assert badges['multi-topic']['target'] == 3
+
+    app = client.application
+    with connect(app.config['DATABASE_PATH']) as db:
+        user = db.execute(
+            'SELECT id FROM users WHERE username=?', ('badgeuser',)
+        ).fetchone()
+        db.execute(
+            'INSERT INTO solves (user_id, problem_id, best_score) VALUES (?, ?, ?)',
+            (user['id'], 'X01', 100)
+        )
+
+    refreshed = client.get('/api/my-analytics')
+    refreshed_badges = {
+        item['id']: item for item in refreshed.json['achievements']
+    }
+    assert refreshed_badges['first-full']['unlocked'] is True
+    assert refreshed_badges['first-full']['progress'] == 1
+    assert refreshed_badges['multi-topic']['progress'] == 1
+
+
 def test_home_problemset_library_and_brand_assets_render(tmp_path):
     c = setup(tmp_path)
 
