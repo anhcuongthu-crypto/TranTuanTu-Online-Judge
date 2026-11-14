@@ -2160,7 +2160,8 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             )
         )
 
-        for index, item in enumerate(result[:100], start=1):
+        result = result[:100]
+        for index, item in enumerate(result, start=1):
             item['rank'] = index
             if item['solved'] >= 50:
                 item['highlight'] = '🏆 Chinh phục 50+ FULL'
