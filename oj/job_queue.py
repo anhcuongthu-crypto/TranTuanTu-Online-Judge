@@ -138,7 +138,8 @@ def _run_batch_with_retry(
     batch_tests,
     time_limit,
     memory_limit,
-    max_attempts=3
+    max_attempts=3,
+    progress_callback=None
 ):
     """
     Thử lại khi Judge0 gặp lỗi tạm thời.
@@ -148,13 +149,23 @@ def _run_batch_with_retry(
 
     for attempt in range(max_attempts):
         try:
-            results = judge.run_batch(
-                code,
-                language,
-                batch_tests,
-                time_limit,
-                memory_limit
-            )
+            if progress_callback:
+                results = judge.run_batch(
+                    code,
+                    language,
+                    batch_tests,
+                    time_limit,
+                    memory_limit,
+                    progress_callback=progress_callback
+                )
+            else:
+                results = judge.run_batch(
+                    code,
+                    language,
+                    batch_tests,
+                    time_limit,
+                    memory_limit
+                )
 
             if not isinstance(results, list):
                 results = []
@@ -321,6 +332,60 @@ def get_job(app, job_id, user_id):
     return result
 
 
+def _build_progress_details(problem, results):
+    """Build a per-test snapshot without exposing test input or output."""
+    details = []
+    score = 0.0
+    completed = 0
+    total = 0
+    offset = 0
+
+    for st in problem.get('subtasks', []):
+        tests = st.get('tests', [])
+        test_scores = _get_test_scores(st)
+        sub_details = []
+        subtask_score = 0.0
+        total += len(tests)
+
+        for index, test in enumerate(tests):
+            result = results[offset + index] if offset + index < len(results) else None
+            result = result or {}
+            status = result.get('status') or 'Processing'
+            if status not in ('In Queue', 'Processing', 'Queued', 'Starting'):
+                completed += 1
+
+            max_test_score = test_scores[index]
+            earned = max_test_score if status == 'Accepted' else 0.0
+            subtask_score += earned
+            message = (
+                result.get('compile_output')
+                or result.get('stderr')
+                or result.get('message')
+                or ''
+            )
+            sub_details.append({
+                'test': index + 1,
+                'status': status,
+                'score': earned,
+                'max_score': max_test_score,
+                'time': result.get('time'),
+                'memory': result.get('memory'),
+                'message': str(message)[:1000]
+            })
+
+        score += subtask_score
+        details.append({
+            'subtask': st.get('id'),
+            'name': st.get('name', ''),
+            'score': subtask_score,
+            'max_score': sum(test_scores),
+            'tests': sub_details
+        })
+        offset += len(tests)
+
+    return details, score, completed, total
+
+
 def _save_result(
     app,
     submission_id,
@@ -449,6 +514,33 @@ def _run_job(
                 for _ in flat_tests
             ]
         else:
+            last_progress = {'completed': -1}
+
+            def save_progress(snapshot):
+                progress_details, progress_score, completed, total = (
+                    _build_progress_details(problem, snapshot)
+                )
+                if completed <= last_progress['completed']:
+                    return
+                with connect(app.config['DATABASE_PATH']) as db:
+                    db.execute(
+                        '''UPDATE submissions
+                           SET score=?, details_json=?
+                           WHERE id=? AND user_id=? AND verdict='Processing' ''',
+                        (
+                            progress_score,
+                            json.dumps(progress_details, ensure_ascii=False),
+                            submission_id,
+                            user_id
+                        )
+                    )
+                last_progress['completed'] = completed
+                print(
+                    f'[OJ PROGRESS] submission={submission_id} '
+                    f'tests={completed}/{total}',
+                    flush=True
+                )
+
             results = _run_batch_with_retry(
                 judge,
                 code_to_run,
@@ -456,7 +548,8 @@ def _run_job(
                 flat_tests,
                 problem.get('time_limit', 1),
                 problem.get('memory_limit', 256000),
-                max_attempts=1
+                max_attempts=1,
+                progress_callback=save_progress
             )
 
         for st, first, last, test_scores in subtask_ranges:

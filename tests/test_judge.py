@@ -176,3 +176,60 @@ def test_partial_batch_creation_falls_back_only_for_missing_tests(monkeypatch):
     assert len(results) == 21
     assert all(result["status"] == "Accepted" for result in results)
     assert individual_creates == ["20"]
+
+
+
+def test_run_batch_reports_incremental_completed_test_progress():
+    session = Mock()
+    created = Mock()
+    created.ok = True
+    created.status_code = 201
+    created.json.return_value = [{'token': 'token-1'}, {'token': 'token-2'}]
+
+    def batch_response(statuses):
+        response = Mock()
+        response.ok = True
+        response.status_code = 200
+        response.json.return_value = {
+            'submissions': [
+                {
+                    'token': f'token-{index + 1}',
+                    'status': {'description': status},
+                    'stdout': None,
+                    'stderr': None,
+                    'compile_output': None,
+                    'message': None,
+                    'time': '0.01',
+                    'memory': 1024
+                }
+                for index, status in enumerate(statuses)
+            ]
+        }
+        return response
+
+    session.post.return_value = created
+    session.get.side_effect = [
+        batch_response(['Accepted', 'Processing']),
+        batch_response(['Accepted', 'Wrong Answer'])
+    ]
+    judge = Judge0('https://judge.example', session=session)
+    snapshots = []
+
+    with patch('oj.judge.time.sleep'):
+        results = judge.run_batch(
+            'int main(){}',
+            54,
+            [{'input': '1', 'output': '1'}, {'input': '2', 'output': '2'}],
+            progress_callback=lambda snapshot: snapshots.append(snapshot)
+        )
+
+    completed_counts = [
+        sum(
+            1 for item in snapshot
+            if item and item.get('status') not in ('In Queue', 'Processing')
+        )
+        for snapshot in snapshots
+    ]
+    assert completed_counts[0] == 1
+    assert completed_counts[-1] == 2
+    assert [item['status'] for item in results] == ['Accepted', 'Wrong Answer']
