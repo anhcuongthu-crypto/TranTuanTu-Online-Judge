@@ -79,6 +79,7 @@ int main() {
  const draftStatus=document.getElementById('draft-status');
  const problemId=button.dataset.problem||'unknown', contestId=button.dataset.contest||'practice';
  const draftKey=lang=>`trantuoj:draft:${contestId}:${problemId}:${lang}`;
+ let activeLanguage=language.value;
  const starterCode={
  "54":`#include <bits/stdc++.h>
 using namespace std;
@@ -99,12 +100,12 @@ if __name__ == "__main__":
     main()
 `};
  const status=message=>{if(draftStatus)draftStatus.textContent=message;};
- const saveDraft=()=>{try{localStorage.setItem(draftKey(language.value),source.value);status('Đã tự lưu bản nháp trên thiết bị này.');return true;}catch(error){status('Không thể tự lưu. Hãy sao chép mã nguồn để dự phòng.');return false;}};
+ const saveDraft=(lang=activeLanguage)=>{try{localStorage.setItem(draftKey(lang),source.value);status('Đã tự lưu bản nháp trên thiết bị này.');return true;}catch(error){status('Không thể tự lưu. Hãy sao chép mã nguồn để dự phòng.');return false;}};
  const restoreDraft=()=>{try{const saved=localStorage.getItem(draftKey(language.value));if(saved!==null){source.value=saved;status('Đã khôi phục bản nháp gần nhất.');return;}}catch(error){status('Trình duyệt không cho phép lưu bản nháp.');}source.value=starterCode[language.value]||'';};
  restoreDraft();
  let saveTimer=null;
  source.addEventListener('input',()=>{status('Đang có thay đổi chưa lưu…');clearTimeout(saveTimer);saveTimer=setTimeout(saveDraft,350);});
- language.addEventListener('change',()=>{clearTimeout(saveTimer);saveDraft();restoreDraft();});
+ language.addEventListener('change',()=>{clearTimeout(saveTimer);saveDraft(activeLanguage);activeLanguage=language.value;restoreDraft();});
  source.addEventListener('keydown',event=>{
   if(event.key==='Tab'){event.preventDefault();source.setRangeText('    ',source.selectionStart,source.selectionEnd,'end');source.dispatchEvent(new Event('input',{bubbles:true}));}
   if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();button.click();}
