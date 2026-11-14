@@ -1033,6 +1033,26 @@ def test_incomplete_translation_never_falls_back_to_vietnamese_fields(tmp_path, 
     assert 'Một dòng' not in response.get_data(as_text=True)
 
 
+def test_problemset_page_exposes_partial_score_status_filter(tmp_path):
+    client = setup(tmp_path)
+    response = client.get('/problems')
+    assert response.status_code == 200
+    page = response.get_data(as_text=True)
+    assert 'value="partial">Đạt một phần' in page
+    assert 'value="attempted">Đã nộp, chưa có điểm' in page
+
+
+def test_problemset_search_supports_accent_insensitive_multiword_matching():
+    from pathlib import Path
+
+    source = Path('static/app.js').read_text(encoding='utf-8')
+    assert ".normalize('NFD')" in source
+    assert "replace(/đ/g, 'd')" in source
+    assert "queryTokens.every(token => searchableText.includes(token))" in source
+    assert "p.short_description" in source
+    assert "progress?.best_score" in source
+
+
 def test_submit_editor_uses_real_newlines_for_multiline_editing(tmp_path):
     client = setup(tmp_path)
     page = client.get('/problems/X01/submit')
