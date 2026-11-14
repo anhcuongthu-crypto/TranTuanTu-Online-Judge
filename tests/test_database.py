@@ -31,6 +31,7 @@ def test_postgres_schema_preserves_fractional_scores(monkeypatch):
 
     normalized = "\n".join(statements)
     assert "score DOUBLE PRECISION NOT NULL DEFAULT 0" in normalized
+    assert "max_score DOUBLE PRECISION NOT NULL DEFAULT 100" in normalized
     assert "best_score DOUBLE PRECISION NOT NULL DEFAULT 0" in normalized
     assert (
         "ALTER TABLE solves ALTER COLUMN best_score TYPE DOUBLE PRECISION "
