@@ -418,6 +418,22 @@ def test_public_contests_cache_hit_skips_database_connection(tmp_path, monkeypat
     assert second.status_code == 200
     assert second.json == first.json
 
+def test_homepage_recent_problems_continue_learning_section(tmp_path):
+    client = setup(tmp_path)
+    response = client.get('/')
+    assert response.status_code == 200
+    page = response.get_data(as_text=True)
+    assert 'id="home-recent-section"' in page
+    assert 'id="home-recent-list"' in page
+    assert 'id="clear-home-recent"' in page
+
+    script = client.get('/static/app.js')
+    assert script.status_code == 200
+    source = script.get_data(as_text=True)
+    assert 'loadHomeRecentProblems' in source
+    assert "api('/api/problems')" in source
+    assert 'RECENT_PROBLEMS_KEY' in source
+
 def test_homepage_current_hero_and_workflow_sections_render(tmp_path):
     client = setup(tmp_path)
     response = client.get('/')
