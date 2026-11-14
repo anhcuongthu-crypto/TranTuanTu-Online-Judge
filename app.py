@@ -1214,7 +1214,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             str(item.get('id')): item
             for item in translated_subtasks
             if isinstance(item, dict) and item.get('id') is not None
-        } if isinstance(translated_subtasks, list) else []
+        } if isinstance(translated_subtasks, list) else {}
 
         result['subtasks'] = []
         for subtask in p.get('subtasks', []):
