@@ -57,6 +57,26 @@ def test_problemset_has_saved_problem_filter(tmp_path):
 
 
 
+
+def test_recently_viewed_problem_filter_and_tracking(tmp_path):
+    client = setup(tmp_path)
+    listing = client.get('/problems')
+    assert listing.status_code == 200
+    assert b'id="filter-recent"' in listing.data
+
+    detail = client.get('/problems/X01')
+    assert detail.status_code in (200, 404)
+    if detail.status_code == 200:
+        page = detail.get_data(as_text=True)
+        assert "trantu-oj:recent-problems:v1" in page
+        assert "localStorage.setItem" in page
+
+    script = client.get('/static/app.js')
+    assert script.status_code == 200
+    source = script.get_data(as_text=True)
+    assert "RECENT_PROBLEMS_KEY" in source
+    assert "matchesRecent" in source
+
 def test_problem_search_keyboard_shortcuts_are_available(tmp_path):
     client = setup(tmp_path)
     page = client.get('/problems')
