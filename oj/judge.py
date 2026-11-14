@@ -45,13 +45,14 @@ class Judge0:
             'source_code': source,
             'language_id': language_id,
             'stdin': stdin,
-            'expected_output': expected,
             'cpu_time_limit': time_limit,
             'wall_time_limit': min(
                 30.0, max(2.0, time_limit * 3)
             ),
             'memory_limit': effective_memory
         }
+        if expected is not None:
+            payload['expected_output'] = expected
 
         # Do not inject AddressSanitizer into judged C++ submissions:
         # its runtime overhead can exceed small problem memory limits and
@@ -225,8 +226,9 @@ class Judge0:
             'message': 'Judge0 không trả kết quả trong thời gian chờ cho phép.'
         }
 
-    def run(self, source, language_id, stdin, expected,
-            time_limit=1.0, memory_limit=256000):
+    def run(self, source, language_id, stdin, expected=None,
+            time_limit=1.0, memory_limit=256000,
+            max_wait_seconds=60):
         token = self._create_submission(
             source, language_id, stdin, expected,
             time_limit, memory_limit
@@ -234,7 +236,7 @@ class Judge0:
 
         return self._wait_for_submission(
             token,
-            deadline=time.monotonic() + 60
+            deadline=time.monotonic() + max(1, float(max_wait_seconds))
         )
 
     def _create_submissions_batch(self, payloads):
