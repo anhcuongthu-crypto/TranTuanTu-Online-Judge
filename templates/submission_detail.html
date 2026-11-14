@@ -135,6 +135,8 @@
 .submission-detail tr:last-child td { border-bottom: 0; }
 .submission-detail .passed { color: #6ee7b7; font-weight: 800; }
 .submission-detail .failed { color: #fda4af; font-weight: 800; }
+.submission-detail .test-pending { color: #875b00; font-weight: 800; }
+.submission-detail .test-partial { color: #875b00; font-weight: 800; }
 .submission-detail .message {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -394,6 +396,8 @@
             'processing': 'Đang xử lý',
             'running': 'Đang chạy'
         };
+        if (key.startsWith('runtime error')) return 'Lỗi khi chạy (RE)';
+        if (key.startsWith('compilation error')) return 'Lỗi biên dịch (CE)';
         return labels[key] || value;
     }
 
@@ -411,6 +415,8 @@
                 'judge unavailable': 'The judging service is temporarily unavailable. Please submit again later.',
                 'judge timeout': 'The judging service did not return a result in time. Please try again later.'
             };
+            if (key.startsWith('runtime error')) return 'The program stopped unexpectedly while running. Check the error details below.';
+            if (key.startsWith('compilation error')) return 'The code could not be compiled. Check the compiler output below.';
             return messages[key] || 'Final judging result received.';
         }
         const messages = {
@@ -424,6 +430,8 @@
             'judge unavailable': 'Hệ thống chấm tạm thời không khả dụng. Vui lòng nộp lại sau.',
             'judge timeout': 'Hệ thống chấm không trả kết quả kịp thời. Vui lòng thử lại sau.'
         };
+        if (key.startsWith('runtime error')) return 'Chương trình gặp lỗi khi chạy. Hãy xem chi tiết lỗi bên dưới.';
+        if (key.startsWith('compilation error')) return 'Mã nguồn không biên dịch được. Hãy xem thông báo trình biên dịch bên dưới.';
         return messages[key] || 'Đã nhận kết quả chấm cuối cùng.';
     }
 
@@ -458,8 +466,11 @@
         const status = displayVerdict(rawStatus);
 
         const ok = isAccepted(rawStatus);
+        const rawKey = String(rawStatus).toLowerCase();
         const statusClass = ok ? 'passed' :
-            (String(status).toLowerCase().includes('unknown') ? '' : 'failed');
+            (['processing', 'in queue', 'queued', 'starting'].includes(rawKey)
+                ? 'test-pending'
+                : (rawKey.includes('unknown') ? '' : 'failed'));
 
         let html = '<tr>' +
             '<td>#' + escapeHTML(test.test ?? test.test_id ?? index + 1) + '</td>' +
@@ -510,7 +521,7 @@
                     escapeHTML(formatValue(item.score, 0)) +
                     ' / ' +
                     escapeHTML(formatValue(item.max_score, 0)) +
-                    ' điểm</strong></div>';
+                    label(' điểm', ' pts') + '</strong></div>';
 
                 if (tests.length === 0) {
                     html += '<p class="notice" style="padding:14px">' +
@@ -539,8 +550,8 @@
                     escapeHTML(item.test ?? item.test_id ?? index + 1) +
                     '</h3></div>' +
                     '<div class="table-scroll"><table>' +
-                    '<thead><tr><th>Test</th><th>Kết quả</th>' +
-                    '<th>Điểm</th><th>Thời gian</th><th>Bộ nhớ</th>' +
+                    '<thead><tr><th>Test</th><th>' + label('Kết quả', 'Result') + '</th>' +
+                    '<th>' + label('Điểm', 'Score') + '</th><th>' + label('Thời gian', 'Time') + '</th><th>' + label('Bộ nhớ', 'Memory') + '</th>' +
                     '</tr></thead><tbody>' +
                     renderTestRow(item, index) +
                     '</tbody></table></div></section>';
@@ -663,6 +674,10 @@
             const progressPercent = progressTotal
                 ? Math.max(0, Math.min(100, Number(data.progress_percent || 0)))
                 : 0;
+            progressEl.setAttribute(
+                'aria-label',
+                label('Tiến trình chấm bài', 'Judging progress')
+            );
             progressEl.style.display = 'block';
             progressEl.setAttribute('aria-valuenow', String(progressPercent));
             progressInnerEl.style.width = progressPercent + '%';
