@@ -1289,3 +1289,53 @@ Promise.allSettled([
     loadAdmin(),
     loadMyProgress()
 ]);
+
+
+// ==================== MOBILE NAVIGATION ====================
+(function initMobileNavigation() {
+    const toggle = document.querySelector('#mobile-nav-toggle');
+    const nav = document.querySelector('#main-navigation');
+    if (!toggle || !nav) return;
+
+    function updateLabel(open) {
+        const key = open ? 'nav_close' : 'nav_open';
+        const fallback = open ? 'Close navigation menu' : 'Open navigation menu';
+        const label = window.OJ_I18N?.t(key, fallback) || fallback;
+        toggle.setAttribute('aria-label', label);
+        const text = toggle.querySelector('.mobile-nav-label');
+        if (text) text.textContent = label;
+    }
+
+    function setOpen(open) {
+        nav.dataset.mobileOpen = open ? 'true' : 'false';
+        toggle.setAttribute('aria-expanded', String(open));
+        updateLabel(open);
+    }
+
+    setOpen(false);
+
+    toggle.addEventListener('click', () => {
+        setOpen(nav.dataset.mobileOpen !== 'true');
+    });
+
+    nav.addEventListener('click', event => {
+        if (event.target.closest('a')) setOpen(false);
+    });
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && nav.dataset.mobileOpen === 'true') {
+            setOpen(false);
+            toggle.focus();
+        }
+    });
+
+    document.addEventListener('oj-language-changed', () => {
+        updateLabel(nav.dataset.mobileOpen === 'true');
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.matchMedia('(min-width: 901px)').matches) {
+            setOpen(false);
+        }
+    });
+})();
