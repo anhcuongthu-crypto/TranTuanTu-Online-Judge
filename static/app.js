@@ -789,6 +789,28 @@ async function loadMyAnalytics() {
             }).join('');
         }
 
+        const achievements = document.querySelector('#analytics-achievements');
+        if (achievements) {
+            const rows = data.achievements || [];
+            achievements.innerHTML = rows.length ? rows.map(item => {
+                const target = Math.max(1, Number(item.target) || 1);
+                const progress = Math.max(0, Math.min(target, Number(item.progress) || 0));
+                const percent = progress / target * 100;
+                return `<article class="achievement-card ${item.unlocked ? 'unlocked' : 'locked'}">
+                    <span class="achievement-icon" aria-hidden="true">${escapeHtml(item.icon || '🏅')}</span>
+                    <div>
+                        <strong>${escapeHtml(item.name || 'Huy hiệu')}</strong>
+                        <p>${escapeHtml(item.description || '')}</p>
+                        <div class="achievement-progress" role="progressbar"
+                             aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="${target}">
+                            <i style="width:${percent}%"></i>
+                        </div>
+                        <span class="achievement-status">${item.unlocked ? '✓ Đã mở khóa' : `${progress}/${target}`}</span>
+                    </div>
+                </article>`;
+            }).join('') : '<p class="muted">Chưa có huy hiệu để hiển thị.</p>';
+        }
+
         const categories = document.querySelector('#analytics-categories');
         if (categories) {
             const rows = data.categories || [];
