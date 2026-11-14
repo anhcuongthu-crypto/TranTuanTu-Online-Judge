@@ -9,6 +9,10 @@
 .submit-workspace .submit-editor{width:100%;min-height:420px;box-sizing:border-box;background:#fff!important;color:#34495e!important;border:1px solid #cbd3d9!important;border-radius:3px!important;padding:14px;font:13px/1.6 'JetBrains Mono',monospace;tab-size:4;resize:vertical;box-shadow:none!important}
 .submit-workspace .submit-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px}
 .submit-workspace .submit-result{background:#fff!important;color:#52616d!important;border:1px solid #d4d9de!important;border-radius:3px!important;padding:14px}
+.editor-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.editor-toolbar button{min-height:34px;padding:7px 11px;font-size:12px}
+.editor-toolbar #editor-stats{margin-left:auto;font-size:12px;font-variant-numeric:tabular-nums}
+.submit-workspace .submit-editor:focus{outline:2px solid #3988bd;outline-offset:1px}
 @media(max-width:650px){.submit-workspace .submit-editor{min-height:320px;font-size:12px}}
  .submit-workspace .submit-toolbar button{border-radius:3px!important}
 </style>
@@ -50,6 +54,11 @@ int main() {
     return 0;
 }</textarea>
 
+    <div class="editor-toolbar" role="group" aria-label="Công cụ soạn mã">
+        <button type="button" id="copy-source" class="button button-ghost">Sao chép mã</button>
+        <button type="button" id="restore-starter" class="button button-ghost">Khôi phục mẫu</button>
+        <span id="editor-stats" class="muted" aria-live="polite">0 dòng · 0 ký tự</span>
+    </div>
     <p id="draft-status" class="muted" role="status" aria-live="polite">Bản nháp được lưu riêng trên thiết bị này.</p>
     <p class="muted" style="font-size:12px;">Phím tắt: Tab thụt lề · Ctrl+S lưu · Ctrl+Enter nộp bài.</p>
     <div style="display:flex;justify-content:flex-end;margin-top:16px;">
@@ -106,11 +115,70 @@ if __name__ == "__main__":
  let saveTimer=null;
  source.addEventListener('input',()=>{status('Đang có thay đổi chưa lưu…');clearTimeout(saveTimer);saveTimer=setTimeout(saveDraft,350);});
  language.addEventListener('change',()=>{clearTimeout(saveTimer);saveDraft(activeLanguage);activeLanguage=language.value;restoreDraft();});
- source.addEventListener('keydown',event=>{
-  if(event.key==='Tab'){event.preventDefault();source.setRangeText('    ',source.selectionStart,source.selectionEnd,'end');source.dispatchEvent(new Event('input',{bubbles:true}));}
-  if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();button.click();}
-  if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='s'){event.preventDefault();clearTimeout(saveTimer);saveDraft();}
+ const stats=document.getElementById('editor-stats');
+ const updateStats=()=>{if(stats){const value=source.value;stats.textContent=value.split('\\n').length+' dòng · '+value.length+' ký tự';}};
+ const copyButton=document.getElementById('copy-source');
+ const restoreButton=document.getElementById('restore-starter');
+ const notifyInput=()=>{source.dispatchEvent(new Event('input',{bubbles:true}));updateStats();};
+ updateStats();
+ source.addEventListener('input',updateStats);
+ copyButton?.addEventListener('click',async()=>{
+  try{
+   if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(source.value);
+   else {source.focus();source.select();if(!document.execCommand('copy'))throw new Error('copy failed');}
+   status('Đã sao chép mã nguồn.');
+  }catch(error){status('Không thể sao chép tự động. Hãy chọn mã và sao chép thủ công.');}
  });
+ restoreButton?.addEventListener('click',()=>{
+  if(!window.confirm('Khôi phục mã mẫu? Nội dung hiện tại sẽ được thay thế.'))return;
+  source.value=starterCode[language.value]||'';
+  notifyInput();
+  saveDraft();
+  source.focus();
+ });
+ const lineBounds=()=>{
+  const value=source.value,start=source.selectionStart,end=source.selectionEnd;
+  const lineStart=value.lastIndexOf('\\n',Math.max(0,start-1))+1;
+  const nextBreak=value.indexOf('\\n',end);
+  const lineEnd=nextBreak<0?value.length:nextBreak;
+  return {value,start,end,lineStart,lineEnd};
+ };
+ source.addEventListener('keydown',event=>{
+  const mod=event.ctrlKey||event.metaKey;
+  if(mod&&event.key==='Enter'){event.preventDefault();button.click();return;}
+  if(mod&&event.key.toLowerCase()==='s'){event.preventDefault();clearTimeout(saveTimer);saveDraft();return;}
+  if(mod&&event.key==='/'){
+   event.preventDefault();
+   const b=lineBounds(), selected=b.value.slice(b.lineStart,b.lineEnd);
+   const prefix=activeLanguage==='71'?'# ':'// ';
+   const lines=selected.split('\\n');
+   const uncomment=lines.every(line=>line.trimStart().startsWith(prefix.trim()));
+   const changed=lines.map(line=>uncomment?line.replace(new RegExp('^(\\\\s*)'+(activeLanguage==='71'?'# ':'// ')), '$1'):line.replace(/^(\\s*)/,'$1'+prefix)).join('\\n');
+   source.setRangeText(changed,b.lineStart,b.lineEnd,'select');notifyInput();return;
+  }
+  if(event.key==='Tab'){
+   event.preventDefault();
+   const b=lineBounds();
+   if(b.start===b.end&&!event.shiftKey){source.setRangeText('    ',b.start,b.end,'end');}
+   else{
+    const selected=b.value.slice(b.lineStart,b.lineEnd);
+    const changed=selected.split('\\n').map(line=>event.shiftKey?line.replace(/^ {1,4}/,''):('    '+line)).join('\\n');
+    source.setRangeText(changed,b.lineStart,b.lineEnd,'select');
+   }
+   notifyInput();return;
+  }
+  if(event.key==='Enter'&&!event.shiftKey){
+   const b=lineBounds(), before=b.value.slice(b.lineStart,b.start);
+   const indent=(before.match(/^\\s*/)||[''])[0];
+   const trimmed=before.trimEnd();
+   const extra=(trimmed.endsWith('{')||(activeLanguage==='71'&&trimmed.endsWith(':')))?'    ':'';
+   event.preventDefault();
+   source.setRangeText('\\n'+indent+extra,b.start,b.end,'end');
+   notifyInput();return;
+  }
+ });
+ window.addEventListener('beforeunload',()=>{clearTimeout(saveTimer);try{localStorage.setItem(draftKey(activeLanguage),source.value);}catch(error){}});
+
  button.addEventListener('click',async()=>{
   const code=source.value;
   if(!code.trim()){result.textContent='Bạn chưa nhập mã nguồn.';source.focus();return;}
