@@ -527,6 +527,7 @@ def test_mobile_navigation_toggle_is_accessible_and_keyboard_operable(tmp_path):
     assert 'aria-expanded="false"' in page
     assert 'id="main-navigation"' in page
     assert 'trantu-mobile-nav-v1' in page
+    assert 'html.theme-dark .mobile-nav-toggle' in page
 
     script = client.get('/static/app.js').get_data(as_text=True)
     assert 'MOBILE NAVIGATION' in script
