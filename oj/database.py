@@ -736,6 +736,21 @@ def init_db(path):
                 definition
             )
 
+    # Bài tập đã lưu gắn với tài khoản để đồng bộ giữa các thiết bị.
+    with connect(path) as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS saved_problems (
+                user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                problem_id TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, problem_id)
+            )
+        """)
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_saved_problems_user
+            ON saved_problems(user_id, created_at DESC)
+        """)
+
     # Mỗi email và Google ID chỉ thuộc về một tài khoản.
     with connect(path) as db:
         db.execute("""
