@@ -87,6 +87,17 @@
     color: #fcd34d;
     background: rgba(245, 158, 11, .12);
 }
+.submission-detail .status.partial {
+    color: #8a5a00;
+    background: #fff3d6;
+}
+.submission-detail .progress-label {
+    display: block;
+    margin-top: 9px;
+    color: #71869a;
+    font-size: 13px;
+    font-weight: 700;
+}
 .submission-detail .subtask {
     margin-top: 14px;
     border: 1px solid rgba(148, 163, 216, .18);
@@ -167,9 +178,9 @@
 }
 .submission-detail .progress-inner {
     height: 100%;
-    width: 35%;
+    width: 0%;
     background: linear-gradient(90deg, #8b5cf6, #67e8f9);
-    animation: submission-progress 1.4s ease-in-out infinite alternate;
+    transition: width .25s ease;
 }
 @keyframes submission-progress {
     from { transform: translateX(-20%); }
@@ -238,9 +249,10 @@
         <strong data-i18n="detail_info">Thông tin bài chấm</strong>
         <p class="notice" id="submission-info" data-i18n="detail_loading_info">Đang tải thông tin...</p>
         <p class="notice" id="update-info" data-i18n="detail_connecting">Đang kết nối hệ thống chấm bài...</p>
-        <div id="progress" class="progress">
+        <div id="progress" class="progress" role="progressbar" aria-label="Tiến trình chấm bài" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
             <div class="progress-inner"></div>
         </div>
+        <span id="progress-label" class="progress-label" aria-live="polite">Đang chuẩn bị...</span>
     </div>
 
     <div class="panel">
@@ -285,6 +297,8 @@
     const problemLink = document.getElementById('problem-link');
     const contestLink = document.getElementById('contest-link');
     const progressEl = document.getElementById('progress');
+    const progressInnerEl = progressEl.querySelector('.progress-inner');
+    const progressLabelEl = document.getElementById('progress-label');
     const sourceCodeEl = document.getElementById('source-code');
     const codeMessageEl = document.getElementById('code-message');
 
@@ -314,6 +328,10 @@
 
         if (v === 'accepted' || v === 'ac' || v === 'full') {
             return 'ac';
+        }
+
+        if (v.includes('partially accepted')) {
+            return 'partial';
         }
 
         if (
@@ -347,11 +365,70 @@
 
         return ![
             'queued',
+            'starting',
             'processing',
             'running',
             'pending',
             'judging'
         ].includes(v);
+    }
+
+    function displayVerdict(verdict) {
+        const value = String(verdict || 'Unknown');
+        if (isEnglish()) return value;
+        const key = value.toLowerCase();
+        const labels = {
+            'accepted': 'Đạt (AC)',
+            'wrong answer': 'Sai kết quả (WA)',
+            'time limit exceeded': 'Quá thời gian (TLE)',
+            'memory limit exceeded': 'Quá bộ nhớ (MLE)',
+            'compilation error': 'Lỗi biên dịch (CE)',
+            'error': 'Lỗi biên dịch (CE)',
+            'runtime error': 'Lỗi khi chạy (RE)',
+            'partially accepted': 'Đạt một phần',
+            'judge unavailable': 'Hệ thống chấm tạm thời không khả dụng',
+            'judge timeout': 'Hệ thống chấm quá thời gian chờ',
+            'in queue': 'Đang chờ',
+            'queued': 'Đang chờ',
+            'starting': 'Đang khởi động',
+            'processing': 'Đang xử lý',
+            'running': 'Đang chạy'
+        };
+        return labels[key] || value;
+    }
+
+    function verdictSummary(verdict) {
+        const key = String(verdict || '').toLowerCase();
+        if (isEnglish()) {
+            const messages = {
+                'accepted': 'All test cases passed. Your solution is accepted.',
+                'partially accepted': 'Some test cases passed, but the solution is not fully accepted.',
+                'wrong answer': 'The program ran, but at least one output did not match the expected answer.',
+                'time limit exceeded': 'The program exceeded the time limit. Review the algorithm and its complexity.',
+                'memory limit exceeded': 'The program exceeded the memory limit.',
+                'error': 'The code could not be compiled. Check the compiler output below.',
+                'runtime error': 'The program stopped unexpectedly while running. Check the error details below.',
+                'judge unavailable': 'The judging service is temporarily unavailable. Please submit again later.',
+                'judge timeout': 'The judging service did not return a result in time. Please try again later.'
+            };
+            return messages[key] || 'Final judging result received.';
+        }
+        const messages = {
+            'accepted': 'Tất cả test đều đạt. Bài làm được chấp nhận.',
+            'partially accepted': 'Một số test đã đạt, nhưng bài chưa được chấp nhận hoàn toàn.',
+            'wrong answer': 'Chương trình chạy được nhưng có ít nhất một kết quả chưa đúng.',
+            'time limit exceeded': 'Chương trình vượt quá thời gian cho phép. Hãy kiểm tra thuật toán và độ phức tạp.',
+            'memory limit exceeded': 'Chương trình sử dụng vượt quá giới hạn bộ nhớ.',
+            'error': 'Mã nguồn không biên dịch được. Hãy xem thông báo trình biên dịch bên dưới.',
+            'runtime error': 'Chương trình gặp lỗi khi chạy. Hãy xem chi tiết lỗi bên dưới.',
+            'judge unavailable': 'Hệ thống chấm tạm thời không khả dụng. Vui lòng nộp lại sau.',
+            'judge timeout': 'Hệ thống chấm không trả kết quả kịp thời. Vui lòng thử lại sau.'
+        };
+        return messages[key] || 'Đã nhận kết quả chấm cuối cùng.';
+    }
+
+    function label(vi, en) {
+        return isEnglish() ? en : vi;
     }
 
     function isAccepted(status) {
@@ -374,12 +451,13 @@
     }
 
     function renderTestRow(test, index) {
-        const status = formatValue(
+        const rawStatus = formatValue(
             test.status ?? test.verdict ?? test.result,
             (isEnglish() ? 'No result yet' : 'Chưa có kết quả')
         );
+        const status = displayVerdict(rawStatus);
 
-        const ok = isAccepted(status);
+        const ok = isAccepted(rawStatus);
         const statusClass = ok ? 'passed' :
             (String(status).toLowerCase().includes('unknown') ? '' : 'failed');
 
@@ -408,9 +486,10 @@
 
     function renderTests(details) {
         if (!Array.isArray(details) || details.length === 0) {
-            resultsEl.textContent =
-                'Chưa có dữ liệu test chi tiết từ hệ thống chấm. ' +
-                'Nếu bài đang được chấm, trang sẽ tự cập nhật.';
+            resultsEl.textContent = label(
+                'Chưa có dữ liệu test chi tiết. Nếu bài đang được chấm, trang sẽ tự cập nhật.',
+                'No per-test details yet. This page will update automatically while judging.'
+            );
             return;
         }
 
@@ -422,7 +501,7 @@
 
             if (tests) {
                 const name = item.name || item.subtask_name ||
-                    ('Subtask ' + (index + 1));
+                    (label('Nhóm test ', 'Subtask ') + (index + 1));
 
                 html += '<section class="subtask">' +
                     '<div class="subtask-head">' +
@@ -435,11 +514,11 @@
 
                 if (tests.length === 0) {
                     html += '<p class="notice" style="padding:14px">' +
-                        'Chưa có kết quả test trong subtask này.</p>';
+                        label('Chưa có kết quả test trong nhóm này.', 'No test results in this subtask yet.') + '</p>';
                 } else {
                     html += '<div class="table-scroll"><table>' +
-                        '<thead><tr><th>Test</th><th>Kết quả</th>' +
-                        '<th>Điểm</th><th>Thời gian</th><th>Bộ nhớ</th>' +
+                        '<thead><tr><th>' + label('Test', 'Test') + '</th><th>' + label('Kết quả', 'Result') + '</th>' +
+                        '<th>' + label('Điểm', 'Score') + '</th><th>' + label('Thời gian', 'Time') + '</th><th>' + label('Bộ nhớ', 'Memory') + '</th>' +
                         '</tr></thead><tbody>';
 
                     tests.forEach(function (test, testIndex) {
@@ -504,7 +583,7 @@
             codeLoaded = true;
         } catch (error) {
             codeMessageEl.textContent =
-                error.message || (isEnglish() ? 'Could not load submission source code.' : 'Không thể tải mã nguồn bài nộp.');
+                error.message || label('Không thể tải mã nguồn bài nộp.', 'Could not load submission source code.');
         }
     }
 
@@ -531,20 +610,20 @@
             try {
                 data = JSON.parse(raw);
             } catch (error) {
-                throw new Error('Server không trả về JSON hợp lệ.');
+                throw new Error(label('Máy chủ không trả về JSON hợp lệ.', 'The server returned an invalid response.'));
             }
 
             if (!response.ok) {
                 throw new Error(
                     data.error ||
                     data.message ||
-                    'Không thể tải bài nộp (HTTP ' + response.status + ').'
+                    label('Không thể tải bài nộp (HTTP ', 'Could not load submission (HTTP ') + response.status + ').'
                 );
             }
 
             const verdict = data.verdict || data.status || 'Unknown';
 
-            verdictEl.textContent = verdict;
+            verdictEl.textContent = displayVerdict(verdict);
             verdictEl.className = 'status ' + verdictClass(verdict);
 
             scoreEl.textContent =
@@ -579,20 +658,46 @@
 
             await loadCode();
 
+            const progressDone = Number(data.progress_completed || 0);
+            const progressTotal = Number(data.progress_total || 0);
+            const progressPercent = progressTotal
+                ? Math.max(0, Math.min(100, Number(data.progress_percent || 0)))
+                : 0;
+            progressEl.style.display = 'block';
+            progressEl.setAttribute('aria-valuenow', String(progressPercent));
+            progressInnerEl.style.width = progressPercent + '%';
+            progressLabelEl.textContent = progressTotal
+                ? (isEnglish()
+                    ? progressDone + ' / ' + progressTotal + ' tests completed (' + progressPercent + '%)'
+                    : 'Đã chấm ' + progressDone + ' / ' + progressTotal + ' test (' + progressPercent + '%)')
+                : (isEnglish() ? 'Preparing test data...' : 'Đang chuẩn bị dữ liệu test...');
+
             if (isFinished(verdict)) {
                 finished = true;
-                progressEl.style.display = 'none';
-                updateEl.textContent = isEnglish() ? 'Final judging result received.' : 'Đã nhận kết quả chấm cuối cùng.';
+                updateEl.textContent = verdictSummary(verdict);
                 if (timer) clearInterval(timer);
             } else {
-                progressEl.style.display = 'block';
-                updateEl.textContent =
-                    (isEnglish() ? 'Your submission is being processed. This page checks again in 2 seconds.' : 'Bài đang được xử lý. Trang tự kiểm tra lại sau 2 giây.');
+                const phase = data.progress_phase || 'judging';
+                if (phase === 'queued') {
+                    updateEl.textContent = label(
+                        'Bài đã vào hàng đợi và sẽ được chấm khi có worker trống.',
+                        'Your submission is queued and will be judged when a worker is available.'
+                    );
+                } else if (progressTotal) {
+                    updateEl.textContent = isEnglish()
+                        ? 'Judging in progress. ' + progressDone + ' of ' + progressTotal + ' tests completed. Refreshes automatically.'
+                        : 'Đang chấm bài: đã hoàn thành ' + progressDone + '/' + progressTotal + ' test. Trang tự cập nhật.';
+                } else {
+                    updateEl.textContent = label(
+                        'Bài đang được xử lý. Trang sẽ tự cập nhật.',
+                        'Your submission is being processed. This page updates automatically.'
+                    );
+                }
             }
         } catch (error) {
             updateEl.textContent =
-                (error.message || (isEnglish() ? 'Connection error.' : 'Lỗi kết nối.')) +
-                (isEnglish() ? ' Click Refresh to try again.' : ' Bấm Cập nhật để thử lại.');
+                (error.message || label('Lỗi kết nối.', 'Connection error.')) +
+                label(' Bấm Cập nhật để thử lại.', ' Click Refresh to try again.');
         } finally {
             loading = false;
             refreshButton.disabled = false;
