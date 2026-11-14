@@ -1,0 +1,296 @@
+{
+  "tuyen-sinh-lam-son-2024": {
+    "title": "Lam Son Entrance Exam 2024",
+    "statement": "Given two positive integers a and b. Count the numbers in [a, b] whose number of positive divisors is prime.",
+    "input_format": "The first line contains t, the number of test cases. Each of the next t lines contains two positive integers a and b.",
+    "output_format": "Print t lines, each containing the answer for one test case.",
+    "explanation": "A number is counted if its number of positive divisors is prime. In [2, 7], the numbers 2, 3, 4, 5, and 7 have 2, 2, 3, 2, and 2 divisors, respectively. The answer is 5.",
+    "category": "Number Theory",
+    "difficulty": "Medium",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "1 <= a <= b < 200, t <= 1,000,000"
+      },
+      {
+        "id": "sub2",
+        "name": "Subtask 2",
+        "constraints": "1 <= a <= b <= 1,000,000, t <= 100,000"
+      }
+    ]
+  },
+  "chu-vi-dien-tich-hcn": {
+    "title": "Rectangle Perimeter and Area",
+    "statement": "Given the length d and width r of a rectangle. Calculate and print its perimeter and area.\n\nRequirement: Use a 32-bit integer type (int in C++).",
+    "input_format": "One line contains two positive integers d and r separated by whitespace.",
+    "output_format": "Line 1: the rectangle's perimeter.\nLine 2: the rectangle's area.",
+    "explanation": "Perimeter = (4 + 5) * 2 = 18\nArea = 4 * 5 = 20",
+    "category": "Geometry",
+    "difficulty": "Easy",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "1 <= d, r <= 1000"
+      }
+    ]
+  },
+  "chia-banh-32bit": {
+    "title": "Sharing Cakes - Integer Division and Remainder",
+    "statement": "There are n cakes to be shared equally among k friends. Determine how many cakes each friend receives and how many remain.\n\nRequirement: Use a 32-bit integer type (int in C++).",
+    "input_format": "One line contains two positive integers n and k separated by whitespace.",
+    "output_format": "Line 1: the number of cakes each friend receives.\nLine 2: the number of remaining cakes.",
+    "explanation": "Each friend receives 14 / 3 = 4 cakes. The remainder is 14 % 3 = 2.",
+    "category": "Number Theory",
+    "difficulty": "Easy",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "1 <= n <= 1000, 1 <= k <= 100"
+      }
+    ]
+  },
+  "mua-vo-32bit": {
+    "title": "Buying Notebooks",
+    "statement": "Given the number of notebooks and the price of one notebook, calculate the total amount to be paid.\n\nRequirement: Use a 32-bit integer type (int in C++).",
+    "input_format": "One line contains two positive integers n and price separated by whitespace.",
+    "output_format": "Print the total amount to be paid.",
+    "category": "Fundamentals",
+    "difficulty": "Easy",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "1 <= n, price <= 1000"
+      }
+    ]
+  },
+  "kiem-tra-chan-le-32bit": {
+    "title": "Check Whether a Large Integer Is Even or Odd",
+    "statement": "Given an integer n, determine whether n is even or odd. Print EVEN if n is even and ODD otherwise.\n\nRequirement: Use a 64-bit integer type (long long in C++).",
+    "input_format": "One line contains an integer n (-10^18 <= n <= 10^18).",
+    "output_format": "Print EVEN or ODD.",
+    "category": "Fundamentals",
+    "difficulty": "Medium",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "-10^18 <= n <= 10^18"
+      }
+    ]
+  },
+  "tong-thi-sinh-18-10-32bit": {
+    "title": "Total Number of Tmath Contestants",
+    "statement": "The Tmath Math and Informatics Center organizes an entrance exam on October 18. Given the numbers of students in groups A, B, and C, calculate the total number of contestants.\n\nRequirement: Use a 32-bit integer type (int in C++).",
+    "input_format": "Line 1 contains integer A.\nLine 2 contains integer B.\nLine 3 contains integer C.",
+    "output_format": "Print the total number of contestants.",
+    "category": "Fundamentals",
+    "difficulty": "Easy",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "1 <= A, B, C <= 100"
+      }
+    ]
+  },
+  "so-sanh-hai-so-64bit": {
+    "title": "Compare Two Large Integers",
+    "statement": "Given two integers a and b, find and print the larger one. If they are equal, print that value.\n\nRequirement: Use a 64-bit integer type (long long in C++).",
+    "input_format": "One line contains two integers a and b (-10^18 <= a, b <= 10^18).",
+    "output_format": "Print the larger of the two integers.",
+    "category": "Fundamentals",
+    "difficulty": "Medium",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "-10^18 <= a, b <= 10^18"
+      }
+    ]
+  },
+  "tổng-tích": {
+    "title": "Sum and Product of Two Integers",
+    "statement": "Given two integers a and b, read them from input. Print their sum a + b on the first line and their product a * b on the second line.\n\nRequirement: Use a 32-bit integer type (int in C++).",
+    "input_format": "One line contains two integers a and b (-1000 <= a, b <= 1000).",
+    "output_format": "Line 1: the sum a + b.\nLine 2: the product a * b.",
+    "explanation": "Sum: 3 + 5 = 8\nProduct: 3 * 5 = 15",
+    "category": "Fundamentals",
+    "difficulty": "Easy",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "-1000 <= a, b <= 1000"
+      }
+    ]
+  },
+  "ve-phim-64": {
+    "title": "Cinema Ticket",
+    "statement": "A cinema offers a promotion: customers under 12 pay 50,000 VND; all other customers pay 80,000 VND. Given a customer's age, calculate the ticket price.\n\nRequirement: Use a 64-bit integer type (long long in C++).",
+    "input_format": "One line contains an integer t, the customer's age.",
+    "output_format": "Print the ticket price.",
+    "category": "Conditionals",
+    "difficulty": "Easy",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "1 <= t <= 100"
+      }
+    ]
+  },
+  "xe-32": {
+    "title": "Parking Fee",
+    "statement": "Given the number of hours a vehicle is parked. If the parking time is at most 2 hours, the fee is 5,000 VND; otherwise, the fee is 10,000 VND. Print the amount to pay.\n\nRequirement: Use a 32-bit integer type (int in C++).",
+    "input_format": "One line contains an integer n, the number of parking hours.",
+    "output_format": "Print the parking fee.",
+    "category": "Conditionals",
+    "difficulty": "Easy",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "1 <= n <= 24"
+      }
+    ]
+  },
+  "for cơ bản": {
+    "title": "Sum from 1 to n",
+    "statement": "Given a positive integer n, calculate and print S = 1 + 2 + ... + n.\n\nRequirement: Use a 64-bit integer type (long long in C++).",
+    "input_format": "One line contains a positive integer n.",
+    "output_format": "Print the sum of the integers from 1 to n.",
+    "category": "Loops",
+    "difficulty": "Easy",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "1 <= n <= 10^6"
+      }
+    ]
+  },
+  "hsg9-ninh-binh-2026-hinh-chu-nhat": {
+    "title": "Ninh Binh Grade 9 Excellent Student Exam 2026 - Rectangle",
+    "statement": "Given four positive integers a, b, c, and d. The numbers a and b are the side lengths of the first rectangle; c and d are the side lengths of the second rectangle.\n\nTask: Calculate both rectangle areas and output the larger area.",
+    "input_format": "Four positive integers a, b, c, and d (1 <= a, b, c, d <= 10^9).",
+    "output_format": "Print the maximum of the two rectangle areas.",
+    "explanation": "The first rectangle has area a * b. The second has area c * d. The answer is the larger value. For example, 2 * 4 = 8 and 3 * 6 = 18, so the answer is 18.",
+    "category": "Geometry",
+    "difficulty": "Easy",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "1 <= a, b, c, d <= 10^3"
+      },
+      {
+        "id": "sub2",
+        "name": "Subtask 2",
+        "constraints": "1 <= a, b, c, d <= 10^9"
+      }
+    ]
+  },
+  "Ninh Binh-Câu 2": {
+    "title": "Ninh Binh Grade 9 Excellent Student Exam 2026 - Special Numbers",
+    "statement": "A number is special if it is divisible by the product of its digits. For example, 5 is special because it is divisible by 5; 12 is special because 12 is divisible by 1 * 2 = 2; 102 is not special because its digit product is 0.\n\nGiven an array A of n positive integers a1, a2, ..., an and two positive integers l and r.\n\nTask: List the special numbers, in their original order, among a_l, a_(l+1), ..., a_r.",
+    "input_format": "The first line contains n, l, r (1 <= n <= 10^5; 1 <= l <= r <= n).\nThe second line contains n positive integers a1, a2, ..., an (ai <= 10^9).",
+    "output_format": "Print one line containing all special numbers found, separated by spaces. If none are found, print -1.",
+    "explanation": "Consider positions 2 through 5: 12, 15, 20, 5. The numbers 12, 15, and 5 are divisible by their digit products. The digit product of 20 is 0, so it is not special. The answer is 12 15 5.",
+    "category": "Number Theory",
+    "difficulty": "Medium",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "1 <= n <= 1000; 1 <= l <= r <= n; 1 <= ai <= 10^5"
+      },
+      {
+        "id": "sub2",
+        "name": "Subtask 2",
+        "constraints": "1 <= n <= 10^5; 1 <= l <= r <= n; 1 <= ai <= 10^9"
+      }
+    ]
+  },
+  "Ninh Binh-Câu 3": {
+    "title": "Ninh Binh Grade 9 Excellent Student Exam 2026 - Counting Prime Numbers",
+    "statement": "During a Robot programming contest, An receives a signal string S of at most 3 * 10^6 characters. It contains only lowercase English letters and digits and is transmitted over the Internet.\n\nAn must extract numbers from this signal and count how many are prime. Each extracted number is a maximal contiguous sequence of digits whose preceding or following character, if present, is a letter. Every extracted number is at most 10^6.\n\nTask: Count the prime numbers extracted from S.",
+    "input_format": "One string S containing lowercase English letters and digits, with length at most 3 * 10^6. Every extracted number is at most 10^6.",
+    "output_format": "Print the number of prime numbers extracted from S.",
+    "explanation": "The extracted numbers are 2, 17, and 18. The numbers 2 and 17 are prime, while 18 is not. The answer is 2.",
+    "category": "Strings",
+    "difficulty": "Medium",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "1 <= |S| <= 1000; extracted numbers <= 10^3."
+      },
+      {
+        "id": "sub2",
+        "name": "Subtask 2",
+        "constraints": "1 <= |S| <= 3 * 10^6; extracted numbers <= 10^6."
+      }
+    ]
+  },
+  "Ninh Binh-Câu 5": {
+    "title": "Ninh Binh Grade 9 Excellent Student Exam 2026 - Near-Perfect-Square Numbers",
+    "statement": "A natural number is a Near-Perfect-Square Number if it satisfies all three conditions:\n\n- It has at least 3 digits.\n- Its leading digit is a perfect square.\n- The sum of its last two digits (tens and units) is a perfect square.\n\nTask: Given a positive integer M, count the Near-Perfect-Square Numbers from 1 to M.",
+    "input_format": "One positive integer M.",
+    "output_format": "Print one integer: the number of qualifying Near-Perfect-Square Numbers.",
+    "explanation": "For M = 105, the qualifying numbers are 100, 101, and 104. Their leading digit is 1. The sums of their last two digits are 0, 1, and 4, all perfect squares.",
+    "category": "Number Theory",
+    "difficulty": "Medium",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "100 <= M <= 999"
+      },
+      {
+        "id": "sub2",
+        "name": "Subtask 2",
+        "constraints": "1000 <= M <= 1000000"
+      },
+      {
+        "id": "sub3",
+        "name": "Subtask 3",
+        "constraints": "M = 10^K, 6 < K < 18"
+      }
+    ]
+  },
+  "Ninh Binh-Câu 4": {
+    "title": "Ninh Binh Grade 9 Excellent Student Exam 2026 - Split the Array",
+    "statement": "Given an array A of n non-negative integers. Partition the entire array into non-empty contiguous segments so that the sum of each segment is a power of 2 (1, 2, 4, 8, ...).\n\nTask: Find the minimum possible number of segments. If no valid partition exists, print -1.",
+    "input_format": "Line 1 contains a positive integer n (1 <= n <= 2000).\nLine 2 contains n integers ai (0 <= ai <= 20000).",
+    "output_format": "Print the minimum number of segments, or -1 if no valid partition exists.",
+    "explanation": "One valid partition is {5, 3}, {1, 1}, {1, 3}, with segment sums 8, 2, and 4. It is impossible to use fewer than 3 segments.",
+    "category": "Arrays",
+    "difficulty": "Hard",
+    "subtasks": [
+      {
+        "id": "sub1",
+        "name": "Subtask 1",
+        "constraints": "1 <= n <= 100; 0 <= ai <= 20000"
+      },
+      {
+        "id": "sub2",
+        "name": "Subtask 2",
+        "constraints": "1 <= n <= 500; 0 <= ai <= 20000"
+      },
+      {
+        "id": "sub3",
+        "name": "Subtask 3",
+        "constraints": "1 <= n <= 1000; 0 <= ai <= 20000"
+      },
+      {
+        "id": "sub4",
+        "name": "Subtask 4",
+        "constraints": "1 <= n <= 2000; 0 <= ai <= 20000"
+      }
+    ]
+  }
+}
