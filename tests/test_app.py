@@ -82,6 +82,18 @@ def test_problem_page_copy_link_control_is_available(tmp_path):
     assert 'navigator.clipboard' in page
     assert 'window.location.href' in page
 
+def test_problem_detail_shows_private_recent_submission_panel(tmp_path):
+    client = setup(tmp_path)
+    response = client.get('/problems/X01')
+    assert response.status_code == 200
+    page = response.get_data(as_text=True)
+    assert 'id="recent-submissions-panel"' in page
+    assert 'id="recent-submissions-list"' in page
+    assert 'Lần nộp gần đây' in page
+    assert '/api/submissions?' in page
+    assert client.get('/api/submissions?scope=mine&problem_id=X01&limit=8').status_code == 401
+
+
 def test_recently_viewed_problem_filter_and_tracking(tmp_path):
     client = setup(tmp_path)
     listing = client.get('/problems')
