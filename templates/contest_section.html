@@ -80,9 +80,8 @@ init();
 let leaderboardRefreshTimer = null;
 let leaderboardRefreshInFlight = false;
 async function refreshLeaderboard() {
- if (leaderboardRefreshInFlight) return;
+ if (section !== 'leaderboard' || document.hidden || leaderboardRefreshInFlight) return;
  leaderboardRefreshInFlight = true;
- if (section !== 'leaderboard' || document.hidden) return;
  try {
   const data = await get('/api/contests/' + contestId + '/leaderboard');
   const rows = Array.isArray(data) ? data : [];
