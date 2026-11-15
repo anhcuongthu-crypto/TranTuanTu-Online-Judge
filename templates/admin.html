@@ -479,16 +479,14 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
     <!-- QUẢN LÝ CONTEST -->
 <section class="panel" id="contest-management">
     <h2>🏆 Quản lý Contest</h2>
-    <div class="problem-item" id="examOcrPanel">
-      <h3>📷 Tạo đề thi từ ảnh / PDF</h3>
-      <p class="muted">Tải toàn bộ đề lên. Trình duyệt OCR tiếng Việt, tách các câu và đưa vào danh sách bài riêng để tạo Contest. Không tự sinh test chấm.</p>
-      <input id="examOcrFile" type="file" accept="image/*,.pdf,application/pdf" multiple>
-      <div class="toolbar"><button type="button" class="success" id="examOcrStart">Đọc và tách đề</button><button type="button" class="secondary" id="examOcrClear">Xóa bản nhận diện</button></div>
-      <p id="examOcrStatus" class="message" aria-live="polite"></p><div id="examOcrResults"></div>
-      <button type="button" id="examOcrImport" class="success" hidden>Đưa các câu đã nhận diện vào Contest</button>
-      <p class="muted">OCR có thể nhầm công thức, ký hiệu và bảng. Hãy rà soát trước khi tạo Contest. Mỗi câu mặc định 10 điểm nếu đề không ghi rõ; có thể sửa điểm. Test chấm để trống để bạn tự thêm sau.</p>
+    <div class="problem-item" id="contestAttachmentPanel">
+      <h3>📎 Đính kèm ảnh / PDF gốc</h3>
+      <p class="muted">Tải ảnh hoặc PDF để hiển thị nguyên bản trong đề bài. Không OCR, không quét chữ. Tối đa 10 tệp, mỗi tệp 12 MB.</p>
+      <input id="contestAttachmentFiles" type="file" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,.png,.jpg,.jpeg,.webp,.gif,.pdf" multiple>
+      <button type="button" class="secondary" id="contestAttachmentUpload">Tải tệp lên</button>
+      <p id="contestAttachmentStatus" class="message" aria-live="polite"></p>
+      <div id="contestAttachmentList"></div>
     </div>
-
     <label for="contestTitle">Tên Contest</label>
     <input id="contestTitle" type="text" placeholder="Ví dụ: Tuyen Sinh Lam Son 2027">
 
@@ -1615,6 +1613,53 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
         const addCustomProblemButton = document.getElementById('addCustomProblem');
 
         let pendingCustomProblems = [];
+        let customProblemAttachments = [];
+        const attachmentInput = document.getElementById('contestAttachmentFiles');
+        const attachmentUpload = document.getElementById('contestAttachmentUpload');
+        const attachmentStatus = document.getElementById('contestAttachmentStatus');
+        const attachmentList = document.getElementById('contestAttachmentList');
+        function renderCustomAttachments() {
+            attachmentList.replaceChildren();
+            customProblemAttachments.forEach((file, index) => {
+                const row = document.createElement('div');
+                row.className = 'problem-item';
+                const label = document.createElement('span');
+                label.textContent = (file.mime_type === 'application/pdf' ? '📄 ' : '🖼️ ') + file.filename;
+                const remove = document.createElement('button');
+                remove.type = 'button'; remove.className = 'danger'; remove.textContent = 'Gỡ';
+                remove.addEventListener('click', () => {
+                    customProblemAttachments.splice(index, 1);
+                    renderCustomAttachments();
+                });
+                row.append(label, remove); attachmentList.appendChild(row);
+            });
+        }
+        attachmentUpload.addEventListener('click', async () => {
+            const files = [...attachmentInput.files];
+            if (!files.length) { attachmentStatus.textContent = 'Chọn ảnh hoặc PDF trước.'; return; }
+            if (customProblemAttachments.length + files.length > 10) {
+                attachmentStatus.textContent = 'Mỗi bài tối đa 10 tệp.'; return;
+            }
+            const data = new FormData();
+            files.forEach(file => data.append('files', file));
+            attachmentUpload.disabled = true;
+            attachmentStatus.textContent = 'Đang tải tệp lên...';
+            try {
+                const response = await fetch('/api/admin/contest-media', {
+                    method: 'POST', body: data, credentials: 'same-origin'
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || 'Tải tệp thất bại.');
+                customProblemAttachments.push(...result.files);
+                renderCustomAttachments();
+                attachmentInput.value = '';
+                attachmentStatus.textContent = 'Đã tải tệp. Chúng sẽ được gắn vào bài riêng tiếp theo bạn thêm.';
+            } catch (error) {
+                attachmentStatus.textContent = error.message;
+                attachmentStatus.className = 'message error-message';
+            } finally { attachmentUpload.disabled = false; }
+        });
+
         
         function renderCustomProblemList() {
             customProblemList.innerHTML = '';
@@ -1722,12 +1767,16 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
     total_score: score,
     time_limit: time,
     memory_limit: memory,
-    subtasks: subtasks
+    subtasks: subtasks,
+    attachments: customProblemAttachments.slice()
 });
 
             customProblemMessage.textContent = 'Đã thêm bài vào danh sách chờ!';
             renderCustomProblemList();
 
+            customProblemAttachments = [];
+            renderCustomAttachments();
+            attachmentStatus.textContent = '';
             customProblemId.value = '';
             customProblemTitle.value = '';
             customProblemStatement.value = '';
@@ -2142,115 +2191,6 @@ async function editContestProblem(contestId, problemId) {
         loadContestProblems();
         loadContestList();
         
-        // ==================== OCR TOÀN BỘ ĐỀ THI ====================
-        (() => {
-          const fileInput = document.getElementById('examOcrFile');
-          const startBtn = document.getElementById('examOcrStart');
-          const clearBtn = document.getElementById('examOcrClear');
-          const importBtn = document.getElementById('examOcrImport');
-          const status = document.getElementById('examOcrStatus');
-          const results = document.getElementById('examOcrResults');
-          let recognized = [];
-          function setStatus(message, error = false) {
-            status.textContent = message;
-            status.className = 'message ' + (error ? 'error-message' : 'success-message');
-          }
-          function cleanText(value) {
-            return value.replace(/\r/g, '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
-          }
-          function splitExam(text) {
-            const normalized = cleanText(text);
-            const pattern = /^\s*((?:Câu|Cau|Bài|Bai|Question|Problem)\s*(?:số\s*)?\d{1,2}\s*[:.)-]?[^\n]*)\s*$/gim;
-            const matches = [...normalized.matchAll(pattern)];
-            if (matches.length < 2) return [{ title: 'Đề bài', statement: normalized }];
-            return matches.map((match, i) => {
-              const end = i + 1 < matches.length ? matches[i + 1].index : normalized.length;
-              const block = normalized.slice(match.index, end).trim();
-              return { title: block.split('\n')[0].trim().replace(/[:.)-]+$/, ''), statement: block };
-            });
-          }
-          function render() {
-            results.replaceChildren();
-            recognized.forEach((item, i) => {
-              const card = document.createElement('div'); card.className = 'problem-item';
-              const tl = document.createElement('label'); tl.textContent = 'Tên bài ' + (i + 1);
-              const title = document.createElement('input'); title.value = item.title;
-              title.addEventListener('input', () => item.title = title.value);
-              const sl = document.createElement('label'); sl.textContent = 'Nội dung đề bài';
-              const statement = document.createElement('textarea'); statement.rows = 12; statement.value = item.statement;
-              statement.addEventListener('input', () => item.statement = statement.value);
-              const pl = document.createElement('label'); pl.textContent = 'Điểm tối đa (mặc định 10)';
-              const score = document.createElement('input'); score.type = 'number'; score.min = '0.1'; score.step = '0.1'; score.value = item.score || 10;
-              score.addEventListener('input', () => item.score = Number(score.value));
-              card.append(tl, title, sl, statement, pl, score); results.appendChild(card);
-            });
-            importBtn.hidden = recognized.length === 0;
-          }
-          function loadScript(src) {
-            return new Promise((resolve, reject) => {
-              const script = document.createElement('script'); script.src = src;
-              script.onload = resolve; script.onerror = reject; document.head.appendChild(script);
-            });
-          }
-          async function pdfPages(file) {
-            if (!window.pdfjsLib) {
-              await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
-              pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            }
-            const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
-            const pages = [];
-            for (let n = 1; n <= pdf.numPages; n++) {
-              const page = await pdf.getPage(n), viewport = page.getViewport({ scale: 1.6 });
-              const canvas = document.createElement('canvas'); canvas.width = viewport.width; canvas.height = viewport.height;
-              await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise; pages.push(canvas);
-            }
-            return pages;
-          }
-          startBtn.addEventListener('click', async () => {
-            const files = [...fileInput.files];
-            if (!files.length) return setStatus('Hãy chọn ảnh hoặc PDF đề thi.', true);
-            startBtn.disabled = true; recognized = []; results.replaceChildren(); importBtn.hidden = true;
-            try {
-              if (!window.Tesseract) await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
-              const worker = await Tesseract.createWorker('vie+eng'); let fullText = '';
-              for (const file of files) {
-                const pages = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf') ? await pdfPages(file) : [file];
-                for (let i = 0; i < pages.length; i++) {
-                  setStatus('Đang nhận diện ' + file.name + ' — trang/ảnh ' + (i + 1) + '/' + pages.length);
-                  const result = await worker.recognize(pages[i]); fullText += '\n' + result.data.text + '\n';
-                }
-              }
-              await worker.terminate();
-              recognized = splitExam(fullText).filter(x => x.statement).map((x, i) => ({
-                ...x, score: 10, id: 'OCR_' + Date.now().toString(36).toUpperCase() + '_' + (i + 1)
-              }));
-              if (!recognized.length) throw new Error('Không nhận diện được nội dung.');
-              render(); setStatus('Đã nhận diện ' + recognized.length + ' phần. Rà soát nội dung và điểm trước khi đưa vào Contest.');
-            } catch (error) { setStatus('Không đọc được file: ' + error.message, true); }
-            finally { startBtn.disabled = false; }
-          });
-          clearBtn.addEventListener('click', () => {
-            recognized = []; fileInput.value = ''; results.replaceChildren(); importBtn.hidden = true; setStatus('Đã xóa bản nhận diện.');
-          });
-          importBtn.addEventListener('click', () => {
-            const valid = recognized.filter(x => x.title.trim() && x.statement.trim());
-            if (!valid.length) return setStatus('Không có câu nào đủ nội dung.', true);
-            valid.forEach((item) => {
-              let id = item.id, suffix = 1;
-              while (pendingCustomProblems.some(p => p.id === id)) id = item.id + '_' + (++suffix);
-              const score = Number(item.score) > 0 ? Number(item.score) : 10;
-              pendingCustomProblems.push({
-                id, title: item.title.trim(), statement: item.statement.trim(),
-                input_desc: '', output_desc: '', sample_input: '', sample_output: '',
-                total_score: score, time_limit: 1, memory_limit: 256000,
-                subtasks: [{ id: '1', name: 'Subtask 1', score, tests: [] }]
-              });
-            });
-            renderCustomProblemList(); setStatus('Đã đưa ' + valid.length + ' câu vào danh sách bài riêng. Tạo Contest xong, bạn tự bổ sung test.');
-            importBtn.disabled = true;
-          });
-        })();
-
         // ==================== SỬA TEST TRONG CONTEST ====================
         const contestTestContest = document.getElementById('contestTestContest');
         const contestTestProblem = document.getElementById('contestTestProblem');
