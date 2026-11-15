@@ -1752,13 +1752,31 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                         sql += ' AND s.contest_id = ?'
                         params.append(contest_id)
 
+            # Keyset pagination keeps later pages fast even when the history
+            # contains many thousands of submissions. Legacy callers retain
+            # the original array response and limit behavior.
+            paged = request.args.get('paged') == '1'
             try:
-                limit = int(request.args.get('limit', 500))
+                limit = int(request.args.get('limit', 50 if paged else 500))
             except (TypeError, ValueError):
-                limit = 500
-            limit = max(1, min(limit, 500))
+                limit = 50 if paged else 500
+            limit = max(1, min(limit, 100 if paged else 500))
+
+            before_id = request.args.get('before_id', type=int) if paged else None
+            if before_id is not None:
+                if before_id <= 0:
+                    return jsonify(error='Con trỏ phân trang không hợp lệ.'), 400
+                sql += ' AND s.id < ?'
+                params.append(before_id)
+
             sql += ' ORDER BY s.id DESC LIMIT ?'
-            rows = db.execute(sql, params + [limit]).fetchall()
+            rows = db.execute(
+                sql, params + [limit + 1 if paged else limit]
+            ).fetchall()
+
+        has_more = paged and len(rows) > limit
+        if has_more:
+            rows = rows[:limit]
 
         result = []
         for row in rows:
@@ -1766,7 +1784,14 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             item['is_mine'] = item['user_id'] == user['id']
             result.append(item)
 
-        return jsonify(result)
+        response = jsonify(result)
+        if paged:
+            response.headers['X-Has-More'] = '1' if has_more else '0'
+            response.headers['X-Next-Cursor'] = (
+                str(rows[-1]['id']) if rows else ''
+            )
+            response.headers['Cache-Control'] = 'private, no-store'
+        return response
 
 
     
