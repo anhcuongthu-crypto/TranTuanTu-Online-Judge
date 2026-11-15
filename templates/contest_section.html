@@ -52,6 +52,11 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 function dateText(v){if(!v)return '—';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString('vi-VN')}
 function verdictClass(v){v=String(v||'').toUpperCase();if(v.includes('ACCEPTED')||v==='AC')return 'accepted';if(v.includes('WRONG')||v==='WA')return 'wrong';if(/QUEUED|PROCESSING|RUNNING|PENDING/.test(v))return 'pending';return ''}
 async function get(url){const r=await fetch(url,{credentials:'same-origin'});const d=await r.json();if(!r.ok)throw Error(d.error||'Không tải được dữ liệu');return d}
+function renderLeaderboard(rows){
+ if(!rows.length){$('content').innerHTML='<div class="empty">Chưa có dữ liệu xếp hạng.</div>';return}
+ const body=rows.map(r=>'<tr><td><strong>#'+esc(r.rank??'—')+'</strong></td><td>'+esc(r.username||'Ẩn danh')+'</td><td>'+esc(r.score??0)+'</td><td>'+esc(r.solved??0)+'</td><td>'+esc(r.penalty??0)+' phút</td></tr>').join('');
+ $('content').innerHTML='<div class="table-wrap"><table><thead><tr><th style="width:75px">Hạng</th><th>Thành viên</th><th>Điểm</th><th>Bài giải</th><th>Phạt</th></tr></thead><tbody>'+body+'</tbody></table></div><p class="meta">Cập nhật tự động mỗi 5 giây · Phạt: 20 phút cho mỗi lần nộp sai trước khi giải được bài</p>';
+}
 async function init(){
  try{
   const contest=await get('/api/contests/'+contestId);
@@ -61,7 +66,7 @@ async function init(){
    const data=await get('/api/contests/'+contestId+'/leaderboard');
    const rows=Array.isArray(data)?data:[];
    if(!rows.length){$('content').innerHTML='<div class="empty">Chưa có dữ liệu xếp hạng.</div>';return}
-   $('content').innerHTML='<div class="table-wrap"><table><thead><tr><th style="width:75px">Hạng</th><th>Thành viên</th><th>Điểm</th><th>Số bài giải</th></tr></thead><tbody>'+rows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(r.username||r.name||r.user||'Ẩn danh')+'</td><td>'+esc(r.score??0)+'</td><td>'+esc(r.solved??0)+'</td></tr>').join('')+'</tbody></table></div>';
+   renderLeaderboard(rows);
   }else{
    const data=await get('/api/contests/'+contestId+'/submissions');
    const rows=Array.isArray(data)?data:[];
@@ -73,22 +78,22 @@ async function init(){
 init();
 
 let leaderboardRefreshTimer = null;
+let leaderboardRefreshInFlight = false;
 async function refreshLeaderboard() {
- if (section !== 'leaderboard' || document.hidden) return;
+ if (section !== 'leaderboard' || document.hidden || leaderboardRefreshInFlight) return;
+ leaderboardRefreshInFlight = true;
  try {
   const data = await get('/api/contests/' + contestId + '/leaderboard');
   const rows = Array.isArray(data) ? data : [];
-  $('content').innerHTML = rows.length
-   ? '<div class="table-wrap"><table><thead><tr><th style="width:75px">Hạng</th><th>Thành viên</th><th>Điểm</th><th>Số bài giải</th></tr></thead><tbody>' +
-     rows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(r.username||r.name||r.user||'Ẩn danh')+'</td><td>'+esc(r.score??0)+'</td><td>'+esc(r.solved??0)+'</td></tr>').join('') +
-     '</tbody></table></div>'
-   : '<div class="empty">Chưa có dữ liệu xếp hạng.</div>';
+  renderLeaderboard(rows);
  } catch (error) {
   // Keep the last successful leaderboard visible during transient failures.
+ } finally {
+  leaderboardRefreshInFlight = false;
  }
 }
 if (section === 'leaderboard') {
- leaderboardRefreshTimer = setInterval(refreshLeaderboard, 15000);
+ leaderboardRefreshTimer = setInterval(refreshLeaderboard, 5000);
  document.addEventListener('visibilitychange', refreshLeaderboard);
 }
 window.addEventListener('beforeunload',()=>{if(leaderboardRefreshTimer)clearInterval(leaderboardRefreshTimer);});
