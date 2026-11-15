@@ -48,6 +48,85 @@
         }, 2200);
     });
 })();
+
+</script>
+
+<script>
+(() => {
+    const button = document.getElementById("copy-full-problem");
+    if (!button) return;
+
+    const value = id => {
+        const element = document.getElementById(id);
+        return element ? element.innerText.trim() : "";
+    };
+    const section = (heading, content) => content ? heading + "\\n" + content : "";
+
+    function buildFullStatement() {
+        const title = value("problem-title");
+        const statement = value("problem-statement");
+        const input = value("problem-input");
+        const output = value("problem-output");
+        const sampleInput = document.querySelector(".sample-grid pre:first-of-type")?.innerText.trim() || "";
+        const sampleOutput = document.querySelector(".sample-grid pre:last-of-type")?.innerText.trim() || "";
+        const explanation = value("problem-explanation");
+        const subtasks = [...document.querySelectorAll(".subtask-row")].map(row =>
+            row.innerText.trim().replace(/\\s+\\n/g, "\\n")
+        ).filter(Boolean).join("\\n");
+        const time = document.getElementById("info-time")?.parentElement?.innerText.trim() || "";
+        const memory = document.getElementById("info-memory")?.parentElement?.innerText.trim() || "";
+        const inputMode = document.getElementById("info-input")?.parentElement?.innerText.trim() || "";
+        const outputMode = document.getElementById("info-output")?.parentElement?.innerText.trim() || "";
+
+        return [
+            title,
+            section("ĐỀ BÀI", statement),
+            section(value("input-heading") || "Input", input),
+            section(value("output-heading") || "Output", output),
+            section(value("sample-input-label") || "Sample Input", sampleInput),
+            section(value("sample-output-label") || "Sample Output", sampleOutput),
+            section(value("explanation-heading") || "Giải thích", explanation),
+            section(value("problem-subtasks-heading") || "Giới hạn và thang điểm", subtasks),
+            section("Thông tin giới hạn", [time, memory, inputMode, outputMode].filter(Boolean).join("\\n"))
+        ].filter(Boolean).join("\\n\\n");
+    }
+
+    async function copyText(text) {
+        if (navigator.clipboard?.writeText && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return;
+        }
+        const field = document.createElement("textarea");
+        field.value = text;
+        field.setAttribute("readonly", "");
+        field.style.position = "fixed";
+        field.style.opacity = "0";
+        document.body.appendChild(field);
+        field.select();
+        const copied = document.execCommand("copy");
+        field.remove();
+        if (!copied) throw new Error("Clipboard unavailable");
+    }
+
+    button.addEventListener("click", async () => {
+        const originalLabel = "▤ Sao chép toàn bộ đề";
+        button.disabled = true;
+        try {
+            await copyText(buildFullStatement());
+            button.textContent = "✓ Đã sao chép toàn bộ đề";
+            button.setAttribute("aria-label", "Đã sao chép toàn bộ đề");
+        } catch (error) {
+            console.error("Không thể sao chép toàn bộ đề:", error);
+            button.textContent = "Không sao chép được";
+        } finally {
+            button.disabled = false;
+            window.setTimeout(() => {
+                button.textContent = originalLabel;
+                button.setAttribute("aria-label", "Sao chép toàn bộ đề");
+            }, 2200);
+        }
+    });
+})();
 </script>
 
 
@@ -336,6 +415,7 @@
             <div class="problem-title-row">
                 <h1 id="problem-title">{{ problem.title }}</h1>
                 <button type="button" class="copy-problem-link" id="copy-problem-link" aria-label="Sao chép liên kết bài tập">↗ Sao chép link</button>
+                <button type="button" class="copy-problem-link" id="copy-full-problem" aria-label="Sao chép toàn bộ đề">▤ Sao chép toàn bộ đề</button>
             </div>
             <style id="copy-problem-link-style">
                 .problem-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
