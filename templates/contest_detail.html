@@ -903,16 +903,13 @@ function showProblem(pid, scroll = true) {
     const attachmentsHtml = (Array.isArray(p.attachments) ? p.attachments : []).map(file => {
         const url = esc(file.url || '');
         const name = esc(file.filename || 'Tệp đính kèm');
-        if (file.mime_type === 'application/pdf') {
-            return `<section style="margin:16px 0">
-                <p><b>📄 ${name}</b> · <a href="${url}" target="_blank" rel="noopener">Mở PDF riêng</a></p>
-                <iframe src="${url}#toolbar=1&view=FitH" title="${name}" style="width:100%;height:min(85vh,900px);min-height:520px;border:1px solid #cbd5e1;border-radius:10px"></iframe>
-            </section>`;
-        }
-        return `<figure style="margin:16px 0">
-            <img src="${url}" alt="${name}" loading="lazy" style="display:block;max-width:100%;height:auto;margin:0 auto;border-radius:8px">
-            <figcaption style="text-align:center;color:#64748b;font-size:.9em">${name}</figcaption>
-        </figure>`;
+        const page = Math.max(1, Number(file.page) || 1);
+        const crop = file.crop && Number(file.crop.width)>0 && Number(file.crop.height)>0 ? file.crop : {x:0,y:0,width:1,height:1};
+        const targetId = 'contest-attachment-' + String(file.id || 'file').replace(/[^a-zA-Z0-9_-]/g,'') + '-' + Math.random().toString(36).slice(2);
+        return `<section style="margin:16px 0">
+            <p><b>${file.mime_type === 'application/pdf' ? '📄' : '🖼️'} ${name}</b> · ${file.mime_type === 'application/pdf' ? 'Trang '+page : 'Ảnh'} · <a href="${url}" target="_blank" rel="noopener">Mở tệp gốc</a></p>
+            <canvas id="${targetId}" data-src="${url}" data-kind="${file.mime_type === 'application/pdf' ? 'pdf' : 'image'}" data-page="${page}" data-crop="${esc(JSON.stringify(crop))}" style="display:block;max-width:100%;height:auto;margin:0 auto;border:1px solid #cbd5e1;border-radius:8px"></canvas>
+        </section>`;
     }).join('');
     const inputDesc = String(
         p.input_desc ?? p.input_description ?? ''
@@ -1715,5 +1712,17 @@ input,button,select,textarea,
 }
 </style>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";window.addEventListener('load',()=>{
+ document.querySelectorAll('canvas[id^="contest-attachment-"]').forEach(async canvas=>{try{
+  const crop=JSON.parse(canvas.dataset.crop||'{"x":0,"y":0,"width":1,"height":1}');let source;
+  if(canvas.dataset.kind==='pdf'){const pdf=await pdfjsLib.getDocument(canvas.dataset.src).promise,page=await pdf.getPage(Math.max(1,Number(canvas.dataset.page)||1)),vp=page.getViewport({scale:1.5});source=document.createElement('canvas');source.width=vp.width;source.height=vp.height;await page.render({canvasContext:source.getContext('2d'),viewport:vp}).promise;}
+  else{source=new Image();source.src=canvas.dataset.src;await new Promise((ok,no)=>{source.onload=ok;source.onerror=no;});}
+  const sx=Math.max(0,Math.min(source.width-1,Math.floor(crop.x*source.width))),sy=Math.max(0,Math.min(source.height-1,Math.floor(crop.y*source.height))),sw=Math.max(1,Math.min(source.width-sx,Math.ceil(crop.width*source.width))),sh=Math.max(1,Math.min(source.height-sy,Math.ceil(crop.height*source.height)));
+  canvas.width=sw;canvas.height=sh;canvas.getContext('2d').drawImage(source,sx,sy,sw,sh,0,0,sw,sh);
+ }catch(e){const msg=document.createElement('p');msg.textContent='Không hiển thị được tệp đính kèm: '+e.message;canvas.replaceWith(msg);}});
+});}
+</script>
 </body>
 </html>
