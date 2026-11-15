@@ -276,25 +276,36 @@ function toggleSavedProblem(problemId) {
 let sortColumn = 'id';
 let sortAscending = true;
 
-// Tìm kiếm kết hợp với sắp xếp.
-function getFilteredProblems() {
-    const el = document.querySelector('#problems');
-    if (!el) return [];
+// Giữ dữ liệu và chỉ mục tìm kiếm trong bộ nhớ thay vì parse JSON và
+// chuẩn hóa lại toàn bộ ngân hàng đề sau mỗi phím bấm.
+let problemItems = [];
+let problemSearchIndex = new WeakMap();
 
-    let items = [];
-
-    try {
-        items = JSON.parse(el.dataset.items || '[]');
-    } catch {
-        return [];
-    }
-
-    const normalizeSearch = value => String(value ?? '')
+function normalizeProblemSearch(value) {
+    return String(value ?? '')
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/đ/g, 'd')
         .replace(/Đ/g, 'D')
         .toLocaleLowerCase('vi');
+}
+
+let problemSearchDebounceTimer = null;
+function scheduleProblemSearchRender() {
+    clearTimeout(problemSearchDebounceTimer);
+    problemSearchDebounceTimer = setTimeout(() => {
+        problemPage = 1;
+        renderProblems(getFilteredProblems());
+    }, 120);
+}
+
+// Tìm kiếm kết hợp với sắp xếp.
+function getFilteredProblems() {
+    const el = document.querySelector('#problems');
+    if (!el) return [];
+
+    const items = problemItems;
+    const normalizeSearch = normalizeProblemSearch;
     const queryTokens = normalizeSearch(
         document.querySelector('#search')?.value || ''
     ).trim().split(/\s+/).filter(Boolean);
@@ -306,8 +317,9 @@ function getFilteredProblems() {
     const recentOnly = !!document.querySelector('#filter-recent')?.checked;
 
     return items.filter(p => {
-        const problemTags = Array.isArray(p.tags) ? p.tags.map(String) : [];
-        const searchableText = normalizeSearch([
+        const indexed = problemSearchIndex.get(p);
+        const problemTags = indexed ? indexed.tags : (Array.isArray(p.tags) ? p.tags.map(String) : []);
+        const searchableText = indexed ? indexed.searchableText : normalizeSearch([
             p.id, p.title, p.category, p.difficulty, p.exam_set,
             p.short_description, p.author, ...problemTags
         ].filter(Boolean).join(' '));
@@ -376,7 +388,7 @@ function renderProblems(items) {
         return sortAscending ? result : -result;
     });
 
-    const total = (() => { try { return JSON.parse(el.dataset.items || '[]').length; } catch { return 0; } })();
+    const total = problemItems.length;
     const count = document.querySelector('#problem-result-count');
     if (count) count.textContent = `Hiển thị ${sorted.length} / ${total} bài tập`;
 
@@ -642,7 +654,22 @@ async function refresh() {
                 }
 
                 if (problems) {
-                    problems.dataset.items = JSON.stringify(items);
+                    problemItems = items;
+                    problemSearchIndex = new WeakMap();
+                    items.forEach(problem => {
+                        const tags = Array.isArray(problem.tags) ? problem.tags.map(String) : [];
+                        problemSearchIndex.set(problem, {
+                            tags,
+                            searchableText: normalizeProblemSearch([
+                                problem.id, problem.title, problem.category,
+                                problem.difficulty, problem.exam_set,
+                                problem.short_description, problem.author, ...tags
+                            ].filter(Boolean).join(' '))
+                        });
+                    });
+                    // Các phần khác chỉ cần biết danh sách đã tải, không cần
+                    // giữ thêm một bản JSON lớn trong thuộc tính DOM.
+                    problems.dataset.items = 'loaded';
 
                     const categories = [...new Set(items.map(p => String(p.category ?? '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi'));
                     const difficulties = [...new Set(items.map(p => String(p.difficulty ?? '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi', { numeric: true }));
@@ -736,9 +763,7 @@ async function refresh() {
 
 // ==================== TÌM KIẾM BÀI ====================
 
-document.querySelector('#search')?.addEventListener('input', () => {
-    renderProblems(getFilteredProblems());
-});
+// Ô tìm kiếm được xử lý cùng bộ lọc bên dưới để tránh render trùng.
 
 // ==================== ĐĂNG NHẬP / ĐĂNG KÝ ====================
 
@@ -1279,7 +1304,14 @@ document.addEventListener('keydown', event => {
 ['#search', '#filter-category', '#filter-difficulty', '#filter-tag', '#filter-status', '#filter-saved', '#filter-recent'].forEach(selector => {
     document.querySelector(selector)?.addEventListener(
         selector === '#search' ? 'input' : 'change',
-        () => { problemPage = 1; renderProblems(getFilteredProblems()); }
+        () => {
+            if (selector === '#search') {
+                scheduleProblemSearchRender();
+                return;
+            }
+            problemPage = 1;
+            renderProblems(getFilteredProblems());
+        }
     );
 });
 
