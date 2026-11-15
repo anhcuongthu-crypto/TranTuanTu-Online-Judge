@@ -296,6 +296,21 @@
     .problem-detail-layout .problem-hero::after { font-size: 24px; right: 14px; top: 17px; }
 }
 </style>
+<style>
+.recent-submissions-panel{margin-top:20px}
+.recent-submissions-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.recent-submissions-heading h2{margin:0!important;border:0!important;padding:0!important}
+.recent-submissions-heading a{font-size:13px;text-decoration:none;color:#3476bd}
+.recent-submissions-message{margin:14px 0 0;color:#718397;font-size:13px}
+.recent-submissions-list{display:grid;gap:9px;margin-top:12px}
+.recent-submission-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 14px;border:1px solid #e5ebf2;border-radius:10px;background:#fbfdff}
+.recent-submission-main{display:grid;gap:4px;min-width:0}
+.recent-submission-main a{font-weight:700;color:#315773;text-decoration:none;overflow-wrap:anywhere}
+.recent-submission-meta{font-size:12px;color:#718397;overflow-wrap:anywhere}
+.recent-submission-result{text-align:right;white-space:nowrap;font-size:13px;font-weight:700;color:#405a70}
+.recent-submission-result small{display:block;margin-top:3px;font-size:11px;font-weight:500;color:#718397}
+@media(max-width:560px){.recent-submission-item{grid-template-columns:1fr;gap:7px}.recent-submission-result{text-align:left}.recent-submission-result small{display:inline;margin-left:7px}}
+</style>
 
 
 <div class="breadcrumbs">
@@ -396,6 +411,21 @@
                 {% endfor %}
             </div>
 
+        </section>
+
+        <section class="glass-card problem-content recent-submissions-panel"
+                 id="recent-submissions-panel"
+                 data-problem-id="{{ problem.id }}"
+                 data-contest-id="{{ contest_id or '' }}">
+            <div class="recent-submissions-heading">
+                <h2 id="recent-submissions-heading">Lần nộp gần đây</h2>
+                <a href="/submissions?scope=mine&problem_id={{ problem.id|urlencode }}{% if contest_id %}&contest_id={{ contest_id }}{% endif %}"
+                   id="recent-submissions-more">Xem tất cả →</a>
+            </div>
+            <p class="recent-submissions-message" id="recent-submissions-message" role="status" aria-live="polite">
+                Đang tải lịch sử nộp bài...
+            </p>
+            <div class="recent-submissions-list" id="recent-submissions-list"></div>
         </section>
     </main>
 
@@ -882,6 +912,123 @@
     } else {
         showVietnamese();
     }
+})();
+</script>
+
+<script>
+(() => {
+    const panel = document.getElementById("recent-submissions-panel");
+    const list = document.getElementById("recent-submissions-list");
+    const message = document.getElementById("recent-submissions-message");
+    if (!panel || !list || !message) return;
+
+    const problemId = panel.dataset.problemId;
+    const contestId = panel.dataset.contestId;
+    const query = new URLSearchParams({
+        scope: "mine",
+        problem_id: problemId,
+        limit: "8"
+    });
+    if (contestId) query.set("contest_id", contestId);
+
+    const labels = () => document.documentElement.lang === "en"
+        ? {
+            loading: "Loading recent submissions...",
+            login: "Log in to see your submission history.",
+            empty: "You have not submitted this problem yet.",
+            failed: "Could not load submission history. Please try again later.",
+            score: "Score",
+            open: "View submission",
+            unknown: "Unknown"
+        }
+        : {
+            loading: "Đang tải lịch sử nộp bài...",
+            login: "Đăng nhập để xem lịch sử nộp bài của bạn.",
+            empty: "Bạn chưa nộp bài tập này.",
+            failed: "Không thể tải lịch sử nộp bài. Vui lòng thử lại sau.",
+            score: "Điểm",
+            open: "Xem bài nộp",
+            unknown: "Chưa rõ"
+        };
+
+    function showMessage(value) {
+        message.textContent = value;
+        message.hidden = !value;
+    }
+
+    function renderSubmissions(items) {
+        list.replaceChildren();
+        const text = labels();
+
+        items.forEach(item => {
+            const row = document.createElement("article");
+            row.className = "recent-submission-item";
+
+            const main = document.createElement("div");
+            main.className = "recent-submission-main";
+
+            const link = document.createElement("a");
+            link.href = "/submission/" + encodeURIComponent(item.id);
+            link.textContent = text.open + " #" + item.id;
+            main.appendChild(link);
+
+            const meta = document.createElement("span");
+            meta.className = "recent-submission-meta";
+            const date = item.created_at ? new Date(item.created_at) : null;
+            const dateText = date && !Number.isNaN(date.getTime())
+                ? date.toLocaleString(document.documentElement.lang === "en" ? "en" : "vi-VN")
+                : text.unknown;
+            meta.textContent = [item.language_id, dateText].filter(Boolean).join(" · ");
+            main.appendChild(meta);
+
+            const result = document.createElement("div");
+            result.className = "recent-submission-result";
+            const verdict = document.createElement("span");
+            verdict.textContent = item.verdict || text.unknown;
+            result.appendChild(verdict);
+
+            const score = document.createElement("small");
+            score.textContent = text.score + ": " +
+                (item.score ?? 0) + " / " + (item.max_score ?? 0);
+            result.appendChild(score);
+
+            row.append(main, result);
+            list.appendChild(row);
+        });
+    }
+
+    async function loadSubmissions() {
+        showMessage(labels().loading);
+        try {
+            const response = await fetch("/api/submissions?" + query.toString(), {
+                credentials: "same-origin",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.status === 401) {
+                showMessage(labels().login);
+                return;
+            }
+            if (!response.ok) throw new Error("Submission history request failed");
+            const items = await response.json();
+            if (!Array.isArray(items) || items.length === 0) {
+                showMessage(labels().empty);
+                return;
+            }
+            showMessage("");
+            renderSubmissions(items.slice(0, 8));
+        } catch (error) {
+            console.error("Could not load recent submissions:", error);
+            showMessage(labels().failed);
+        }
+    }
+
+    document.addEventListener("oj-language-changed", () => {
+        if (!list.children.length) {
+            showMessage(labels().loading);
+            loadSubmissions();
+        }
+    });
+    loadSubmissions();
 })();
 </script>
 
