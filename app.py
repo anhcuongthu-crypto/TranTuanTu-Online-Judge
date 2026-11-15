@@ -3562,7 +3562,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                         asset = db.execute('SELECT id, filename, mime_type FROM contest_media WHERE id=?', (aid,)).fetchone()
                         if not asset:
                             return jsonify(error='Không tìm thấy tệp đính kèm.'), 400
-                        verified.append({'id': asset['id'], 'filename': asset['filename'], 'mime_type': asset['mime_type'], 'url': '/api/contest-media/' + asset['id']})
+                        verified.append({'id': asset['id'], 'filename': asset['filename'], 'mime_type': asset['mime_type'], 'url': '/api/contest-media/' + asset['id'], 'page': max(1, int(item.get('page') or 1)) if isinstance(item, dict) else 1, 'crop': item.get('crop') if isinstance(item, dict) and isinstance(item.get('crop'), dict) else None})
                     p['attachments'] = verified
 
                 # Lưu đề riêng và danh sách bài thi của Contest.
