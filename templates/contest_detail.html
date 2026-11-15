@@ -900,6 +900,20 @@ function showProblem(pid, scroll = true) {
         p.problem_statement || ''
     );
 
+    const attachmentsHtml = (Array.isArray(p.attachments) ? p.attachments : []).map(file => {
+        const url = esc(file.url || '');
+        const name = esc(file.filename || 'Tệp đính kèm');
+        if (file.mime_type === 'application/pdf') {
+            return `<section style="margin:16px 0">
+                <p><b>📄 ${name}</b> · <a href="${url}" target="_blank" rel="noopener">Mở PDF riêng</a></p>
+                <iframe src="${url}#toolbar=1&view=FitH" title="${name}" style="width:100%;height:min(85vh,900px);min-height:520px;border:1px solid #cbd5e1;border-radius:10px"></iframe>
+            </section>`;
+        }
+        return `<figure style="margin:16px 0">
+            <img src="${url}" alt="${name}" loading="lazy" style="display:block;max-width:100%;height:auto;margin:0 auto;border-radius:8px">
+            <figcaption style="text-align:center;color:#64748b;font-size:.9em">${name}</figcaption>
+        </figure>`;
+    }).join('');
     const inputDesc = String(
         p.input_desc ?? p.input_description ?? ''
     );
@@ -997,6 +1011,7 @@ function getSubtaskCondition(s) {
         <div style="white-space:pre-wrap;line-height:1.8">${esc(
             statement || t("noStatement")
         )}</div>
+        ${attachmentsHtml}
 
         ${inputDesc.trim() ? `
             <h3>${t("input")}</h3>
