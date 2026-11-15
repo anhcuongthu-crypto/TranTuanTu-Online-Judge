@@ -796,6 +796,92 @@ def test_my_analytics_reports_current_and_longest_activity_streak(tmp_path):
 
 
 
+
+def test_contest_leaderboard_uses_full_score_and_penalty_tiebreak(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'slow_solver')
+    register_and_login(client, 'fast_solver')
+    register_and_login(client, 'no_attempts')
+    app = client.application
+    start = datetime.now().replace(second=0, microsecond=0) - timedelta(hours=1)
+    with connect(app.config['DATABASE_PATH']) as db:
+        db.execute(
+            '''INSERT INTO contests
+               (title, description, start_time, end_time, is_visible)
+               VALUES (?, ?, ?, ?, 1)''',
+            ('Ranking test', '', start.isoformat(timespec='seconds'),
+             (start + timedelta(hours=2)).isoformat(timespec='seconds'))
+        )
+        contest_id = db.execute(
+            'SELECT id FROM contests WHERE title=?', ('Ranking test',)
+        ).fetchone()['id']
+        users = {
+            row['username']: row['id']
+            for row in db.execute(
+                'SELECT id, username FROM users WHERE username IN (?, ?, ?)',
+                ('slow_solver', 'fast_solver', 'no_attempts')
+            ).fetchall()
+        }
+        def add_submission(username, verdict, minutes, score):
+            db.execute(
+                '''INSERT INTO submissions
+                   (user_id, problem_id, language_id, source_code, verdict,
+                    score, max_score, created_at, contest_id)
+                   VALUES (?, 'X01', 54, 'int main(){}', ?, ?, 100, ?, ?)''',
+                (users[username], verdict, score,
+                 (start + timedelta(minutes=minutes)).isoformat(timespec='seconds'),
+                 contest_id)
+            )
+        add_submission('slow_solver', 'Wrong Answer', 2, 0)
+        add_submission('slow_solver', 'Accepted', 12, 100)
+        add_submission('fast_solver', 'Accepted', 20, 100)
+
+    response = client.get(f'/api/contests/{contest_id}/leaderboard')
+    assert response.status_code == 200
+    rows = {row['username']: row for row in response.json}
+    assert rows['fast_solver']['rank'] == 1
+    assert rows['fast_solver']['penalty'] == 20
+    assert rows['slow_solver']['rank'] == 2
+    assert rows['slow_solver']['penalty'] == 32
+    assert rows['slow_solver']['solved'] == 1
+    assert rows['no_attempts']['score'] == 0
+    assert rows['no_attempts']['solved'] == 0
+
+
+def test_contest_leaderboard_gives_equal_rank_for_equal_results(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'tie_one')
+    register_and_login(client, 'tie_two')
+    app = client.application
+    start = datetime.now().replace(second=0, microsecond=0) - timedelta(hours=1)
+    with connect(app.config['DATABASE_PATH']) as db:
+        contest_id = db.execute(
+            '''INSERT INTO contests
+               (title, description, start_time, end_time, is_visible)
+               VALUES (?, ?, ?, ?, 1)''',
+            ('Tie ranking', '', start.isoformat(timespec='seconds'),
+             (start + timedelta(hours=2)).isoformat(timespec='seconds'))
+        ).lastrowid
+        users = db.execute(
+            'SELECT id FROM users WHERE username IN (?, ?)',
+            ('tie_one', 'tie_two')
+        ).fetchall()
+        for user in users:
+            db.execute(
+                '''INSERT INTO submissions
+                   (user_id, problem_id, language_id, source_code, verdict,
+                    score, max_score, created_at, contest_id)
+                   VALUES (?, 'X01', 54, 'int main(){}', 'Accepted',
+                           100, 100, ?, ?)''',
+                (user['id'], (start + timedelta(minutes=15)).isoformat(timespec='seconds'),
+                 contest_id)
+            )
+    rows = client.get(f'/api/contests/{contest_id}/leaderboard').json
+    assert len(rows) == 2
+    assert rows[0]['rank'] == rows[1]['rank'] == 1
+    assert rows[0]['penalty'] == rows[1]['penalty'] == 15
+
+
 def test_contest_page_has_live_countdown_and_leaderboard_auto_refresh(tmp_path):
     client = setup(tmp_path)
     contest_page = client.get('/contests/1')
@@ -807,7 +893,7 @@ def test_contest_page_has_live_countdown_and_leaderboard_auto_refresh(tmp_path):
     assert section.status_code == 200
     source = section.get_data(as_text=True)
     assert 'refreshLeaderboard' in source
-    assert 'setInterval(refreshLeaderboard, 15000)' in source
+    assert 'setInterval(refreshLeaderboard, 5000)' in source
 
 
 
