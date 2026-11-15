@@ -49,6 +49,11 @@ _TRANSLATION_CACHE = {}
 _TRANSLATION_CACHE_LOCK = threading.Lock()
 _TRANSLATION_CACHE_LIMIT = 5000
 
+# Short-lived, user-scoped cache for profile analytics.
+_ANALYTICS_CACHE = {}
+_ANALYTICS_CACHE_LOCK = threading.Lock()
+_ANALYTICS_CACHE_TTL = 10
+
 
 def translate_to_english(value):
     """Translate source text to English; return None when the provider is unavailable."""
@@ -2094,6 +2099,19 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         if not user:
             return jsonify(error='Cần đăng nhập.'), 401
 
+        cache_key = (
+            str(app.config['DATABASE_PATH']),
+            int(user['id'])
+        )
+        now = time.monotonic()
+        if request.args.get('fresh') != '1':
+            with _ANALYTICS_CACHE_LOCK:
+                cached = _ANALYTICS_CACHE.get(cache_key)
+                if cached and now - cached['time'] < _ANALYTICS_CACHE_TTL:
+                    response = jsonify(cached['data'])
+                    response.headers['Cache-Control'] = 'private, no-store'
+                    return response
+
         bank = problems()
         problem_by_id = {str(p.get('id')): p for p in bank}
 
@@ -2240,20 +2258,41 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         for achievement in achievements:
             achievement['unlocked'] = achievement['progress'] >= achievement['target']
 
-        return jsonify(
-            total_solved=len(solved_ids),
-            total_attempted=len(attempted_ids),
-            total_submissions=len(submission_rows),
-            current_streak=current_streak,
-            longest_streak=longest_streak,
-            active_days=len(active_dates),
-            full_rate=round(100 * len(solved_ids) / len(attempted_ids), 1) if attempted_ids else 0,
-            categories=category_rows,
-            tags=tag_rows,
-            achievements=achievements,
-            daily=[{'date': day, 'count': count} for day, count in daily.items()],
-            verdicts=[{'verdict': verdict, 'count': count} for verdict, count in sorted(verdict_counts.items(), key=lambda item: -item[1])]
-        )
+        payload = {
+            'total_solved': len(solved_ids),
+            'total_attempted': len(attempted_ids),
+            'total_submissions': len(submission_rows),
+            'current_streak': current_streak,
+            'longest_streak': longest_streak,
+            'active_days': len(active_dates),
+            'full_rate': round(100 * len(solved_ids) / len(attempted_ids), 1) if attempted_ids else 0,
+            'categories': category_rows,
+            'tags': tag_rows,
+            'achievements': achievements,
+            'daily': [{'date': day, 'count': count} for day, count in daily.items()],
+            'verdicts': [
+                {'verdict': verdict, 'count': count}
+                for verdict, count in sorted(
+                    verdict_counts.items(), key=lambda item: -item[1]
+                )
+            ]
+        }
+        with _ANALYTICS_CACHE_LOCK:
+            _ANALYTICS_CACHE[cache_key] = {
+                'time': time.monotonic(),
+                'data': payload
+            }
+            if len(_ANALYTICS_CACHE) > 500:
+                oldest = sorted(
+                    _ANALYTICS_CACHE.items(),
+                    key=lambda item: item[1]['time']
+                )[:100]
+                for key, _ in oldest:
+                    _ANALYTICS_CACHE.pop(key, None)
+
+        response = jsonify(payload)
+        response.headers['Cache-Control'] = 'private, no-store'
+        return response
 
 
     @app.get('/api/leaderboard')
