@@ -270,7 +270,8 @@ def test_my_analytics_returns_progressive_achievement_badges(tmp_path):
             (user['id'], 'X01', 100)
         )
 
-    refreshed = client.get('/api/my-analytics')
+    # The analytics endpoint is intentionally cached; bypass it after direct DB mutation.
+    refreshed = client.get('/api/my-analytics?fresh=1')
     refreshed_badges = {
         item['id']: item for item in refreshed.json['achievements']
     }
