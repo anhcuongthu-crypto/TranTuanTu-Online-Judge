@@ -3,6 +3,7 @@ import urllib.request
 import urllib.error
 from urllib.parse import quote, urlencode
 import json
+import uuid
 import math
 import xml.etree.ElementTree as ET
 import os
@@ -401,7 +402,7 @@ def create_app(test_config=None):
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE='Lax',
         SESSION_COOKIE_SECURE=os.getenv('RENDER', '').lower() == 'true',
-        MAX_CONTENT_LENGTH=2 * 1024 * 1024,
+        MAX_CONTENT_LENGTH=26 * 1024 * 1024,
         SEND_FILE_MAX_AGE_DEFAULT=timedelta(days=1),
         COMPRESS_MIN_SIZE=500,
         COMPRESS_LEVEL=6,
@@ -773,7 +774,7 @@ def create_app(test_config=None):
         custom_rows = db.execute(
             '''SELECT problem_id, title, statement,
                       input_desc, output_desc, total_score,
-                      sample_input, sample_output, subtasks_json,
+                      sample_input, sample_output, subtasks_json, attachments_json,
                       use_freopen, input_file, output_file
                FROM contest_custom_problems
                WHERE contest_id=?''',
@@ -822,6 +823,7 @@ def create_app(test_config=None):
                     'output_desc': p['output_desc'],
                     'sample_input': p['sample_input'] or '',
                     'sample_output': p['sample_output'] or '',
+                    'attachments': json.loads(p.get('attachments_json') or '[]'),
                     'use_freopen': bool(p.get('use_freopen', 0)),
                     'input_file': p.get('input_file', ''),
                     'output_file': p.get('output_file', '')
@@ -3282,6 +3284,44 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
 
     
     
+    @app.post('/api/admin/contest-media')
+    def admin_upload_contest_media():
+        if not admin_required(): return jsonify(error='Chỉ admin.'), 403
+        files = request.files.getlist('files')
+        if not files or len(files) > 10: return jsonify(error='Chọn từ 1 đến 10 ảnh/PDF.'), 400
+        allowed = {'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.gif':'image/gif','.pdf':'application/pdf'}
+        saved, total = [], 0
+        try:
+            with connect(app.config['DATABASE_PATH']) as db:
+                for file in files:
+                    filename = Path(file.filename or '').name
+                    ext = Path(filename).suffix.lower()
+                    mime = allowed.get(ext)
+                    if not mime: return jsonify(error='Chỉ hỗ trợ PNG, JPG, WEBP, GIF và PDF.'), 400
+                    content = file.read(12 * 1024 * 1024 + 1)
+                    total += len(content)
+                    if not content or len(content) > 12 * 1024 * 1024 or total > 24 * 1024 * 1024: return jsonify(error='Mỗi tệp tối đa 12 MB, tổng tối đa 24 MB.'), 400
+                    if ext == '.pdf' and not content.startswith(b'%PDF-'): return jsonify(error='PDF không hợp lệ.'), 400
+                    if ext == '.png' and not content.startswith(bytes([137,80,78,71,13,10,26,10])): return jsonify(error='PNG không hợp lệ.'), 400
+                    if ext in ('.jpg','.jpeg') and not content.startswith(bytes([255,216,255])): return jsonify(error='JPEG không hợp lệ.'), 400
+                    aid = uuid.uuid4().hex
+                    db.execute('INSERT INTO contest_media (id, filename, mime_type, content) VALUES (?, ?, ?, ?)', (aid, filename[:240], mime, content))
+                    saved.append({'id':aid,'filename':filename[:240],'mime_type':mime,'url':'/api/contest-media/'+aid})
+            return jsonify(ok=True, files=saved), 201
+        except Exception as exc:
+            app.logger.exception('Lỗi tải tệp đính kèm')
+            return jsonify(error='Không tải được tệp: '+str(exc)), 500
+
+    @app.get('/api/contest-media/<asset_id>')
+    def get_contest_media(asset_id):
+        with connect(app.config['DATABASE_PATH']) as db:
+            asset = db.execute('SELECT filename, mime_type, content FROM contest_media WHERE id=?', (asset_id,)).fetchone()
+        if not asset: return jsonify(error='Không tìm thấy tệp.'), 404
+        response = app.response_class(bytes(asset['content']), mimetype=asset['mime_type'])
+        response.headers['Content-Disposition'] = 'inline'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+        return response
     @app.post('/api/admin/contests')
     def admin_create_contest():
         admin = admin_required()
@@ -3512,6 +3552,19 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                         )
                     )
 
+                for p in checked_custom:
+                    attachments = p.get('attachments', [])
+                    if not isinstance(attachments, list) or len(attachments) > 10:
+                        return jsonify(error='Danh sách tệp đính kèm không hợp lệ.'), 400
+                    verified = []
+                    for item in attachments:
+                        aid = str(item.get('id', '')) if isinstance(item, dict) else ''
+                        asset = db.execute('SELECT id, filename, mime_type FROM contest_media WHERE id=?', (aid,)).fetchone()
+                        if not asset:
+                            return jsonify(error='Không tìm thấy tệp đính kèm.'), 400
+                        verified.append({'id': asset['id'], 'filename': asset['filename'], 'mime_type': asset['mime_type'], 'url': '/api/contest-media/' + asset['id']})
+                    p['attachments'] = verified
+
                 # Lưu đề riêng và danh sách bài thi của Contest.
                 for i, p in enumerate(checked_custom, start=len(ids)):
                     pid = p['id']
@@ -3521,9 +3574,9 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                            (contest_id, problem_id, title, statement,
                             input_desc, output_desc, subtasks_json,
                             total_score, time_limit, memory_limit,
-                            sample_input, sample_output,
+                            sample_input, sample_output, attachments_json,
                             use_freopen, input_file, output_file)
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                         (
                             contest_id,
                             pid,
@@ -3537,6 +3590,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                             p['memory_limit'],
                             str(p.get('sample_input', '')),
                             str(p.get('sample_output', '')),
+                            json.dumps(p.get('attachments', []), ensure_ascii=False),
                             int(bool(p.get('use_freopen', False))),
                             str(p.get('input_file', '')) if p.get('use_freopen') else '',
                             str(p.get('output_file', '')) if p.get('use_freopen') else ''
