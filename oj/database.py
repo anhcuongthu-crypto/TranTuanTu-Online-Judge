@@ -764,6 +764,7 @@ def init_db(path):
         ),
 
         "contest_custom_problems": (
+            ("attachments_json", "TEXT NOT NULL DEFAULT '[]'"),
             ("sample_input", "TEXT NOT NULL DEFAULT ''"),
             ("sample_output", "TEXT NOT NULL DEFAULT ''"),
             ("use_freopen", "INTEGER NOT NULL DEFAULT 0"),
@@ -777,6 +778,14 @@ def init_db(path):
             ("removed_count", "INTEGER NOT NULL DEFAULT 0"),
         ),
     }
+
+    media_type = "BYTEA" if is_postgres_path(path) else "BLOB"
+    with connect(path) as db:
+        db.execute(f"""CREATE TABLE IF NOT EXISTS contest_media (
+            id TEXT PRIMARY KEY, filename TEXT NOT NULL,
+            mime_type TEXT NOT NULL, content {media_type} NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )""")
 
     # Bổ sung các cột còn thiếu, giữ nguyên dữ liệu cũ.
     for table, columns in migrations.items():
