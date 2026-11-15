@@ -1114,7 +1114,7 @@ const response = await fetch(
             }
         }
     });
-    refreshButton.addEventListener('click', loadSubmissions);
+    refreshButton.addEventListener('click', function(){ loadSubmissions(false); });
 
     closeCodeButton.addEventListener('click', closeCodeModal);
 
@@ -1130,7 +1130,7 @@ const response = await fetch(
         }
     });
 
-    document.addEventListener('oj-language-changed', loadSubmissions);
+    document.addEventListener('oj-language-changed', function(){ loadSubmissions(false); });
     loadSubmissions();
 })();
 </script>
