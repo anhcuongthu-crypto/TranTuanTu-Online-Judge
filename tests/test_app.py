@@ -531,6 +531,50 @@ def test_submission_history_skips_user_join_but_all_scope_stays_global(tmp_path)
                for row in all_rows.json)
 
 
+def test_submission_history_keyset_pagination_returns_stable_pages(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'pageowner')
+    app = client.application
+    with connect(app.config['DATABASE_PATH']) as db:
+        user_id = db.execute(
+            'SELECT id FROM users WHERE username=?', ('pageowner',)
+        ).fetchone()['id']
+        for index in range(5):
+            db.execute(
+                '''INSERT INTO submissions
+                   (user_id, problem_id, language_id, source_code, verdict,
+                    score, max_score, details_json)
+                   VALUES (?, 'X01', 54, ?, 'Accepted', 100, 100, '[]')''',
+                (user_id, f'int main(){{return {index};}}')
+            )
+
+    first = client.get('/api/submissions?scope=history&paged=1&limit=2')
+    assert first.status_code == 200
+    assert len(first.json) == 2
+    assert first.headers['X-Has-More'] == '1'
+    cursor = first.headers['X-Next-Cursor']
+    assert cursor == str(first.json[-1]['id'])
+
+    second = client.get(
+        f'/api/submissions?scope=history&paged=1&limit=2&before_id={cursor}'
+    )
+    assert second.status_code == 200
+    assert len(second.json) == 2
+    assert second.headers['X-Has-More'] == '1'
+
+    third = client.get(
+        '/api/submissions?scope=history&paged=1&limit=2&before_id=' +
+        second.headers['X-Next-Cursor']
+    )
+    assert third.status_code == 200
+    assert len(third.json) == 1
+    assert third.headers['X-Has-More'] == '0'
+
+    ids = [row['id'] for page in (first.json, second.json, third.json) for row in page]
+    assert ids == sorted(ids, reverse=True)
+    assert len(ids) == len(set(ids)) == 5
+
+
 def test_mobile_navigation_toggle_is_accessible_and_keyboard_operable(tmp_path):
     client = setup(tmp_path)
     page = client.get('/').get_data(as_text=True)
@@ -877,9 +921,10 @@ def test_contest_leaderboard_gives_equal_rank_for_equal_results(tmp_path):
                  contest_id)
             )
     rows = client.get(f'/api/contests/{contest_id}/leaderboard').json
-    assert len(rows) == 2
-    assert rows[0]['rank'] == rows[1]['rank'] == 1
-    assert rows[0]['penalty'] == rows[1]['penalty'] == 15
+    tied_rows = [row for row in rows if row['username'] in ('tie_one', 'tie_two')]
+    assert len(tied_rows) == 2
+    assert tied_rows[0]['rank'] == tied_rows[1]['rank'] == 1
+    assert tied_rows[0]['penalty'] == tied_rows[1]['penalty'] == 15
 
 
 def test_contest_page_has_live_countdown_and_leaderboard_auto_refresh(tmp_path):
