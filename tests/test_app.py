@@ -820,6 +820,45 @@ def test_submit_editor_supports_local_autosave_and_keyboard_shortcuts(tmp_path):
     assert "event.key==='Enter'" in html
 
 
+def test_my_analytics_cache_is_user_and_database_scoped_and_can_refresh(tmp_path):
+    client = setup(tmp_path)
+    register_and_login(client, 'analyticscache')
+    app = client.application
+    with connect(app.config['DATABASE_PATH']) as db:
+        owner = db.execute(
+            'SELECT id FROM users WHERE username=?', ('analyticscache',)
+        ).fetchone()
+        db.execute(
+            '''INSERT INTO submissions
+               (user_id, problem_id, language_id, source_code, verdict,
+                score, max_score, created_at)
+               VALUES (?, 'X01', 54, 'int main(){}', 'Wrong Answer', 0, 100, ?)''',
+            (owner['id'], datetime.now().date().isoformat() + 'T12:00:00')
+        )
+
+    first = client.get('/api/my-analytics')
+    assert first.status_code == 200
+    assert first.json['total_submissions'] == 1
+
+    with connect(app.config['DATABASE_PATH']) as db:
+        db.execute(
+            '''INSERT INTO submissions
+               (user_id, problem_id, language_id, source_code, verdict,
+                score, max_score, created_at)
+               VALUES (?, 'X01', 54, 'int main(){}', 'Accepted', 100, 100, ?)''',
+            (owner['id'], datetime.now().date().isoformat() + 'T13:00:00')
+        )
+
+    cached = client.get('/api/my-analytics')
+    assert cached.status_code == 200
+    assert cached.json['total_submissions'] == 1
+
+    refreshed = client.get('/api/my-analytics?fresh=1')
+    assert refreshed.status_code == 200
+    assert refreshed.json['total_submissions'] == 2
+    assert refreshed.json['daily'][-1]['count'] == 2
+
+
 def test_my_analytics_reports_current_and_longest_activity_streak(tmp_path):
     client = setup(tmp_path)
     register_and_login(client, 'streakuser')
