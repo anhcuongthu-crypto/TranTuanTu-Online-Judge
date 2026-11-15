@@ -250,6 +250,10 @@
 .problemset-tags-cell{max-width:190px;line-height:1.7}
 .problem-pill.is-partial{color:#8b6500;background:#fff0c2;border:1px solid #f4d77d}
 .problemset-table-wrap table{min-width:790px!important}
+/* Keep the problem name readable in narrow screens; the table scrolls instead of crushing the title. */
+.problemset-table-wrap td:first-child{min-width:260px!important;white-space:nowrap!important}
+.problemset-table-wrap td:first-child a{display:inline-block!important;white-space:nowrap!important;min-width:max-content!important}
+.problemset-table-wrap td:first-child .problemset-tag-chip{margin-right:7px!important}
 .problemset-pagination button,.problemset-pagination a{
  color:#c5d9ea!important;background:#0e2338!important;
  border:1px solid rgba(101,187,222,.2)!important;border-radius:9px!important;
