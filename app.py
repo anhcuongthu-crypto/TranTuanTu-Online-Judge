@@ -2639,7 +2639,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         with connect(app.config['DATABASE_PATH']) as db:
             user = current_user(db=db)
             contest = db.execute(
-                'SELECT id, is_visible FROM contests WHERE id=?',
+                'SELECT id, is_visible, start_time FROM contests WHERE id=?',
                 (contest_id,)
             ).fetchone()
 
@@ -2651,58 +2651,138 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
             ):
                 return jsonify(error='Không tìm thấy cuộc thi.'), 404
 
-            # Leaderboard được polling thường xuyên ở trang contest.
-            # Dữ liệu chậm tối đa 3 giây để giảm truy vấn aggregate nặng.
+            # Cache ngắn để cân bằng độ mới của bảng xếp hạng và tải DB.
             now = time.monotonic()
             with contest_leaderboard_cache_lock:
                 cached = contest_leaderboard_cache.get(contest_id)
-                if cached and now - cached['time'] < 3:
-                    response = jsonify(cached['rows'])
-                    response.headers['Cache-Control'] = 'private, no-store'
-                    return response
+                if cached and now - cached['time'] < 2:
+                    result = [dict(row) for row in cached['rows']]
+                else:
+                    result = None
 
-            rows = db.execute(
-                '''SELECT u.username,
-                          COALESCE(SUM(best.score), 0) AS score,
-                          COUNT(
-                              CASE WHEN best.solved=1 THEN 1 END
-                          ) AS solved
-                   FROM users u
-                   LEFT JOIN (
-                       SELECT user_id, problem_id,
-                              MAX(score) AS score,
-                              MAX(
-                                  CASE WHEN verdict='Accepted'
-                                       THEN 1 ELSE 0 END
-                              ) AS solved
-                       FROM submissions
-                       WHERE contest_id=?
-                         AND verdict NOT IN (
-                             'Queued', 'Processing',
-                             'Judge Unavailable'
+            if result is None:
+                # Tính điểm tốt nhất theo từng bài. Thời điểm giải được ghi nhận
+                # ở lần đầu đạt Accepted hoặc đạt đủ điểm tối đa của bài.
+                rows = db.execute(
+                    '''WITH first_solve AS (
+                           SELECT user_id, problem_id,
+                                  MIN(created_at) AS accepted_at
+                           FROM submissions
+                           WHERE contest_id=?
+                             AND (
+                                 LOWER(TRIM(verdict)) IN ('accepted', 'ac')
+                                 OR (max_score > 0 AND score >= max_score)
+                             )
+                           GROUP BY user_id, problem_id
+                       )
+                       SELECT s.user_id, s.problem_id,
+                              MAX(COALESCE(s.score, 0)) AS best_score,
+                              MAX(COALESCE(s.max_score, 0)) AS max_score,
+                              fs.accepted_at,
+                              MAX(s.created_at) AS last_submission_at,
+                              SUM(CASE
+                                  WHEN LOWER(TRIM(s.verdict)) IN (
+                                      'wrong answer', 'wa',
+                                      'time limit exceeded', 'tle',
+                                      'runtime error', 'rte',
+                                      'compilation error', 'ce',
+                                      'memory limit exceeded', 'mle',
+                                      'output limit exceeded', 'ole',
+                                      'presentation error', 'pe'
+                                  )
+                                  AND (
+                                      fs.accepted_at IS NULL
+                                      OR s.created_at < fs.accepted_at
+                                  )
+                                  THEN 1 ELSE 0
+                              END) AS wrong_before_ac
+                       FROM submissions s
+                       LEFT JOIN first_solve fs
+                         ON fs.user_id=s.user_id
+                        AND fs.problem_id=s.problem_id
+                       WHERE s.contest_id=?
+                         AND LOWER(TRIM(s.verdict)) NOT IN (
+                             'queued', 'processing', 'judge unavailable'
                          )
-                       GROUP BY user_id, problem_id
-                   ) best ON best.user_id=u.id
-                   WHERE u.approved=1
-                   GROUP BY u.id
-                   ORDER BY score DESC, solved DESC, u.username ASC''',
-                (contest_id,)
-            ).fetchall()
+                       GROUP BY s.user_id, s.problem_id, fs.accepted_at''',
+                    (contest_id, contest_id)
+                ).fetchall()
 
-            result = [dict(row) for row in rows]
-            with contest_leaderboard_cache_lock:
-                contest_leaderboard_cache[contest_id] = {
-                    'time': time.monotonic(),
-                    'rows': result
-                }
+                start_time = datetime.fromisoformat(contest['start_time'])
+                by_user = {}
+                for row in rows:
+                    uid = row['user_id']
+                    item = by_user.setdefault(uid, {
+                        'score': 0.0,
+                        'solved': 0,
+                        'penalty': 0,
+                        'last_submission_at': None
+                    })
+                    item['score'] += float(row['best_score'] or 0)
+                    accepted_at = row['accepted_at']
+                    if accepted_at:
+                        item['solved'] += 1
+                        try:
+                            accepted_time = datetime.fromisoformat(accepted_at)
+                            elapsed_minutes = max(
+                                0, int((accepted_time - start_time).total_seconds() // 60)
+                            )
+                        except (TypeError, ValueError, OverflowError):
+                            elapsed_minutes = 0
+                        item['penalty'] += (
+                            elapsed_minutes + 20 * int(row['wrong_before_ac'] or 0)
+                        )
+                    latest = row['last_submission_at']
+                    if latest and (
+                        item['last_submission_at'] is None
+                        or latest > item['last_submission_at']
+                    ):
+                        item['last_submission_at'] = latest
+
+                users = db.execute(
+                    '''SELECT id, username FROM users
+                       WHERE approved=1
+                       ORDER BY username COLLATE NOCASE ASC'''
+                ).fetchall()
+                result = []
+                for account in users:
+                    stats = by_user.get(account['id'], {})
+                    result.append({
+                        'username': account['username'],
+                        'score': stats.get('score', 0.0),
+                        'solved': stats.get('solved', 0),
+                        'penalty': stats.get('penalty', 0),
+                        'last_submission_at': stats.get('last_submission_at')
+                    })
+
+                result.sort(key=lambda item: (
+                    -item['score'], -item['solved'],
+                    item['penalty'], item['username'].casefold()
+                ))
+
+                previous_key = None
+                current_rank = 0
+                for index, item in enumerate(result, start=1):
+                    rank_key = (
+                        item['score'], item['solved'], item['penalty']
+                    )
+                    if rank_key != previous_key:
+                        current_rank = index
+                        previous_key = rank_key
+                    item['rank'] = current_rank
+
+                with contest_leaderboard_cache_lock:
+                    contest_leaderboard_cache[contest_id] = {
+                        'time': time.monotonic(),
+                        'rows': [dict(row) for row in result]
+                    }
 
         response = jsonify(result)
         response.headers['Cache-Control'] = 'private, no-store'
         return response
 
 
-    
-    @app.get('/api/contests/<int:contest_id>/my-progress')
+        @app.get('/api/contests/<int:contest_id>/my-progress')
     def contest_my_progress(contest_id):
         with connect(app.config['DATABASE_PATH']) as db:
             user = current_user(db=db)
