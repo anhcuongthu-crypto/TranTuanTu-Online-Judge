@@ -126,6 +126,10 @@ def test_problem_search_keyboard_shortcuts_are_available(tmp_path):
     source = script.get_data(as_text=True)
     assert "event.key === '/'" in source
     assert "event.key === 'Escape'" in source
+    assert "problemSearchIndex" in source
+    assert "scheduleProblemSearchRender" in source
+    assert "problemItems = items" in source
+    assert "JSON.parse(el.dataset.items" not in source
 
 def test_saved_problems_sync_with_account_and_validate_ids(tmp_path):
     client = setup(tmp_path)
