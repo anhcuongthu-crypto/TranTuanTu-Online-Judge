@@ -67,8 +67,8 @@
         const statement = value("problem-statement");
         const input = value("problem-input");
         const output = value("problem-output");
-        const sampleInput = document.querySelector(".sample-grid pre:first-of-type")?.innerText.trim() || "";
-        const sampleOutput = document.querySelector(".sample-grid pre:last-of-type")?.innerText.trim() || "";
+        const sampleInput = document.querySelector(".sample-grid > div:first-child pre")?.innerText.trim() || "";
+        const sampleOutput = document.querySelector(".sample-grid > div:last-child pre")?.innerText.trim() || "";
         const explanation = value("problem-explanation");
         const subtasks = [...document.querySelectorAll(".subtask-row")].map(row =>
             row.innerText.trim().replace(/\\s+\\n/g, "\\n")
@@ -109,12 +109,12 @@
     }
 
     button.addEventListener("click", async () => {
-        const originalLabel = "▤ Sao chép toàn bộ đề";
+        const originalLabel = document.documentElement.lang === "en" ? "▤ Copy full problem" : "▤ Sao chép toàn bộ đề";
         button.disabled = true;
         try {
             await copyText(buildFullStatement());
             button.textContent = "✓ Đã sao chép toàn bộ đề";
-            button.setAttribute("aria-label", "Đã sao chép toàn bộ đề");
+            button.setAttribute("aria-label", document.documentElement.lang === "en" ? "Full problem copied" : "Đã sao chép toàn bộ đề");
         } catch (error) {
             console.error("Không thể sao chép toàn bộ đề:", error);
             button.textContent = "Không sao chép được";
@@ -122,7 +122,7 @@
             button.disabled = false;
             window.setTimeout(() => {
                 button.textContent = originalLabel;
-                button.setAttribute("aria-label", "Sao chép toàn bộ đề");
+                button.setAttribute("aria-label", document.documentElement.lang === "en" ? "Copy full problem" : "Sao chép toàn bộ đề");
             }, 2200);
         }
     });
@@ -650,6 +650,7 @@
         points: "points",
         notUpdated: "Not updated",
         copyLink: "↗ Copy link",
+        copyFullProblem: "▤ Copy full problem",
         inputInfo: "Input",
         outputInfo: "Output",
         sampleInput: "Sample Input",
@@ -687,6 +688,7 @@
         points: "điểm",
         notUpdated: "Chưa cập nhật",
         copyLink: "↗ Sao chép link",
+        copyFullProblem: "▤ Sao chép toàn bộ đề",
         inputInfo: "Input",
         outputInfo: "Output",
         sampleInput: "Dữ liệu vào mẫu",
@@ -760,6 +762,7 @@
         setText("problem-label", labels.problem);
         setText("problem-back", labels.back);
         setText("copy-problem-link", labels.copyLink || "↗ Sao chép liên kết");
+        setText("copy-full-problem", labels.copyFullProblem || "▤ Sao chép toàn bộ đề");
         setText("sample-input-label", labels.sampleInput);
         setText("sample-output-label", labels.sampleOutput);
         setText("problem-data-heading", labels.data);
