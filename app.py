@@ -3440,10 +3440,8 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                             error=f'ID subtask bị trùng trong bài {pid}: {sid}'
                         ), 400
 
-                    if not isinstance(tests, list) or not tests:
-                        return jsonify(
-                            error=f'Mỗi subtask của {pid} phải có test.'
-                        ), 400
+                    if not isinstance(tests, list):
+                        return jsonify(error=f'Danh sách test của subtask {sid} trong {pid} không hợp lệ.'), 400
 
                     for t in tests:
                         if (
@@ -3611,8 +3609,8 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 except (TypeError, ValueError, OverflowError): return jsonify(error=f'Diem subtask cua {pid} khong hop le.'), 400
                 if not sid or not name or sid in subtask_ids or not math.isfinite(score) or score <= 0:
                     return jsonify(error=f'Subtask cua {pid} thieu thong tin hoac trung ID.'), 400
-                if not isinstance(tests, list) or not tests:
-                    return jsonify(error=f'Subtask {sid} cua {pid} phai co test.'), 400
+                if not isinstance(tests, list):
+                    return jsonify(error=f'Danh sach test cua subtask {sid} trong {pid} khong hop le.'), 400
                 for test in tests:
                     if not isinstance(test, dict) or not isinstance(test.get('input'), str) or not isinstance(test.get('output'), str):
                         return jsonify(error=f'Test cua {pid} phai co input/output dang chuoi.'), 400
