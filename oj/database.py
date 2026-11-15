@@ -565,6 +565,12 @@ def _init_sqlite(path):
         CREATE INDEX IF NOT EXISTS idx_submissions_user_problem_contest
         ON submissions(user_id, problem_id, contest_id, score DESC);
 
+        CREATE INDEX IF NOT EXISTS idx_submissions_user_problem_contest_id
+        ON submissions(user_id, problem_id, contest_id, id DESC);
+
+        CREATE INDEX IF NOT EXISTS idx_submissions_problem_contest_id
+        ON submissions(problem_id, contest_id, id DESC);
+
         CREATE INDEX IF NOT EXISTS idx_contest_problems_position
         ON contest_problems(contest_id, position, problem_id);
         """)
@@ -695,6 +701,16 @@ def _init_postgres(path):
         """
         CREATE INDEX IF NOT EXISTS idx_submissions_user_problem_contest
         ON submissions(user_id, problem_id, contest_id, score DESC)
+        """,
+
+        """
+        CREATE INDEX IF NOT EXISTS idx_submissions_user_problem_contest_id
+        ON submissions(user_id, problem_id, contest_id, id DESC)
+        """,
+
+        """
+        CREATE INDEX IF NOT EXISTS idx_submissions_problem_contest_id
+        ON submissions(problem_id, contest_id, id DESC)
         """,
 
         """
