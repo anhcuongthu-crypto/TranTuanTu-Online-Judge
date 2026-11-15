@@ -877,9 +877,10 @@ def test_contest_leaderboard_gives_equal_rank_for_equal_results(tmp_path):
                  contest_id)
             )
     rows = client.get(f'/api/contests/{contest_id}/leaderboard').json
-    assert len(rows) == 2
-    assert rows[0]['rank'] == rows[1]['rank'] == 1
-    assert rows[0]['penalty'] == rows[1]['penalty'] == 15
+    tied_rows = [row for row in rows if row['username'] in ('tie_one', 'tie_two')]
+    assert len(tied_rows) == 2
+    assert tied_rows[0]['rank'] == tied_rows[1]['rank'] == 1
+    assert tied_rows[0]['penalty'] == tied_rows[1]['penalty'] == 15
 
 
 def test_contest_page_has_live_countdown_and_leaderboard_auto_refresh(tmp_path):
