@@ -307,7 +307,8 @@ button.secondary,.secondary,.btn-secondary,.ghost{background:#edf6fc!important;c
 input,select,textarea{background:#fff!important;color:#244761!important;border:1px solid #cbddea!important;color-scheme:light!important}
 pre,code,.code,.source-code{background:#f0f6fb!important;color:#294c67!important;border-color:#dce8f2!important}
 table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!important;color:#365d79!important}td{background:#fff!important;color:#36566f!important;border-color:#e4edf4!important}
-</style></head>
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script><script>if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";</script>
+</head>
 <body>
 
     <header class="admin-header">
@@ -486,6 +487,16 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
       <button type="button" class="secondary" id="contestAttachmentUpload">Tải tệp lên</button>
       <p id="contestAttachmentStatus" class="message" aria-live="polite"></p>
       <div id="contestAttachmentList"></div>
+      <label for="contestMediaChoice">Tệp cần khoanh vùng</label>
+      <select id="contestMediaChoice"><option value="">Chọn tệp đã tải lên</option></select>
+      <label for="contestMediaPage">Trang PDF (với ảnh luôn là 1)</label>
+      <input id="contestMediaPage" type="number" min="1" value="1">
+      <div id="contestCropStage" style="position:relative;max-width:100%;overflow:auto;border:1px solid #cbd5e1;background:#eef2f7;min-height:100px">
+        <canvas id="contestCropCanvas" style="display:block;max-width:100%;height:auto;cursor:crosshair"></canvas>
+        <div id="contestCropRect" style="position:absolute;border:2px solid #e11d48;background:rgba(225,29,72,.12);display:none;pointer-events:none"></div>
+      </div>
+      <p class="muted">Kéo chuột trên trang để chọn vùng. Không kéo thì mặc định lấy toàn trang.</p>
+      <button type="button" class="secondary" id="contestCropAdd">Gắn vùng đã chọn vào bài đang tạo</button>
     </div>
     <label for="contestTitle">Tên Contest</label>
     <input id="contestTitle" type="text" placeholder="Ví dụ: Tuyen Sinh Lam Son 2027">
@@ -1618,13 +1629,55 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
         const attachmentUpload = document.getElementById('contestAttachmentUpload');
         const attachmentStatus = document.getElementById('contestAttachmentStatus');
         const attachmentList = document.getElementById('contestAttachmentList');
+        const mediaChoice = document.getElementById('contestMediaChoice');
+        const mediaPage = document.getElementById('contestMediaPage');
+        const cropCanvas = document.getElementById('contestCropCanvas');
+        const cropRect = document.getElementById('contestCropRect');
+        let uploadedContestMedia = [], cropStart = null, cropSelection = null, cropRenderToken = 0;
+        function renderMediaChoices() {
+            mediaChoice.innerHTML = '<option value="">Chọn tệp đã tải lên</option>';
+            uploadedContestMedia.forEach((f,i) => { const o=document.createElement('option'); o.value=String(i); o.textContent=f.filename; mediaChoice.appendChild(o); });
+        }
+        function paintCropRect() {
+            if(!cropSelection){cropRect.style.display='none';return;}
+            const r=cropCanvas.getBoundingClientRect(), sx=r.width/cropCanvas.width, sy=r.height/cropCanvas.height;
+            cropRect.style.display='block'; cropRect.style.left=(cropSelection.x*sx+cropCanvas.offsetLeft)+'px';
+            cropRect.style.top=(cropSelection.y*sy+cropCanvas.offsetTop)+'px';
+            cropRect.style.width=(cropSelection.width*sx)+'px'; cropRect.style.height=(cropSelection.height*sy)+'px';
+        }
+        async function renderCropSource() {
+            const token=++cropRenderToken, file=uploadedContestMedia[Number(mediaChoice.value)], ctx=cropCanvas.getContext('2d');
+            cropSelection=null; cropRect.style.display='none'; ctx.clearRect(0,0,cropCanvas.width,cropCanvas.height);
+            if(!file)return;
+            if(file.mime_type==='application/pdf'){
+                if(!window.pdfjsLib){attachmentStatus.textContent='Bộ đọc PDF chưa tải xong. Hãy thử lại.';return;}
+                try{
+                    const pdf=await pdfjsLib.getDocument(file.url).promise, page=await pdf.getPage(Math.max(1,Number(mediaPage.value)||1));
+                    if(token!==cropRenderToken)return;
+                    const vp=page.getViewport({scale:1.35}); cropCanvas.width=vp.width; cropCanvas.height=vp.height;
+                    await page.render({canvasContext:ctx,viewport:vp}).promise;
+                }catch(e){attachmentStatus.textContent='Không xem được PDF: '+e.message;}
+            }else{
+                const img=new Image(); img.onload=()=>{if(token!==cropRenderToken)return;const scale=Math.min(1,1000/img.naturalWidth);cropCanvas.width=Math.round(img.naturalWidth*scale);cropCanvas.height=Math.round(img.naturalHeight*scale);ctx.drawImage(img,0,0,cropCanvas.width,cropCanvas.height);};img.src=file.url;
+            }
+        }
+        mediaChoice.addEventListener('change',renderCropSource); mediaPage.addEventListener('change',renderCropSource);
+        cropCanvas.addEventListener('pointerdown',e=>{if(!cropCanvas.width)return;const r=cropCanvas.getBoundingClientRect(),sx=cropCanvas.width/r.width,sy=cropCanvas.height/r.height;cropStart={x:Math.max(0,Math.min(cropCanvas.width,(e.clientX-r.left)*sx)),y:Math.max(0,Math.min(cropCanvas.height,(e.clientY-r.top)*sy))};cropCanvas.setPointerCapture(e.pointerId);cropSelection={x:cropStart.x,y:cropStart.y,width:0,height:0};paintCropRect();});
+        cropCanvas.addEventListener('pointermove',e=>{if(!cropStart)return;const r=cropCanvas.getBoundingClientRect(),sx=cropCanvas.width/r.width,sy=cropCanvas.height/r.height,x=Math.max(0,Math.min(cropCanvas.width,(e.clientX-r.left)*sx)),y=Math.max(0,Math.min(cropCanvas.height,(e.clientY-r.top)*sy));cropSelection={x:Math.min(x,cropStart.x),y:Math.min(y,cropStart.y),width:Math.abs(x-cropStart.x),height:Math.abs(y-cropStart.y)};paintCropRect();});
+        cropCanvas.addEventListener('pointerup',()=>{cropStart=null;});
+        document.getElementById('contestCropAdd').addEventListener('click',()=>{
+            const file=uploadedContestMedia[Number(mediaChoice.value)];if(!file){attachmentStatus.textContent='Hãy chọn tệp trước.';return;}
+            let crop=null;if(cropSelection&&cropSelection.width>8&&cropSelection.height>8)crop={x:cropSelection.x/cropCanvas.width,y:cropSelection.y/cropCanvas.height,width:cropSelection.width/cropCanvas.width,height:cropSelection.height/cropCanvas.height};
+            customProblemAttachments.push({...file,page:Math.max(1,Number(mediaPage.value)||1),crop});renderCustomAttachments();
+            attachmentStatus.textContent='Đã gắn vùng vào bài đang tạo. Có thể chọn vùng khác cho bài tiếp theo.';
+        });
         function renderCustomAttachments() {
             attachmentList.replaceChildren();
             customProblemAttachments.forEach((file, index) => {
                 const row = document.createElement('div');
                 row.className = 'problem-item';
                 const label = document.createElement('span');
-                label.textContent = (file.mime_type === 'application/pdf' ? '📄 ' : '🖼️ ') + file.filename;
+                label.textContent = (file.mime_type === 'application/pdf' ? '📄 ' : '🖼️ ') + file.filename + (file.page ? ' · trang '+file.page : '') + (file.crop ? ' · đã khoanh vùng' : ' · toàn trang');
                 const remove = document.createElement('button');
                 remove.type = 'button'; remove.className = 'danger'; remove.textContent = 'Gỡ';
                 remove.addEventListener('click', () => {
@@ -1650,10 +1703,10 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
                 });
                 const result = await response.json();
                 if (!response.ok) throw new Error(result.error || 'Tải tệp thất bại.');
-                customProblemAttachments.push(...result.files);
-                renderCustomAttachments();
+                uploadedContestMedia.push(...result.files);
+                renderMediaChoices();
                 attachmentInput.value = '';
-                attachmentStatus.textContent = 'Đã tải tệp. Chúng sẽ được gắn vào bài riêng tiếp theo bạn thêm.';
+                attachmentStatus.textContent = 'Đã tải tệp. Chọn tệp, trang rồi kéo chuột khoanh vùng đề bài.';
             } catch (error) {
                 attachmentStatus.textContent = error.message;
                 attachmentStatus.className = 'message error-message';
@@ -1776,7 +1829,6 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
 
             customProblemAttachments = [];
             renderCustomAttachments();
-            attachmentStatus.textContent = '';
             customProblemId.value = '';
             customProblemTitle.value = '';
             customProblemStatement.value = '';
