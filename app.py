@@ -2782,7 +2782,7 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
         return response
 
 
-        @app.get('/api/contests/<int:contest_id>/my-progress')
+    @app.get('/api/contests/<int:contest_id>/my-progress')
     def contest_my_progress(contest_id):
         with connect(app.config['DATABASE_PATH']) as db:
             user = current_user(db=db)
