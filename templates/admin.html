@@ -486,6 +486,8 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
       <input id="contestAttachmentFiles" type="file" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,.png,.jpg,.jpeg,.webp,.gif,.pdf" multiple>
       <button type="button" class="secondary" id="contestAttachmentUpload">Tải tệp lên</button>
       <p id="contestAttachmentStatus" class="message" aria-live="polite"></p>
+      <h4 style="margin:14px 0 6px">Vùng đã chọn cho bài đang nhập</h4>
+      <p class="muted">Các vùng ở đây chỉ thuộc bài riêng bạn sắp thêm. Sau khi nhấn “Thêm bài riêng vào Contest”, danh sách sẽ được lưu riêng cho bài đó và khung chọn sẽ trống để bạn khoanh bài tiếp theo trên cùng PDF.</p>
       <div id="contestAttachmentList"></div>
       <label for="contestMediaChoice">Tệp cần khoanh vùng</label>
       <select id="contestMediaChoice"><option value="">Chọn tệp đã tải lên</option></select>
@@ -496,7 +498,7 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
         <div id="contestCropRect" style="position:absolute;border:2px solid #e11d48;background:rgba(225,29,72,.12);display:none;pointer-events:none"></div>
       </div>
       <p class="muted">Kéo chuột trên trang để chọn vùng. Không kéo thì mặc định lấy toàn trang.</p>
-      <button type="button" class="secondary" id="contestCropAdd">Gắn vùng đã chọn vào bài đang tạo</button>
+      <button type="button" class="secondary" id="contestCropAdd">＋ Gắn vùng này vào bài đang nhập</button>
     </div>
     <label for="contestTitle">Tên Contest</label>
     <input id="contestTitle" type="text" placeholder="Ví dụ: Tuyen Sinh Lam Son 2027">
@@ -1721,8 +1723,20 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
                 const item = document.createElement('div');
                 item.className = 'problem-item';
 
-                const title = document.createElement('span');
+                const title = document.createElement('div');
                 title.textContent = p.id + ' - ' + p.title;
+                title.style.fontWeight = '700';
+
+                const details = document.createElement('div');
+                details.className = 'muted';
+                const files = Array.isArray(p.attachments) ? p.attachments : [];
+                details.textContent = files.length
+                    ? files.map(file =>
+                        file.filename + ' · trang ' + (file.page || 1) +
+                        (file.crop ? ' · vùng đã khoanh' : ' · toàn trang')
+                      ).join(' | ')
+                    : 'Chưa gắn ảnh/PDF gốc';
+                details.style.marginTop = '4px';
 
                 const remove = document.createElement('button');
                 remove.type = 'button';
@@ -1734,7 +1748,9 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
                     renderCustomProblemList();
                 });
 
-                item.appendChild(title);
+                const info = document.createElement('div');
+                info.append(title, details);
+                item.appendChild(info);
                 item.appendChild(remove);
                 customProblemList.appendChild(item);
             });
