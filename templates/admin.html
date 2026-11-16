@@ -1761,9 +1761,10 @@ table{background:#fff!important;color:#294c67!important}th{background:#eaf3fa!im
             const title = customProblemTitle.value.trim();
             const statement = customProblemStatement.value.trim();
 
-            if (!id || !title || !statement) {
+            const hasAttachments = customProblemAttachments.length > 0;
+            if (!id || !title || (!statement && !hasAttachments)) {
                 customProblemMessage.textContent =
-                    'Hãy nhập ID, tên bài và đề bài.';
+                    'Hãy nhập ID, tên bài và nội dung đề bài hoặc đính kèm ít nhất một ảnh/PDF.';
                 return;
             }
 
