@@ -3397,9 +3397,12 @@ Sitemap: https://trantuantu-online-judge.onrender.com/sitemap.xml
                 problem_title = str(p.get('title', '')).strip()
                 statement = str(p.get('statement', '')).strip()
 
-                if not pid or not problem_title or not statement:
+                attachments = p.get('attachments', [])
+                has_attachments = isinstance(attachments, list) and len(attachments) > 0
+
+                if not pid or not problem_title or (not statement and not has_attachments):
                     return jsonify(
-                        error='Bài riêng phải có ID, tên và đề bài.'
+                        error='Bài riêng phải có ID, tên và nội dung đề bài hoặc ít nhất một ảnh/PDF đính kèm.'
                     ), 400
 
                 if pid in bank_problems:
