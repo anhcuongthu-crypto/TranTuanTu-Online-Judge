@@ -84,6 +84,14 @@
       <small id="el-bank-help">Giữ Ctrl (Windows) hoặc Command (Mac) để chọn nhiều bài.</small>
       <label for="el-custom-problems">Tạo bài riêng cho đề (JSON array, có thể để trống)</label>
       <textarea id="el-custom-problems" rows="10" spellcheck="false" placeholder='[{"id":"DEMO_C1","title":"Bài 1","statement":"Đề bài...","input_desc":"Dữ liệu vào","output_desc":"Dữ liệu ra","total_score":10,"time_limit":1,"memory_limit":256000,"subtasks":[{"id":"1","name":"Subtask 1","score":10,"tests":[{"input":"5\n","output":"5\n"}]}]}]'></textarea>
+      <div class="el-media-upload">
+        <label for="el-create-media-files">Tải ảnh/PDF cho bài riêng (tối đa 10 tệp, mỗi tệp 12 MB)</label>
+        <input id="el-create-media-files" type="file" multiple accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,.png,.jpg,.jpeg,.webp,.gif,.pdf">
+        <button type="button" id="el-create-media-upload">Tải ảnh/PDF lên</button>
+        <p id="el-create-media-status" role="status"></p>
+        <label for="el-create-media-json">JSON attachments để chèn vào từng bài cần gắn tệp</label>
+        <textarea id="el-create-media-json" rows="4" readonly spellcheck="false" placeholder='"attachments":[{"id":"ID_TEP","page":1}]'></textarea>
+      </div>
       <label class="el-visible"><input id="el-new-visible" type="checkbox" checked> Hiển thị đề thi cho thí sinh</label>
       <div class="el-admin-actions">
         <button type="submit" id="el-create-submit">Tạo đề trong Thư viện</button>
@@ -102,6 +110,14 @@
       <select id="el-existing-contest" required><option value="">Đang tải danh sách đề...</option></select>
       <label for="el-append-json">JSON bài mới (mảng JSON, không cần trường solution)</label>
       <textarea id="el-append-json" rows="10" spellcheck="false" placeholder='[{"id":"BAI_03","title":"Bài 3","statement":"...","input":"...","output":"...","total_score":10,"time_limit":1,"memory_limit":256000,"subtasks":[{"id":"SUB1","name":"Subtask 1","score":10,"tests":[{"input":"5","output":"5"}]}]}]'></textarea>
+      <div class="el-media-upload">
+        <label for="el-append-media-files">Tải ảnh/PDF cho bài bổ sung (tối đa 10 tệp, mỗi tệp 12 MB)</label>
+        <input id="el-append-media-files" type="file" multiple accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,.png,.jpg,.jpeg,.webp,.gif,.pdf">
+        <button type="button" id="el-append-media-upload">Tải ảnh/PDF lên</button>
+        <p id="el-append-media-status" role="status"></p>
+        <label for="el-append-media-json">JSON attachments để chèn vào từng bài cần gắn tệp</label>
+        <textarea id="el-append-media-json" rows="4" readonly spellcheck="false" placeholder='"attachments":[{"id":"ID_TEP","page":1}]'></textarea>
+      </div>
       <div class="el-admin-actions"><button type="submit" id="el-append-submit">Thêm bài vào đề</button></div>
       <p id="el-append-message" role="status" aria-live="polite"></p>
     </form>
@@ -187,6 +203,43 @@
 })();
 </script>
 
+<script id="el-contest-media-upload-script">
+(() => {
+  async function setup(prefix) {
+    const input=document.getElementById(prefix+'-media-files');
+    const button=document.getElementById(prefix+'-media-upload');
+    const status=document.getElementById(prefix+'-media-status');
+    const output=document.getElementById(prefix+'-media-json');
+    if(!input||!button||!status||!output)return;
+    let uploaded=[];
+    button.addEventListener('click',async()=>{
+      const files=Array.from(input.files||[]);
+      if(!files.length){status.textContent='Hãy chọn ảnh hoặc PDF trước.';return;}
+      if(files.length+uploaded.length>10){status.textContent='Mỗi lần tạo bài chỉ dùng tối đa 10 tệp.';return;}
+      const form=new FormData();
+      files.forEach(file=>form.append('files',file));
+      button.disabled=true;status.textContent='Đang tải tệp lên...';
+      try{
+        const response=await fetch('/api/admin/contest-media',{method:'POST',credentials:'same-origin',body:form});
+        const result=await response.json();
+        if(!response.ok)throw Error(result.error||'Không tải được tệp.');
+        uploaded=uploaded.concat(result.files||[]);
+        output.value='"attachments":'+JSON.stringify(uploaded.map(file=>({id:file.id,page:1})),null,2);
+        status.textContent='Đã tải '+(result.files||[]).length+' tệp. Sao chép thuộc tính attachments và chèn vào object bài tương ứng trong JSON.';
+        input.value='';
+      }catch(error){status.textContent=error.message;}
+      finally{button.disabled=false;}
+    });
+  }
+  setup('el-create');setup('el-append');
+})();
+</script>
+<style>
+.el-media-upload{margin:14px 0;padding:14px;border:1px dashed #b8cddd;border-radius:10px;background:#f7fbff}
+.el-media-upload input{display:block;margin:8px 0}
+.el-media-upload textarea{width:100%;font-family:monospace}
+.el-media-upload p{font-size:13px;color:#35617f}
+</style>
 <script id="el-admin-append-script">
 (() => {
   const form=document.getElementById('el-append-problems');
